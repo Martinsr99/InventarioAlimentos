@@ -1,0 +1,7 @@
+{
+  "name": "InventarioAlimentos",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react-vite"
+}
