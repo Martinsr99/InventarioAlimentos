@@ -44,6 +44,7 @@ ios/App/DerivedData/
 ios/App/App.xcworkspace/xcuserdata/
 ios/App/App.xcodeproj/xcuserdata/
 ios/App/App.xcodeproj/project.xcworkspace/xcuserdata/
+ios/App/GoogleService-Info.plist
 *.pbxuser
 !default.pbxuser
 *.mode1v3
@@ -68,12 +69,16 @@ android/captures/
 android/gradle/
 android/.gradle/
 android/local.properties
+android/app/google-services.json
 *.iml
 .gradle
 /build
 /captures
 .externalNativeBuild
 .cxx
+
+# Firebase
+src/firebaseConfig.ts
 
 # Misc
 .DS_Store
