@@ -52,23 +52,27 @@ const Auth: React.FC = () => {
                             )}
                             
                             <form onSubmit={handleAuth}>
-                                <IonItem>
-                                    <IonLabel position="floating">Email</IonLabel>
+                                <IonItem lines="full" className="ion-margin-bottom">
+                                    <IonLabel position="stacked">Email</IonLabel>
                                     <IonInput
                                         type="email"
                                         value={email}
+                                        placeholder="Enter your email"
                                         onIonChange={e => setEmail(e.detail.value!)}
                                         required
+                                        className="ion-padding-top"
                                     />
                                 </IonItem>
 
-                                <IonItem>
-                                    <IonLabel position="floating">Password</IonLabel>
+                                <IonItem lines="full" className="ion-margin-bottom">
+                                    <IonLabel position="stacked">Password</IonLabel>
                                     <IonInput
                                         type="password"
                                         value={password}
+                                        placeholder="Enter your password"
                                         onIonChange={e => setPassword(e.detail.value!)}
                                         required
+                                        className="ion-padding-top"
                                     />
                                 </IonItem>
 

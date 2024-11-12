@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   IonApp, 
   IonContent, 
@@ -6,8 +6,14 @@ import {
   IonToolbar, 
   IonTitle,
   IonPage,
-  setupIonicReact 
+  setupIonicReact,
+  IonButton,
+  IonGrid,
+  IonRow,
+  IonCol
 } from '@ionic/react';
+import { auth } from './firebaseConfig';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 import Auth from './components/Authenticator/Auth';
 import AddProductForm from './forms/AddProductForm';
 import ProductList from './components/Products/ProductList';
@@ -37,9 +43,26 @@ setupIonicReact({
 });
 
 const App: React.FC = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+
   useEffect(() => {
-    scheduleExpiryNotifications();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setIsAuthenticated(!!user);
+      if (user) {
+        scheduleExpiryNotifications();
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
 
   return (
     <IonApp>
@@ -47,12 +70,31 @@ const App: React.FC = () => {
         <IonHeader>
           <IonToolbar>
             <IonTitle>Inventario de Alimentos</IonTitle>
+            {isAuthenticated && (
+              <IonButton 
+                slot="end" 
+                fill="clear"
+                onClick={handleLogout}
+              >
+                Cerrar Sesión
+              </IonButton>
+            )}
           </IonToolbar>
         </IonHeader>
-        <IonContent className="ion-padding" scrollY={true}>
-          <Auth />
-          <AddProductForm />
-          <ProductList />
+        <IonContent>
+          <IonGrid>
+            <IonRow>
+              <IonCol>
+                {!isAuthenticated && <Auth />}
+                {isAuthenticated && (
+                  <>
+                    <AddProductForm />
+                    <ProductList />
+                  </>
+                )}
+              </IonCol>
+            </IonRow>
+          </IonGrid>
         </IonContent>
       </IonPage>
     </IonApp>
