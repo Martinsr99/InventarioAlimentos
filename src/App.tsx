@@ -10,10 +10,12 @@ import {
   IonButton,
   IonGrid,
   IonRow,
-  IonCol
+  IonCol,
+  IonToast,
+  IonSpinner
 } from '@ionic/react';
 import { auth } from './firebaseConfig';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { onAuthStateChanged, signOut, User } from 'firebase/auth';
 import Auth from './components/Authenticator/Auth';
 import AddProductForm from './forms/AddProductForm';
 import ProductList from './components/Products/ProductList';
@@ -44,25 +46,77 @@ setupIonicReact({
 
 const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isSigningOut, setIsSigningOut] = useState<boolean>(false);
+  const [toastMessage, setToastMessage] = useState<string>('');
+  const [toastIsError, setToastIsError] = useState<boolean>(false);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setIsAuthenticated(!!user);
-      if (user) {
-        scheduleExpiryNotifications();
+    const unsubscribe = onAuthStateChanged(auth, 
+      async (user: User | null) => {
+        setIsAuthenticated(!!user);
+        if (user) {
+          try {
+            await scheduleExpiryNotifications();
+          } catch (error) {
+            console.error('Error scheduling notifications:', error);
+            showToast('Notificaciones pueden no funcionar correctamente', true);
+          }
+        }
+        setIsLoading(false);
+      },
+      (error) => {
+        console.error('Auth state change error:', error);
+        showToast('Error al verificar el estado de autenticación', true);
+        setIsLoading(false);
       }
-    });
+    );
 
-    return () => unsubscribe();
+    return () => {
+      try {
+        unsubscribe();
+      } catch (error) {
+        console.error('Error unsubscribing from auth state:', error);
+      }
+    };
   }, []);
 
+  const showToast = (message: string, isError: boolean = false) => {
+    setToastMessage(message);
+    setToastIsError(isError);
+  };
+
   const handleLogout = async () => {
+    setIsSigningOut(true);
     try {
       await signOut(auth);
+      showToast('Sesión cerrada exitosamente');
     } catch (error) {
       console.error('Error signing out:', error);
+      showToast('Error al cerrar sesión. Por favor intente nuevamente.', true);
+    } finally {
+      setIsSigningOut(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <IonApp>
+        <IonPage>
+          <IonContent className="ion-padding">
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'center', 
+              alignItems: 'center', 
+              height: '100%' 
+            }}>
+              <IonSpinner name="crescent" />
+            </div>
+          </IonContent>
+        </IonPage>
+      </IonApp>
+    );
+  }
 
   return (
     <IonApp>
@@ -75,8 +129,13 @@ const App: React.FC = () => {
                 slot="end" 
                 fill="clear"
                 onClick={handleLogout}
+                disabled={isSigningOut}
               >
-                Cerrar Sesión
+                {isSigningOut ? (
+                  <IonSpinner name="crescent" />
+                ) : (
+                  'Cerrar Sesión'
+                )}
               </IonButton>
             )}
           </IonToolbar>
@@ -96,6 +155,15 @@ const App: React.FC = () => {
             </IonRow>
           </IonGrid>
         </IonContent>
+
+        <IonToast
+          isOpen={!!toastMessage}
+          onDidDismiss={() => setToastMessage('')}
+          message={toastMessage}
+          duration={3000}
+          position="bottom"
+          color={toastIsError ? 'danger' : 'success'}
+        />
       </IonPage>
     </IonApp>
   );
