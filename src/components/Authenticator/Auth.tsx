@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { auth } from '../../firebaseConfig';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, AuthError } from 'firebase/auth';
+import Swal from 'sweetalert2';
 import {
     IonCard,
     IonCardContent,
@@ -10,40 +11,107 @@ import {
     IonLabel,
     IonInput,
     IonButton,
-    IonText,
     IonGrid,
     IonRow,
     IonCol,
     IonSpinner,
-    IonList
+    IonNote,
+    IonIcon,
+    IonButtons,
+    InputChangeEventDetail
 } from '@ionic/react';
+import { checkmarkCircle, closeCircle, eyeOutline, eyeOffOutline } from 'ionicons/icons';
+
+interface PasswordRequirement {
+    text: string;
+    check: (password: string) => boolean;
+    met: boolean;
+}
 
 const Auth: React.FC = () => {
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [isRegistering, setIsRegistering] = useState<boolean>(true);
-    const [error, setError] = useState<string>('');
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
+    const [showPassword, setShowPassword] = useState<boolean>(false);
+    const [requirements, setRequirements] = useState<PasswordRequirement[]>([
+        {
+            text: 'At least 8 characters',
+            check: (pass) => pass.length >= 8,
+            met: false
+        },
+        {
+            text: 'One uppercase letter',
+            check: (pass) => /[A-Z]/.test(pass),
+            met: false
+        },
+        {
+            text: 'One lowercase letter',
+            check: (pass) => /[a-z]/.test(pass),
+            met: false
+        },
+        {
+            text: 'One number',
+            check: (pass) => /[0-9]/.test(pass),
+            met: false
+        }
+    ]);
 
-    const validatePassword = (pass: string): string[] => {
-        const errors: string[] = [];
-        if (pass.length < 8) {
-            errors.push('Password must be at least 8 characters long');
+    // Set initial password visibility based on registration state
+    useEffect(() => {
+        setShowPassword(isRegistering);
+    }, [isRegistering]);
+
+    const updatePasswordRequirements = (newPassword: string) => {
+        if (isRegistering) {
+            const updatedRequirements = requirements.map(req => ({
+                ...req,
+                met: req.check(newPassword)
+            }));
+            setRequirements(updatedRequirements);
         }
-        if (!/[A-Z]/.test(pass)) {
-            errors.push('Password must contain at least one uppercase letter');
-        }
-        if (!/[a-z]/.test(pass)) {
-            errors.push('Password must contain at least one lowercase letter');
-        }
-        if (!/[0-9]/.test(pass)) {
-            errors.push('Password must contain at least one number');
-        }
-        if (!/[!@#$%^&*]/.test(pass)) {
-            errors.push('Password must contain at least one special character (!@#$%^&*)');
-        }
-        return errors;
+    };
+
+    const handlePasswordChange = (event: CustomEvent<InputChangeEventDetail>) => {
+        const newPassword = event.detail.value || '';
+        setPassword(newPassword);
+        updatePasswordRequirements(newPassword);
+    };
+
+    const showError = (title: string, message: string) => {
+        let timerInterval: NodeJS.Timeout;
+        let isHovered = false;
+
+        Swal.fire({
+            title,
+            text: message,
+            icon: 'error',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#3880ff',
+            background: '#ffffff',
+            heightAuto: false,
+            timer: 3000,
+            timerProgressBar: true,
+            customClass: {
+                popup: 'auth-modal',
+                title: 'auth-modal-title',
+                htmlContainer: 'auth-modal-content',
+                confirmButton: 'auth-modal-button'
+            },
+            didOpen: (popup) => {
+                popup.addEventListener('mouseenter', () => {
+                    isHovered = true;
+                    Swal.stopTimer();
+                });
+                popup.addEventListener('mouseleave', () => {
+                    isHovered = false;
+                    Swal.resumeTimer();
+                });
+            },
+            willClose: () => {
+                clearInterval(timerInterval);
+            }
+        });
     };
 
     const validateEmail = (email: string): boolean => {
@@ -51,49 +119,74 @@ const Auth: React.FC = () => {
         return emailRegex.test(email);
     };
 
-    const getFirebaseErrorMessage = (error: AuthError): string => {
+    const getFirebaseErrorMessage = (error: AuthError): { title: string; message: string } => {
         switch (error.code) {
             case 'auth/email-already-in-use':
-                return 'This email is already registered. Please try logging in instead.';
+                return {
+                    title: 'Email Already Registered',
+                    message: 'This email is already registered. Please try logging in instead.'
+                };
             case 'auth/invalid-email':
-                return 'Please enter a valid email address.';
+                return {
+                    title: 'Invalid Email',
+                    message: 'Please enter a valid email address.'
+                };
             case 'auth/operation-not-allowed':
-                return 'Email/password sign up is not enabled. Please contact support.';
+                return {
+                    title: 'Operation Not Allowed',
+                    message: 'Email/password sign up is not enabled. Please contact support.'
+                };
             case 'auth/weak-password':
-                return 'Please choose a stronger password.';
+                return {
+                    title: 'Weak Password',
+                    message: 'Please choose a stronger password.'
+                };
             case 'auth/user-disabled':
-                return 'This account has been disabled. Please contact support.';
+                return {
+                    title: 'Account Disabled',
+                    message: 'This account has been disabled. Please contact support.'
+                };
             case 'auth/user-not-found':
-                return 'No account found with this email. Please register first.';
+                return {
+                    title: 'Account Not Found',
+                    message: 'No account found with this email. Please register first.'
+                };
             case 'auth/wrong-password':
-                return 'Incorrect password. Please try again.';
+                return {
+                    title: 'Incorrect Password',
+                    message: 'Incorrect password. Please try again.'
+                };
             case 'auth/too-many-requests':
-                return 'Too many failed attempts. Please try again later.';
+                return {
+                    title: 'Too Many Attempts',
+                    message: 'Too many failed attempts. Please try again later.'
+                };
             case 'auth/invalid-credential':
-                return 'Invalid credentials. Please check your email and password.';
+                return {
+                    title: 'Invalid Credentials',
+                    message: 'Invalid credentials. Please check your email and password.'
+                };
             default:
-                return 'An error occurred. Please try again.';
+                return {
+                    title: 'Error',
+                    message: 'An error occurred. Please try again.'
+                };
         }
     };
 
     const handleAuth = async (e: React.FormEvent) => {
         e.preventDefault();
-        setError('');
-        setPasswordErrors([]);
 
         // Email validation
         if (!validateEmail(email)) {
-            setError('Please enter a valid email address');
+            showError('Invalid Email', 'Please enter a valid email address');
             return;
         }
 
         // Password validation for registration
-        if (isRegistering) {
-            const errors = validatePassword(password);
-            if (errors.length > 0) {
-                setPasswordErrors(errors);
-                return;
-            }
+        if (isRegistering && !requirements.every(req => req.met)) {
+            showError('Password Requirements', 'Please meet all password requirements');
+            return;
         }
 
         setIsLoading(true);
@@ -104,16 +197,10 @@ const Auth: React.FC = () => {
                 await signInWithEmailAndPassword(auth, email, password);
             }
         } catch (error: any) {
-            setError(getFirebaseErrorMessage(error));
+            const errorInfo = getFirebaseErrorMessage(error);
+            showError(errorInfo.title, errorInfo.message);
         } finally {
             setIsLoading(false);
-        }
-    };
-
-    const handlePasswordChange = (value: string) => {
-        setPassword(value);
-        if (isRegistering) {
-            setPasswordErrors(validatePassword(value));
         }
     };
 
@@ -126,12 +213,6 @@ const Auth: React.FC = () => {
                             <IonCardTitle>{isRegistering ? 'Register' : 'Login'}</IonCardTitle>
                         </IonCardHeader>
                         <IonCardContent>
-                            {error && (
-                                <IonText color="danger">
-                                    <p>{error}</p>
-                                </IonText>
-                            )}
-                            
                             <form onSubmit={handleAuth}>
                                 <IonItem lines="full" className="ion-margin-bottom">
                                     <IonLabel position="stacked">Email</IonLabel>
@@ -148,23 +229,45 @@ const Auth: React.FC = () => {
                                 <IonItem lines="full" className="ion-margin-bottom">
                                     <IonLabel position="stacked">Password</IonLabel>
                                     <IonInput
-                                        type="password"
+                                        type={showPassword ? "text" : "password"}
                                         value={password}
                                         placeholder="Enter your password"
-                                        onIonChange={e => handlePasswordChange(e.detail.value!)}
+                                        onIonInput={handlePasswordChange}
                                         required
                                         className="ion-padding-top"
                                     />
+                                    <IonButtons slot="end">
+                                        <IonButton
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            fill="clear"
+                                        >
+                                            <IonIcon
+                                                icon={showPassword ? eyeOutline : eyeOffOutline}
+                                                color="medium"
+                                                style={{ fontSize: '1.2rem' }}
+                                            />
+                                        </IonButton>
+                                    </IonButtons>
                                 </IonItem>
 
-                                {isRegistering && passwordErrors.length > 0 && (
-                                    <IonList className="ion-margin-bottom">
-                                        {passwordErrors.map((error, index) => (
-                                            <IonText key={index} color="danger">
-                                                <p className="ion-no-margin">{error}</p>
-                                            </IonText>
+                                {isRegistering && (
+                                    <div className="password-requirements">
+                                        <IonNote>Password requirements:</IonNote>
+                                        {requirements.map((req, index) => (
+                                            <div key={index} className="requirement-item">
+                                                <IonIcon 
+                                                    icon={req.met ? checkmarkCircle : closeCircle} 
+                                                    color={req.met ? 'success' : 'medium'}
+                                                    style={{ marginRight: '8px' }}
+                                                />
+                                                <span style={{ 
+                                                    color: req.met ? 'var(--ion-color-success)' : 'var(--ion-color-medium)'
+                                                }}>
+                                                    {req.text}
+                                                </span>
+                                            </div>
                                         ))}
-                                    </IonList>
+                                    </div>
                                 )}
 
                                 <IonButton 
@@ -186,8 +289,8 @@ const Auth: React.FC = () => {
                                 fill="clear"
                                 onClick={() => {
                                     setIsRegistering(!isRegistering);
-                                    setError('');
-                                    setPasswordErrors([]);
+                                    setPassword('');
+                                    setEmail('');
                                 }}
                                 className="ion-margin-top"
                                 disabled={isLoading}
@@ -200,6 +303,36 @@ const Auth: React.FC = () => {
                     </IonCard>
                 </IonCol>
             </IonRow>
+
+            <style>{`
+                .auth-modal {
+                    border-radius: 10px;
+                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+                }
+                .auth-modal-title {
+                    font-size: 1.5rem;
+                    color: #1f1f1f;
+                }
+                .auth-modal-content {
+                    font-size: 1rem;
+                    color: #4a4a4a;
+                }
+                .auth-modal-button {
+                    font-weight: 500;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                }
+                .password-requirements {
+                    margin: 16px 0;
+                    padding: 0 16px;
+                }
+                .requirement-item {
+                    display: flex;
+                    align-items: center;
+                    margin: 8px 0;
+                    font-size: 0.9rem;
+                }
+            `}</style>
         </IonGrid>
     );
 };
