@@ -28,39 +28,47 @@ interface PasswordRequirement {
     met: boolean;
 }
 
+const initialRequirements: PasswordRequirement[] = [
+    {
+        text: 'At least 8 characters',
+        check: (pass) => pass.length >= 8,
+        met: false
+    },
+    {
+        text: 'One uppercase letter',
+        check: (pass) => /[A-Z]/.test(pass),
+        met: false
+    },
+    {
+        text: 'One lowercase letter',
+        check: (pass) => /[a-z]/.test(pass),
+        met: false
+    },
+    {
+        text: 'One number',
+        check: (pass) => /[0-9]/.test(pass),
+        met: false
+    }
+];
+
 const Auth: React.FC = () => {
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [isRegistering, setIsRegistering] = useState<boolean>(true);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [showPassword, setShowPassword] = useState<boolean>(false);
-    const [requirements, setRequirements] = useState<PasswordRequirement[]>([
-        {
-            text: 'At least 8 characters',
-            check: (pass) => pass.length >= 8,
-            met: false
-        },
-        {
-            text: 'One uppercase letter',
-            check: (pass) => /[A-Z]/.test(pass),
-            met: false
-        },
-        {
-            text: 'One lowercase letter',
-            check: (pass) => /[a-z]/.test(pass),
-            met: false
-        },
-        {
-            text: 'One number',
-            check: (pass) => /[0-9]/.test(pass),
-            met: false
-        }
-    ]);
+    const [requirements, setRequirements] = useState<PasswordRequirement[]>(initialRequirements);
 
     // Set initial password visibility based on registration state
     useEffect(() => {
         setShowPassword(isRegistering);
     }, [isRegistering]);
+
+    const resetForm = () => {
+        setPassword('');
+        setEmail('');
+        setRequirements(initialRequirements);
+    };
 
     const updatePasswordRequirements = (newPassword: string) => {
         if (isRegistering) {
@@ -289,8 +297,7 @@ const Auth: React.FC = () => {
                                 fill="clear"
                                 onClick={() => {
                                     setIsRegistering(!isRegistering);
-                                    setPassword('');
-                                    setEmail('');
+                                    resetForm();
                                 }}
                                 className="ion-margin-top"
                                 disabled={isLoading}
