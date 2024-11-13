@@ -29,12 +29,24 @@ const CATEGORIES = [
   'other'
 ] as const;
 
-const AddProductForm: React.FC = () => {
+const LOCATIONS = [
+  'fridge',
+  'freezer',
+  'pantry',
+  'other'
+] as const;
+
+interface AddProductFormProps {
+  onProductAdded?: () => void;
+}
+
+const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
   const { t } = useLanguage();
   const [name, setName] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
   const [quantity, setQuantity] = useState('');
   const [category, setCategory] = useState('');
+  const [location, setLocation] = useState('');
   const [notes, setNotes] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -46,6 +58,7 @@ const AddProductForm: React.FC = () => {
     setExpiryDate('');
     setQuantity('');
     setCategory('');
+    setLocation('');
     setNotes('');
     setValidationError('');
   };
@@ -67,6 +80,10 @@ const AddProductForm: React.FC = () => {
       setValidationError(t('validation.categoryRequired'));
       return false;
     }
+    if (!location) {
+      setValidationError(t('validation.locationRequired'));
+      return false;
+    }
     return true;
   };
 
@@ -82,15 +99,22 @@ const AddProductForm: React.FC = () => {
     setIsLoading(true);
 
     try {
-      await addProduct({
+      const trimmedNotes = notes.trim();
+      const productData = {
         name: name.trim(),
         expiryDate,
         quantity: Number(quantity),
         category,
-        notes: notes.trim() || undefined
-      });
+        location,
+        ...(trimmedNotes ? { notes: trimmedNotes } : {})
+      };
+
+      await addProduct(productData);
       setSuccess(true);
       resetForm();
+      if (onProductAdded) {
+        onProductAdded();
+      }
     } catch (error) {
       console.error('Error adding product:', error);
       setError(t('errors.productAdd'));
@@ -154,6 +178,21 @@ const AddProductForm: React.FC = () => {
               {CATEGORIES.map(cat => (
                 <IonSelectOption key={cat} value={cat}>
                   {t(`categories.${cat}`)}
+                </IonSelectOption>
+              ))}
+            </IonSelect>
+          </IonItem>
+
+          <IonItem>
+            <IonLabel position="stacked">{t('products.location')}</IonLabel>
+            <IonSelect
+              value={location}
+              placeholder={t('products.selectLocation')}
+              onIonChange={e => setLocation(e.detail.value)}
+            >
+              {LOCATIONS.map(loc => (
+                <IonSelectOption key={loc} value={loc}>
+                  {t(`locations.${loc}`)}
                 </IonSelectOption>
               ))}
             </IonSelect>

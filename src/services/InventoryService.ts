@@ -6,6 +6,8 @@ export interface Product {
   id: string;
   name: string;
   expiryDate: string;
+  location: string;
+  addedAt: string;
   quantity: number;
   category: string;
   notes?: string;
@@ -33,7 +35,7 @@ export const getProducts = async (): Promise<Product[]> => {
   }
 };
 
-export const addProduct = async (product: Omit<Product, 'id' | 'userId'>): Promise<string> => {
+export const addProduct = async (product: Omit<Product, 'id' | 'userId' | 'addedAt'>): Promise<string> => {
   if (!auth.currentUser) {
     throw new Error('No authenticated user');
   }
@@ -41,6 +43,7 @@ export const addProduct = async (product: Omit<Product, 'id' | 'userId'>): Promi
   try {
     const docRef = await addDoc(collection(db, 'products'), {
       ...product,
+      addedAt: new Date().toISOString(),
       userId: auth.currentUser.uid
     });
     return docRef.id;
@@ -50,7 +53,7 @@ export const addProduct = async (product: Omit<Product, 'id' | 'userId'>): Promi
   }
 };
 
-export const updateProduct = async (productId: string, updates: Partial<Omit<Product, 'id' | 'userId'>>): Promise<void> => {
+export const updateProduct = async (productId: string, updates: Partial<Omit<Product, 'id' | 'userId' | 'addedAt'>>): Promise<void> => {
   if (!auth.currentUser) {
     throw new Error('No authenticated user');
   }

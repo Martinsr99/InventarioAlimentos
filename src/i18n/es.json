@@ -47,6 +47,8 @@
   "products.enterQuantity": "Ingresa la cantidad",
   "products.category": "Categoría",
   "products.selectCategory": "Selecciona una categoría",
+  "products.location": "Ubicación",
+  "products.selectLocation": "Selecciona una ubicación",
   "products.notes": "Notas",
   "products.enterNotes": "Ingresa notas (opcional)",
   "products.save": "Guardar Producto",
@@ -67,6 +69,7 @@
   "validation.expiryRequired": "Por favor selecciona la fecha de vencimiento",
   "validation.quantityRequired": "Por favor ingresa una cantidad válida",
   "validation.categoryRequired": "Por favor selecciona una categoría",
+  "validation.locationRequired": "Por favor selecciona una ubicación",
   
   "categories.dairy": "Lácteos",
   "categories.meat": "Carnes",
@@ -76,6 +79,11 @@
   "categories.beverages": "Bebidas",
   "categories.snacks": "Snacks",
   "categories.other": "Otros",
+
+  "locations.fridge": "Refrigerador",
+  "locations.freezer": "Congelador",
+  "locations.pantry": "Despensa",
+  "locations.other": "Otra",
   
   "notifications.title": "Notificación de Vencimiento",
   "notifications.productExpiring": "Producto por vencer",

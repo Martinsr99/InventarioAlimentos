@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { 
   IonApp, 
   IonContent, 
@@ -52,6 +52,7 @@ const AppContent: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -78,6 +79,10 @@ const AppContent: React.FC = () => {
       setError(t('errors.signOut'));
     }
   };
+
+  const handleProductAdded = useCallback(() => {
+    setRefreshKey(prev => prev + 1);
+  }, []);
 
   if (isLoading) {
     return (
@@ -127,8 +132,8 @@ const AppContent: React.FC = () => {
                 {!isAuthenticated && <Auth />}
                 {isAuthenticated && (
                   <>
-                    <AddProductForm />
-                    <ProductList />
+                    <AddProductForm onProductAdded={handleProductAdded} />
+                    <ProductList key={refreshKey} />
                   </>
                 )}
               </IonCol>

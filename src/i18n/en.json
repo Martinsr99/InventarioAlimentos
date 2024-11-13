@@ -47,6 +47,8 @@
   "products.enterQuantity": "Enter quantity",
   "products.category": "Category",
   "products.selectCategory": "Select category",
+  "products.location": "Location",
+  "products.selectLocation": "Select location",
   "products.notes": "Notes",
   "products.enterNotes": "Enter notes (optional)",
   "products.save": "Save Product",
@@ -67,6 +69,7 @@
   "validation.expiryRequired": "Please select an expiry date",
   "validation.quantityRequired": "Please enter a valid quantity",
   "validation.categoryRequired": "Please select a category",
+  "validation.locationRequired": "Please select a location",
   
   "categories.dairy": "Dairy",
   "categories.meat": "Meat",
@@ -76,6 +79,11 @@
   "categories.beverages": "Beverages",
   "categories.snacks": "Snacks",
   "categories.other": "Other",
+
+  "locations.fridge": "Fridge",
+  "locations.freezer": "Freezer",
+  "locations.pantry": "Pantry",
+  "locations.other": "Other",
   
   "notifications.title": "Expiry Notification",
   "notifications.productExpiring": "Product expiring soon",

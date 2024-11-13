@@ -17,7 +17,11 @@ import { trash, create } from 'ionicons/icons';
 import { deleteProduct, getProducts, Product } from '../../services/InventoryService';
 import { useLanguage } from '../../contexts/LanguageContext';
 
-const ProductList: React.FC = () => {
+interface ProductListProps {
+  onRefreshNeeded?: () => void;
+}
+
+const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -32,6 +36,9 @@ const ProductList: React.FC = () => {
     try {
       const fetchedProducts = await getProducts();
       setProducts(fetchedProducts);
+      if (onRefreshNeeded) {
+        onRefreshNeeded();
+      }
     } catch (error) {
       setError(t('errors.productLoad'));
     } finally {
