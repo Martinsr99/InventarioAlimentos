@@ -22,7 +22,7 @@ import AddProductForm from './forms/AddProductForm';
 import ProductList from './components/Products/ProductList';
 import { scheduleExpiryNotifications } from './services/NotificationService';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
-import LanguageSwitch from './components/common/LanguageSwitch';
+import UserSettings from './components/UserSettings/UserSettings';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -105,15 +105,17 @@ const AppContent: React.FC = () => {
           <IonToolbar>
             <IonTitle>{t('app.title')}</IonTitle>
             <IonButtons slot="end" className="ion-padding-end">
-              <LanguageSwitch />
               {isAuthenticated && (
-                <IonButton 
-                  fill="clear"
-                  onClick={handleLogout}
-                  className="logout-button"
-                >
-                  {t('app.logout')}
-                </IonButton>
+                <>
+                  <UserSettings />
+                  <IonButton 
+                    fill="clear"
+                    onClick={handleLogout}
+                    className="logout-button"
+                  >
+                    {t('app.logout')}
+                  </IonButton>
+                </>
               )}
             </IonButtons>
           </IonToolbar>
@@ -142,22 +144,6 @@ const AppContent: React.FC = () => {
           position="bottom"
           color="danger"
         />
-
-        <style>{`
-          .logout-button {
-            margin-left: 8px;
-          }
-          
-          @media (max-width: 576px) {
-            ion-title {
-              font-size: 1.1rem;
-            }
-            
-            .logout-button {
-              font-size: 0.9rem;
-            }
-          }
-        `}</style>
       </IonPage>
     </IonApp>
   );
