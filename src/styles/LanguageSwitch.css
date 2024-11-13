@@ -1,0 +1,41 @@
+.language-switch {
+  --padding-start: 8px;
+  --padding-end: 8px;
+  height: 36px;
+  margin: 0;
+}
+
+.language-switch-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.language-icon {
+  font-size: 1.2rem;
+  min-width: 20px;
+}
+
+.language-text {
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .language-switch {
+    --padding-start: 6px;
+    --padding-end: 6px;
+    height: 32px;
+  }
+
+  .language-icon {
+    font-size: 1.1rem;
+  }
+
+  .language-text {
+    font-size: 0.8rem;
+  }
+}

@@ -1,72 +1,78 @@
-import { db, auth } from '../firebaseConfig';
-import { collection, addDoc, Timestamp ,query, where, getDocs, deleteDoc, doc, updateDoc} from 'firebase/firestore';
+import { db } from '../firebaseConfig';
+import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where } from 'firebase/firestore';
+import { auth } from '../firebaseConfig';
 
-interface Product {
-    name: string;
-    expiryDate: Date;
-    location: string;
+export interface Product {
+  id: string;
+  name: string;
+  expiryDate: string;
+  quantity: number;
+  category: string;
+  notes?: string;
+  userId: string;
 }
 
-interface ProductUpdate {
-    name?: string;
-    expiryDate?: Date;
-    location?: string;
-}
+export const getProducts = async (): Promise<Product[]> => {
+  if (!auth.currentUser) {
+    throw new Error('No authenticated user');
+  }
 
-export const addProduct = async (product: Product) => {
-    try {
-        const user = auth.currentUser;
-        if (!user) throw new Error("User not authenticated");
-
-        await addDoc(collection(db, 'products'), {
-            ...product,
-            expiryDate: Timestamp.fromDate(product.expiryDate),
-            addedAt: Timestamp.now(),
-            userId: user.uid
-        });
-        console.log('Product added successfully');
-    } catch (error) {
-        console.error('Error adding product:', error);
-    }
+  try {
+    const q = query(
+      collection(db, 'products'),
+      where('userId', '==', auth.currentUser.uid)
+    );
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    } as Product));
+  } catch (error) {
+    console.error('Error getting products:', error);
+    throw error;
+  }
 };
 
-export const getProducts = async (userId: string) => {
-    try {
-        const productsRef = collection(db, 'products');
-        const q = query(productsRef, where("userId", "==", userId));
-        const querySnapshot = await getDocs(q);
-        
-        return querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
-    } catch (error) {
-        console.error("Error fetching products:", error);
-        return [];
-    }
+export const addProduct = async (product: Omit<Product, 'id' | 'userId'>): Promise<string> => {
+  if (!auth.currentUser) {
+    throw new Error('No authenticated user');
+  }
+
+  try {
+    const docRef = await addDoc(collection(db, 'products'), {
+      ...product,
+      userId: auth.currentUser.uid
+    });
+    return docRef.id;
+  } catch (error) {
+    console.error('Error adding product:', error);
+    throw error;
+  }
 };
 
-export const deleteProduct = async (productId: string) => {
-    try {
-        await deleteDoc(doc(db, 'products', productId));
-        console.log('Product deleted successfully');
-    } catch (error) {
-        console.error('Error deleting product:', error);
-    }
+export const updateProduct = async (productId: string, updates: Partial<Omit<Product, 'id' | 'userId'>>): Promise<void> => {
+  if (!auth.currentUser) {
+    throw new Error('No authenticated user');
+  }
+
+  try {
+    const productRef = doc(db, 'products', productId);
+    await updateDoc(productRef, updates);
+  } catch (error) {
+    console.error('Error updating product:', error);
+    throw error;
+  }
 };
 
-export const updateProduct = async (productId: string, updatedData: ProductUpdate) => {
-    try {
-        const productRef = doc(db, 'products', productId);
-        const dataToUpdate: any = { ...updatedData };
-        
-        if (updatedData.expiryDate) {
-            dataToUpdate.expiryDate = Timestamp.fromDate(updatedData.expiryDate);
-        }
-        
-        await updateDoc(productRef, dataToUpdate);
-        console.log('Product updated successfully');
-    } catch (error) {
-        console.error('Error updating product:', error);
-    }
+export const deleteProduct = async (productId: string): Promise<void> => {
+  if (!auth.currentUser) {
+    throw new Error('No authenticated user');
+  }
+
+  try {
+    await deleteDoc(doc(db, 'products', productId));
+  } catch (error) {
+    console.error('Error deleting product:', error);
+    throw error;
+  }
 };

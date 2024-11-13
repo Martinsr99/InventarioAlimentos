@@ -11,15 +11,18 @@ import {
   IonGrid,
   IonRow,
   IonCol,
-  IonToast,
-  IonSpinner
+  IonButtons,
+  IonSpinner,
+  IonToast
 } from '@ionic/react';
 import { auth } from './firebaseConfig';
-import { onAuthStateChanged, signOut, User } from 'firebase/auth';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 import Auth from './components/Authenticator/Auth';
 import AddProductForm from './forms/AddProductForm';
 import ProductList from './components/Products/ProductList';
 import { scheduleExpiryNotifications } from './services/NotificationService';
+import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
+import LanguageSwitch from './components/common/LanguageSwitch';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -44,58 +47,35 @@ setupIonicReact({
   mode: 'ios'
 });
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
+  const { t } = useLanguage();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isSigningOut, setIsSigningOut] = useState<boolean>(false);
-  const [toastMessage, setToastMessage] = useState<string>('');
-  const [toastIsError, setToastIsError] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, 
-      async (user: User | null) => {
-        setIsAuthenticated(!!user);
-        if (user) {
-          try {
-            await scheduleExpiryNotifications();
-          } catch (error) {
-            console.error('Error scheduling notifications:', error);
-            showToast('Notificaciones pueden no funcionar correctamente', true);
-          }
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setIsAuthenticated(!!user);
+      if (user) {
+        try {
+          await scheduleExpiryNotifications();
+        } catch (error) {
+          console.error('Error scheduling notifications:', error);
+          setError(t('errors.notificationSetup'));
         }
-        setIsLoading(false);
-      },
-      (error) => {
-        console.error('Auth state change error:', error);
-        showToast('Error al verificar el estado de autenticación', true);
-        setIsLoading(false);
       }
-    );
+      setIsLoading(false);
+    });
 
-    return () => {
-      try {
-        unsubscribe();
-      } catch (error) {
-        console.error('Error unsubscribing from auth state:', error);
-      }
-    };
-  }, []);
-
-  const showToast = (message: string, isError: boolean = false) => {
-    setToastMessage(message);
-    setToastIsError(isError);
-  };
+    return () => unsubscribe();
+  }, [t]);
 
   const handleLogout = async () => {
-    setIsSigningOut(true);
     try {
       await signOut(auth);
-      showToast('Sesión cerrada exitosamente');
     } catch (error) {
       console.error('Error signing out:', error);
-      showToast('Error al cerrar sesión. Por favor intente nuevamente.', true);
-    } finally {
-      setIsSigningOut(false);
+      setError(t('errors.signOut'));
     }
   };
 
@@ -123,21 +103,19 @@ const App: React.FC = () => {
       <IonPage>
         <IonHeader>
           <IonToolbar>
-            <IonTitle>Inventario de Alimentos</IonTitle>
-            {isAuthenticated && (
-              <IonButton 
-                slot="end" 
-                fill="clear"
-                onClick={handleLogout}
-                disabled={isSigningOut}
-              >
-                {isSigningOut ? (
-                  <IonSpinner name="crescent" />
-                ) : (
-                  'Cerrar Sesión'
-                )}
-              </IonButton>
-            )}
+            <IonTitle>{t('app.title')}</IonTitle>
+            <IonButtons slot="end" className="ion-padding-end">
+              <LanguageSwitch />
+              {isAuthenticated && (
+                <IonButton 
+                  fill="clear"
+                  onClick={handleLogout}
+                  className="logout-button"
+                >
+                  {t('app.logout')}
+                </IonButton>
+              )}
+            </IonButtons>
           </IonToolbar>
         </IonHeader>
         <IonContent>
@@ -157,15 +135,39 @@ const App: React.FC = () => {
         </IonContent>
 
         <IonToast
-          isOpen={!!toastMessage}
-          onDidDismiss={() => setToastMessage('')}
-          message={toastMessage}
+          isOpen={!!error}
+          message={error}
           duration={3000}
+          onDidDismiss={() => setError('')}
           position="bottom"
-          color={toastIsError ? 'danger' : 'success'}
+          color="danger"
         />
+
+        <style>{`
+          .logout-button {
+            margin-left: 8px;
+          }
+          
+          @media (max-width: 576px) {
+            ion-title {
+              font-size: 1.1rem;
+            }
+            
+            .logout-button {
+              font-size: 0.9rem;
+            }
+          }
+        `}</style>
       </IonPage>
     </IonApp>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <LanguageProvider>
+      <AppContent />
+    </LanguageProvider>
   );
 };
 

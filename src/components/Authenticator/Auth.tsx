@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { auth } from '../../firebaseConfig';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, AuthError } from 'firebase/auth';
 import Swal from 'sweetalert2';
+import { useLanguage } from '../../contexts/LanguageContext';
 import {
     IonCard,
     IonCardContent,
@@ -28,36 +29,37 @@ interface PasswordRequirement {
     met: boolean;
 }
 
-const initialRequirements: PasswordRequirement[] = [
+const initialRequirements = (t: (key: string) => string): PasswordRequirement[] => [
     {
-        text: 'At least 8 characters',
+        text: t('auth.requirements.length'),
         check: (pass) => pass.length >= 8,
         met: false
     },
     {
-        text: 'One uppercase letter',
+        text: t('auth.requirements.uppercase'),
         check: (pass) => /[A-Z]/.test(pass),
         met: false
     },
     {
-        text: 'One lowercase letter',
+        text: t('auth.requirements.lowercase'),
         check: (pass) => /[a-z]/.test(pass),
         met: false
     },
     {
-        text: 'One number',
+        text: t('auth.requirements.number'),
         check: (pass) => /[0-9]/.test(pass),
         met: false
     }
 ];
 
 const Auth: React.FC = () => {
+    const { t } = useLanguage();
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [isRegistering, setIsRegistering] = useState<boolean>(true);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [showPassword, setShowPassword] = useState<boolean>(false);
-    const [requirements, setRequirements] = useState<PasswordRequirement[]>(initialRequirements);
+    const [requirements, setRequirements] = useState<PasswordRequirement[]>(() => initialRequirements(t));
 
     // Set initial password visibility based on registration state
     useEffect(() => {
@@ -67,7 +69,7 @@ const Auth: React.FC = () => {
     const resetForm = () => {
         setPassword('');
         setEmail('');
-        setRequirements(initialRequirements);
+        setRequirements(initialRequirements(t));
     };
 
     const updatePasswordRequirements = (newPassword: string) => {
@@ -94,7 +96,7 @@ const Auth: React.FC = () => {
             title,
             text: message,
             icon: 'error',
-            confirmButtonText: 'OK',
+            confirmButtonText: t('common.ok'),
             confirmButtonColor: '#3880ff',
             background: '#ffffff',
             heightAuto: false,
@@ -131,53 +133,53 @@ const Auth: React.FC = () => {
         switch (error.code) {
             case 'auth/email-already-in-use':
                 return {
-                    title: 'Email Already Registered',
-                    message: 'This email is already registered. Please try logging in instead.'
+                    title: t('auth.errors.emailInUse'),
+                    message: t('auth.errors.emailInUseMessage')
                 };
             case 'auth/invalid-email':
                 return {
-                    title: 'Invalid Email',
-                    message: 'Please enter a valid email address.'
+                    title: t('auth.errors.invalidEmail'),
+                    message: t('auth.errors.pleaseEnterValidEmail')
                 };
             case 'auth/operation-not-allowed':
                 return {
-                    title: 'Operation Not Allowed',
-                    message: 'Email/password sign up is not enabled. Please contact support.'
+                    title: t('auth.errors.operationNotAllowed'),
+                    message: t('auth.errors.operationNotAllowedMessage')
                 };
             case 'auth/weak-password':
                 return {
-                    title: 'Weak Password',
-                    message: 'Please choose a stronger password.'
+                    title: t('auth.errors.weakPassword'),
+                    message: t('auth.errors.weakPasswordMessage')
                 };
             case 'auth/user-disabled':
                 return {
-                    title: 'Account Disabled',
-                    message: 'This account has been disabled. Please contact support.'
+                    title: t('auth.errors.accountDisabled'),
+                    message: t('auth.errors.accountDisabledMessage')
                 };
             case 'auth/user-not-found':
                 return {
-                    title: 'Account Not Found',
-                    message: 'No account found with this email. Please register first.'
+                    title: t('auth.errors.accountNotFound'),
+                    message: t('auth.errors.accountNotFoundMessage')
                 };
             case 'auth/wrong-password':
                 return {
-                    title: 'Incorrect Password',
-                    message: 'Incorrect password. Please try again.'
+                    title: t('auth.errors.incorrectPassword'),
+                    message: t('auth.errors.incorrectPasswordMessage')
                 };
             case 'auth/too-many-requests':
                 return {
-                    title: 'Too Many Attempts',
-                    message: 'Too many failed attempts. Please try again later.'
+                    title: t('auth.errors.tooManyAttempts'),
+                    message: t('auth.errors.tooManyAttemptsMessage')
                 };
             case 'auth/invalid-credential':
                 return {
-                    title: 'Invalid Credentials',
-                    message: 'Invalid credentials. Please check your email and password.'
+                    title: t('auth.errors.invalidCredentials'),
+                    message: t('auth.errors.invalidCredentialsMessage')
                 };
             default:
                 return {
-                    title: 'Error',
-                    message: 'An error occurred. Please try again.'
+                    title: t('common.error'),
+                    message: t('common.tryAgain')
                 };
         }
     };
@@ -187,13 +189,13 @@ const Auth: React.FC = () => {
 
         // Email validation
         if (!validateEmail(email)) {
-            showError('Invalid Email', 'Please enter a valid email address');
+            showError(t('auth.errors.invalidEmail'), t('auth.errors.pleaseEnterValidEmail'));
             return;
         }
 
         // Password validation for registration
         if (isRegistering && !requirements.every(req => req.met)) {
-            showError('Password Requirements', 'Please meet all password requirements');
+            showError(t('auth.errors.passwordRequirements'), t('auth.errors.meetAllRequirements'));
             return;
         }
 
@@ -218,16 +220,16 @@ const Auth: React.FC = () => {
                 <IonCol size="12" sizeMd="6" offsetMd="3">
                     <IonCard>
                         <IonCardHeader>
-                            <IonCardTitle>{isRegistering ? 'Register' : 'Login'}</IonCardTitle>
+                            <IonCardTitle>{isRegistering ? t('auth.register') : t('auth.login')}</IonCardTitle>
                         </IonCardHeader>
                         <IonCardContent>
                             <form onSubmit={handleAuth}>
                                 <IonItem lines="full" className="ion-margin-bottom">
-                                    <IonLabel position="stacked">Email</IonLabel>
+                                    <IonLabel position="stacked">{t('auth.email')}</IonLabel>
                                     <IonInput
                                         type="email"
                                         value={email}
-                                        placeholder="Enter your email"
+                                        placeholder={t('auth.enterEmail')}
                                         onIonChange={e => setEmail(e.detail.value!)}
                                         required
                                         className="ion-padding-top"
@@ -235,11 +237,11 @@ const Auth: React.FC = () => {
                                 </IonItem>
 
                                 <IonItem lines="full" className="ion-margin-bottom">
-                                    <IonLabel position="stacked">Password</IonLabel>
+                                    <IonLabel position="stacked">{t('auth.password')}</IonLabel>
                                     <IonInput
                                         type={showPassword ? "text" : "password"}
                                         value={password}
-                                        placeholder="Enter your password"
+                                        placeholder={t('auth.enterPassword')}
                                         onIonInput={handlePasswordChange}
                                         required
                                         className="ion-padding-top"
@@ -260,7 +262,7 @@ const Auth: React.FC = () => {
 
                                 {isRegistering && (
                                     <div className="password-requirements">
-                                        <IonNote>Password requirements:</IonNote>
+                                        <IonNote>{t('auth.passwordRequirements')}</IonNote>
                                         {requirements.map((req, index) => (
                                             <div key={index} className="requirement-item">
                                                 <IonIcon 
@@ -287,7 +289,7 @@ const Auth: React.FC = () => {
                                     {isLoading ? (
                                         <IonSpinner name="crescent" />
                                     ) : (
-                                        isRegistering ? 'Register' : 'Login'
+                                        isRegistering ? t('auth.register') : t('auth.login')
                                     )}
                                 </IonButton>
                             </form>
@@ -303,8 +305,8 @@ const Auth: React.FC = () => {
                                 disabled={isLoading}
                             >
                                 {isRegistering 
-                                    ? 'Already have an account? Login' 
-                                    : 'Don\'t have an account? Register'}
+                                    ? t('auth.alreadyHaveAccount')
+                                    : t('auth.dontHaveAccount')}
                             </IonButton>
                         </IonCardContent>
                     </IonCard>
