@@ -16,6 +16,7 @@ import {
 import { trash, create } from 'ionicons/icons';
 import { deleteProduct, getProducts, Product } from '../../services/InventoryService';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useHistory } from 'react-router-dom';
 
 interface ProductListProps {
   onRefreshNeeded?: () => void;
@@ -27,6 +28,7 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded }) => {
   const [error, setError] = useState('');
   const [productToDelete, setProductToDelete] = useState<string | null>(null);
   const { t } = useLanguage();
+  const history = useHistory();
 
   useEffect(() => {
     loadProducts();
@@ -54,6 +56,10 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded }) => {
       setError(t('errors.productDelete'));
     }
     setProductToDelete(null);
+  };
+
+  const handleEdit = (productId: string) => {
+    history.push(`/edit-product/${productId}`);
   };
 
   const calculateDaysUntilExpiry = (expiryDate: string) => {
@@ -129,7 +135,9 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded }) => {
                 <IonItem key={product.id}>
                   <IonLabel>
                     <h2>{product.name}</h2>
-                    <p>{t('categories.' + product.category.toLowerCase())}</p>
+                    {product.category && (
+                      <p>{t(`categories.${product.category.toLowerCase()}`)}</p>
+                    )}
                     <p>
                       {t('products.expiresIn')}: 
                       <IonText color={isExpired ? 'danger' : daysUntilExpiry <= 3 ? 'warning' : 'medium'}>
@@ -148,7 +156,7 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded }) => {
                   <IonButton 
                     fill="clear" 
                     slot="end"
-                    routerLink={`/edit-product/${product.id}`}
+                    onClick={() => handleEdit(product.id)}
                   >
                     <IonIcon icon={create} slot="icon-only" />
                   </IonButton>

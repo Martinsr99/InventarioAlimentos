@@ -13,13 +13,17 @@ import {
   IonCol,
   IonButtons,
   IonSpinner,
-  IonToast
+  IonToast,
+  IonRouterOutlet
 } from '@ionic/react';
+import { IonReactRouter } from '@ionic/react-router';
+import { Route, Redirect } from 'react-router-dom';
 import { auth } from './firebaseConfig';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import Auth from './components/Authenticator/Auth';
 import AddProductForm from './forms/AddProductForm';
 import ProductList from './components/Products/ProductList';
+import EditProduct from './components/Products/EditProduct';
 import { scheduleExpiryNotifications } from './services/NotificationService';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import UserSettings from './components/UserSettings/UserSettings';
@@ -103,15 +107,32 @@ const AppContent: React.FC = () => {
     );
   }
 
+  if (!isAuthenticated) {
+    return (
+      <IonApp>
+        <IonPage>
+          <IonHeader>
+            <IonToolbar>
+              <IonTitle>{t('app.title')}</IonTitle>
+            </IonToolbar>
+          </IonHeader>
+          <IonContent>
+            <Auth />
+          </IonContent>
+        </IonPage>
+      </IonApp>
+    );
+  }
+
   return (
     <IonApp>
-      <IonPage>
-        <IonHeader>
-          <IonToolbar>
-            <IonTitle>{t('app.title')}</IonTitle>
-            <IonButtons slot="end" className="ion-padding-end">
-              {isAuthenticated && (
-                <>
+      <IonRouterOutlet>
+        <Route exact path="/">
+          <IonPage>
+            <IonHeader>
+              <IonToolbar>
+                <IonTitle>{t('app.title')}</IonTitle>
+                <IonButtons slot="end" className="ion-padding-end">
                   <UserSettings />
                   <IonButton 
                     fill="clear"
@@ -120,45 +141,46 @@ const AppContent: React.FC = () => {
                   >
                     {t('app.logout')}
                   </IonButton>
-                </>
-              )}
-            </IonButtons>
-          </IonToolbar>
-        </IonHeader>
-        <IonContent>
-          <IonGrid>
-            <IonRow>
-              <IonCol>
-                {!isAuthenticated && <Auth />}
-                {isAuthenticated && (
-                  <>
+                </IonButtons>
+              </IonToolbar>
+            </IonHeader>
+            <IonContent>
+              <IonGrid>
+                <IonRow>
+                  <IonCol>
                     <AddProductForm onProductAdded={handleProductAdded} />
                     <ProductList key={refreshKey} />
-                  </>
-                )}
-              </IonCol>
-            </IonRow>
-          </IonGrid>
-        </IonContent>
+                  </IonCol>
+                </IonRow>
+              </IonGrid>
+            </IonContent>
+          </IonPage>
+        </Route>
+        <Route exact path="/edit-product/:id" component={EditProduct} />
+        <Route>
+          <Redirect to="/" />
+        </Route>
+      </IonRouterOutlet>
 
-        <IonToast
-          isOpen={!!error}
-          message={error}
-          duration={3000}
-          onDidDismiss={() => setError('')}
-          position="bottom"
-          color="danger"
-        />
-      </IonPage>
+      <IonToast
+        isOpen={!!error}
+        message={error}
+        duration={3000}
+        onDidDismiss={() => setError('')}
+        position="bottom"
+        color="danger"
+      />
     </IonApp>
   );
 };
 
 const App: React.FC = () => {
   return (
-    <LanguageProvider>
-      <AppContent />
-    </LanguageProvider>
+    <IonReactRouter>
+      <LanguageProvider>
+        <AppContent />
+      </LanguageProvider>
+    </IonReactRouter>
   );
 };
 

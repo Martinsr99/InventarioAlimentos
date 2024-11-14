@@ -1,90 +1,70 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
 # Dependencies
-/node_modules
-/.pnp
-.pnp.js
+node_modules
+dist
+dist-ssr
+*.local
 
-# Testing
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Firebase files
+firebase.json
+firestore.indexes.json
+firestore.rules
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+.firebaserc
+
+# Firebase config files
+src/firebaseConfig.ts
+GoogleService-Info.plist
+google-services.json
+
+# Keep templates
+!src/firebaseConfig.template.ts
+!ios/App/GoogleService-Info.template.plist
+!android/app/google-services.template.json
+
+# testing
 /coverage
-/cypress/videos
-/cypress/screenshots
 
-# Production
-/dist
+# production
 /build
-/www
 
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# Environment files
-.env
+# misc
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
-.env*.local
 
-# Logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-logs
-*.log
-
-# iOS
-ios/App/Pods/
-ios/App/App/build/
-ios/App/App/Plugins/
+# capacitor
 ios/App/App/public/
-ios/App/build/
-ios/App/DerivedData/
-ios/App/App.xcworkspace/xcuserdata/
-ios/App/App.xcodeproj/xcuserdata/
-ios/App/App.xcodeproj/project.xcworkspace/xcuserdata/
-ios/App/GoogleService-Info.plist
-*.pbxuser
-!default.pbxuser
-*.mode1v3
-!default.mode1v3
-*.mode2v3
-!default.mode2v3
-*.perspectivev3
-!default.perspectivev3
-xcuserdata/
-*.xccheckout
-*.moved-aside
-*.xcuserstate
-*.hmap
-*.ipa
-*.dSYM.zip
-*.dSYM
+android/app/src/main/assets/public
 
-# Android
-android/app/build/
+# Gradle files
+.gradle/
 android/build/
+android/app/build/
 android/captures/
-android/gradle/
-android/.gradle/
 android/local.properties
-android/app/google-services.json
-*.iml
-.gradle
-/build
-/captures
-.externalNativeBuild
-.cxx
-
-# Firebase
-src/firebaseConfig.ts
-
-# Misc
-.DS_Store
-Thumbs.db
-*.pem
-.vercel
-.netlify
-*.cache
-.eslintcache
+android/.gradle/
+android/gradle-wrapper.jar

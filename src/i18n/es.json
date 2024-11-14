@@ -111,5 +111,6 @@
   "common.settings": "Configuración",
   "common.language": "Idioma",
   "common.yes": "Sí",
-  "common.no": "No"
+  "common.no": "No",
+  "common.optional": "opcional"
 }

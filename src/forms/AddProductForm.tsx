@@ -13,10 +13,19 @@ import {
   IonTextarea,
   IonToast,
   IonSpinner,
-  IonText
+  IonText,
+  IonDatetime,
+  IonModal,
+  IonContent,
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonButtons,
+  DatetimeChangeEventDetail
 } from '@ionic/react';
 import { addProduct } from '../services/InventoryService';
 import { useLanguage } from '../contexts/LanguageContext';
+import './AddProductForm.css';
 
 const CATEGORIES = [
   'dairy',
@@ -44,21 +53,22 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
   const { t } = useLanguage();
   const [name, setName] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
-  const [quantity, setQuantity] = useState('');
+  const [quantity, setQuantity] = useState('1');
   const [category, setCategory] = useState('');
-  const [location, setLocation] = useState('');
+  const [location, setLocation] = useState('fridge');
   const [notes, setNotes] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [validationError, setValidationError] = useState('');
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
   const resetForm = () => {
     setName('');
     setExpiryDate('');
-    setQuantity('');
+    setQuantity('1');
     setCategory('');
-    setLocation('');
+    setLocation('fridge');
     setNotes('');
     setValidationError('');
   };
@@ -76,15 +86,24 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
       setValidationError(t('validation.quantityRequired'));
       return false;
     }
-    if (!category) {
-      setValidationError(t('validation.categoryRequired'));
-      return false;
-    }
-    if (!location) {
-      setValidationError(t('validation.locationRequired'));
-      return false;
-    }
     return true;
+  };
+
+  const handleDateChange = (event: CustomEvent<DatetimeChangeEventDetail>) => {
+    const value = event.detail.value;
+    if (typeof value === 'string') {
+      // Convert to YYYY-MM-DD format
+      const date = new Date(value);
+      const formattedDate = date.toISOString().split('T')[0];
+      setExpiryDate(formattedDate);
+      setIsDatePickerOpen(false);
+    }
+  };
+
+  const formatDisplayDate = (dateString: string) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -104,8 +123,8 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
         name: name.trim(),
         expiryDate,
         quantity: Number(quantity),
-        category,
         location,
+        ...(category ? { category } : {}),
         ...(trimmedNotes ? { notes: trimmedNotes } : {})
       };
 
@@ -147,41 +166,47 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
             />
           </IonItem>
 
-          <IonItem>
+          <IonItem button onClick={() => setIsDatePickerOpen(true)}>
             <IonLabel position="stacked">{t('products.expiryDate')}</IonLabel>
             <IonInput
-              type="date"
-              value={expiryDate}
+              readonly
+              value={formatDisplayDate(expiryDate)}
               placeholder={t('products.selectDate')}
-              onIonChange={e => setExpiryDate(e.detail.value!)}
             />
           </IonItem>
 
-          <IonItem>
-            <IonLabel position="stacked">{t('products.quantity')}</IonLabel>
-            <IonInput
-              type="number"
-              value={quantity}
-              placeholder={t('products.enterQuantity')}
-              onIonChange={e => setQuantity(e.detail.value!)}
-              min="1"
-            />
-          </IonItem>
-
-          <IonItem>
-            <IonLabel position="stacked">{t('products.category')}</IonLabel>
-            <IonSelect
-              value={category}
-              placeholder={t('products.selectCategory')}
-              onIonChange={e => setCategory(e.detail.value)}
-            >
-              {CATEGORIES.map(cat => (
-                <IonSelectOption key={cat} value={cat}>
-                  {t(`categories.${cat}`)}
-                </IonSelectOption>
-              ))}
-            </IonSelect>
-          </IonItem>
+          <IonModal 
+            isOpen={isDatePickerOpen} 
+            onDidDismiss={() => setIsDatePickerOpen(false)}
+            className="date-picker-modal"
+            breakpoints={[0, 1]}
+            initialBreakpoint={1}
+          >
+            <IonHeader>
+              <IonToolbar>
+                <IonTitle>{t('products.expiryDate')}</IonTitle>
+                <IonButtons slot="end">
+                  <IonButton onClick={() => setIsDatePickerOpen(false)}>
+                    {t('common.cancel')}
+                  </IonButton>
+                </IonButtons>
+              </IonToolbar>
+            </IonHeader>
+            <IonContent>
+              <IonDatetime
+                value={expiryDate}
+                onIonChange={handleDateChange}
+                presentation="date"
+                preferWheel={false}
+                showDefaultButtons={true}
+                doneText={t('common.ok')}
+                cancelText={t('common.cancel')}
+                firstDayOfWeek={1}
+                locale="es-ES"
+                className="custom-datetime"
+              />
+            </IonContent>
+          </IonModal>
 
           <IonItem>
             <IonLabel position="stacked">{t('products.location')}</IonLabel>
@@ -199,12 +224,40 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
           </IonItem>
 
           <IonItem>
+            <IonLabel position="stacked">{t('products.quantity')}</IonLabel>
+            <IonInput
+              type="number"
+              value={quantity}
+              placeholder={t('products.enterQuantity')}
+              onIonChange={e => setQuantity(e.detail.value!)}
+              min="1"
+            />
+          </IonItem>
+
+          <IonItem>
             <IonLabel position="stacked">{t('products.notes')}</IonLabel>
             <IonTextarea
               value={notes}
               placeholder={t('products.enterNotes')}
               onIonChange={e => setNotes(e.detail.value!)}
             />
+          </IonItem>
+
+          <IonItem>
+            <IonLabel position="stacked">
+              {t('products.category')} ({t('common.optional')})
+            </IonLabel>
+            <IonSelect
+              value={category}
+              placeholder={t('products.selectCategory')}
+              onIonChange={e => setCategory(e.detail.value)}
+            >
+              {CATEGORIES.map(cat => (
+                <IonSelectOption key={cat} value={cat}>
+                  {t(`categories.${cat}`)}
+                </IonSelectOption>
+              ))}
+            </IonSelect>
           </IonItem>
 
           <IonButton

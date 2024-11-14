@@ -1,0 +1,135 @@
+.date-picker-modal {
+  --height: fit-content;
+  --width: 320px;
+  --border-radius: 8px;
+  --background: var(--ion-background-color);
+}
+
+.date-picker-modal::part(content) {
+  border-radius: var(--border-radius);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.calendar-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  background: var(--ion-background-color);
+}
+
+.custom-datetime {
+  border-radius: 0;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+}
+
+/* Calendar header styles */
+.custom-datetime::part(header) {
+  background: var(--ion-color-primary);
+  color: var(--ion-color-primary-contrast);
+  padding: 10px;
+}
+
+/* Calendar navigation buttons */
+.custom-datetime::part(navigation) {
+  background: var(--ion-background-color);
+  color: var(--ion-color-primary);
+  font-size: 16px;
+  padding: 10px;
+}
+
+/* Calendar title */
+.custom-datetime::part(title) {
+  background: var(--ion-background-color);
+  color: var(--ion-color-dark);
+  font-weight: bold;
+  font-size: 16px;
+}
+
+/* Calendar grid */
+.custom-datetime::part(calendar) {
+  background: var(--ion-background-color);
+  padding: 10px;
+}
+
+/* Weekday header */
+.custom-datetime::part(wheel-item) {
+  color: var(--ion-color-medium);
+  font-size: 14px;
+  text-transform: uppercase;
+}
+
+/* Calendar days */
+.custom-datetime::part(day) {
+  color: var(--ion-color-dark);
+  font-size: 14px;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Selected day */
+.custom-datetime::part(day active) {
+  background: var(--ion-color-primary);
+  color: var(--ion-color-primary-contrast);
+}
+
+/* Today */
+.custom-datetime::part(day today) {
+  border: 2px solid var(--ion-color-primary);
+}
+
+/* Buttons container */
+.custom-datetime::part(buttons) {
+  background: var(--ion-background-color);
+  border-top: 1px solid var(--ion-color-light-shade);
+  padding: 10px;
+}
+
+/* Individual buttons */
+.custom-datetime::part(button) {
+  color: var(--ion-color-primary);
+  font-weight: 500;
+  font-size: 14px;
+  margin: 0 5px;
+  padding: 8px 16px;
+  border-radius: 4px;
+}
+
+/* Hover effects */
+.custom-datetime::part(day):hover {
+  background: var(--ion-color-light-shade);
+  cursor: pointer;
+}
+
+/* Disabled dates */
+.custom-datetime::part(day disabled) {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Modal header toolbar */
+.date-picker-modal ion-toolbar {
+  --background: var(--ion-color-primary);
+  --color: var(--ion-color-primary-contrast);
+  --border-color: transparent;
+}
+
+.date-picker-modal ion-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.date-picker-modal ion-button {
+  --color: var(--ion-color-primary-contrast);
+}
+
+/* Content padding */
+.date-picker-modal .ion-padding {
+  padding: 0;
+}

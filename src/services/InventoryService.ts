@@ -7,11 +7,11 @@ export interface Product {
   name: string;
   expiryDate: string;
   location: string;
-  addedAt: string;
   quantity: number;
-  category: string;
+  category?: string; // Make category optional
   notes?: string;
   userId: string;
+  addedAt: string;
 }
 
 export const getProducts = async (): Promise<Product[]> => {
