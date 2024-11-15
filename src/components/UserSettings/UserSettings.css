@@ -1,0 +1,30 @@
+.profile-picture-option {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  background-color: var(--ion-color-light);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.profile-picture-option img {
+  width: 120% !important;
+  height: 120% !important;
+  object-fit: cover;
+  transform: scale(1.2);
+}
+
+.profile-picture-option:hover {
+  transform: scale(1.05);
+}
+
+.profile-picture-option.selected {
+  border-color: var(--ion-color-primary);
+}

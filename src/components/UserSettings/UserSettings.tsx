@@ -27,6 +27,7 @@ import { settingsOutline, languageOutline, closeOutline } from 'ionicons/icons';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { auth } from '../../firebaseConfig';
 import { getUserSettings, updateUserSettings } from '../../services/UserSettingsService';
+import './UserSettings.css';
 
 const profilePictures = [
   '/images/profile/apple.png',
@@ -114,17 +115,27 @@ const UserSettings: React.FC = () => {
                 </IonCardHeader>
                 <IonCardContent>
                   <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
-                    <IonImg 
-                      src={profilePicture} 
-                      alt="Profile"
-                      style={{ 
-                        width: '100px', 
-                        height: '100px',
-                        margin: '0 auto',
-                        borderRadius: '50%',
-                        border: '2px solid var(--ion-color-primary)'
-                      }} 
-                    />
+                    <div style={{ 
+                      width: '100px',
+                      height: '100px',
+                      margin: '0 auto',
+                      borderRadius: '50%',
+                      border: '2px solid var(--ion-color-primary)',
+                      overflow: 'hidden',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <IonImg 
+                        src={profilePicture} 
+                        alt="Profile"
+                        style={{ 
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover'
+                        }} 
+                      />
+                    </div>
                   </div>
                   <IonGrid>
                     <IonRow>
@@ -132,17 +143,16 @@ const UserSettings: React.FC = () => {
                         <IonCol size="4" key={pic}>
                           <div 
                             onClick={() => handleProfilePictureChange(pic)}
-                            style={{ 
-                              padding: '8px',
-                              border: profilePicture === pic ? '2px solid var(--ion-color-primary)' : '2px solid transparent',
-                              borderRadius: '8px',
-                              cursor: 'pointer'
-                            }}
+                            className={`profile-picture-option ${profilePicture === pic ? 'selected' : ''}`}
                           >
                             <IonImg 
                               src={pic} 
                               alt="Profile option"
-                              style={{ width: '100%', height: 'auto' }}
+                              style={{ 
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover'
+                              }}
                             />
                           </div>
                         </IonCol>
