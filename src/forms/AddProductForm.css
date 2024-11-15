@@ -2,13 +2,15 @@
   --height: auto;
   --width: 100%;
   --max-width: 420px;
-  --border-radius: 16px 16px 0 0;
 }
 
 .date-picker-modal::part(content) {
-  position: absolute;
-  bottom: 0;
-  border-radius: var(--border-radius);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  margin: 0;
+  border-radius: 0 0 16px 16px;
 }
 
 .date-picker-modal ion-header {
@@ -21,7 +23,6 @@
   --border-color: transparent;
   --padding-top: 8px;
   --padding-bottom: 8px;
-  border-radius: var(--border-radius) var(--border-radius) 0 0;
 }
 
 .date-picker-modal ion-title {
@@ -34,77 +35,20 @@
   font-weight: 500;
 }
 
+.date-picker-modal ion-content {
+  --background: var(--ion-background-color);
+  --padding-top: 0;
+  --padding-bottom: 0;
+  --padding-start: 0;
+  --padding-end: 0;
+}
+
 .custom-datetime {
   margin: 0;
-  padding: 16px;
+  padding: 0;
+  width: 100%;
+  min-height: 300px;
   background: var(--ion-background-color);
-}
-
-/* Calendar styles */
-.custom-datetime::part(calendar-body) {
-  padding: 8px;
-}
-
-.custom-datetime::part(calendar-day) {
-  border-radius: 50%;
-  width: 36px;
-  height: 36px;
-  font-size: 0.9rem;
-  color: var(--ion-text-color);
-}
-
-.custom-datetime::part(calendar-day.today) {
-  border: 2px solid var(--ion-color-primary);
-  color: var(--ion-color-primary);
-}
-
-.custom-datetime::part(calendar-day.active) {
-  background: var(--ion-color-primary);
-  color: var(--ion-color-primary-contrast);
-}
-
-.custom-datetime::part(calendar-day):hover:not(.active) {
-  background: rgba(var(--ion-color-primary-rgb), 0.1);
-}
-
-.custom-datetime::part(calendar-month) {
-  font-weight: 600;
-  color: var(--ion-text-color);
-}
-
-.custom-datetime::part(calendar-year) {
-  font-weight: 600;
-  color: var(--ion-text-color);
-}
-
-.custom-datetime::part(wheel-item.active) {
-  color: var(--ion-color-primary);
-  font-weight: 600;
-}
-
-/* Button container */
-.custom-datetime::part(buttons) {
-  padding: 8px;
-  border-top: 1px solid var(--ion-color-light-shade);
-  background: var(--ion-background-color);
-}
-
-/* Done and Cancel buttons */
-.custom-datetime::part(button) {
-  border-radius: 8px;
-  padding: 8px 16px;
-  margin: 0 4px;
-  font-weight: 500;
-  text-transform: uppercase;
-  font-size: 0.9rem;
-}
-
-.custom-datetime::part(button.datetime-button-cancel) {
-  color: var(--ion-color-medium);
-}
-
-.custom-datetime::part(button.datetime-button-done) {
-  color: var(--ion-color-primary);
 }
 
 /* Form styles */
@@ -160,4 +104,33 @@ ion-button[type="submit"] {
 ion-text[color="danger"] p {
   margin: 8px 0;
   font-size: 0.9rem;
+}
+
+/* Date picker wheel styles */
+.datetime-wheel {
+  padding: 0;
+  max-height: 260px;
+}
+
+.wheel-picker {
+  max-height: 260px;
+}
+
+.wheel-item {
+  font-size: 1rem;
+  height: 34px;
+  line-height: 34px;
+  padding: 0 8px;
+  min-width: 60px;
+  text-align: center;
+}
+
+/* Calendar styles */
+.calendar-action-buttons {
+  padding: 8px 16px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  background: var(--ion-background-color);
+  border-top: 1px solid var(--ion-color-light-shade);
 }

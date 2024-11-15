@@ -190,8 +190,8 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
             isOpen={isDatePickerOpen}
             onDidDismiss={cancelDate}
             className="date-picker-modal"
-            breakpoints={[0, 1]}
-            initialBreakpoint={1}
+            breakpoints={[0, 0.5, 1]}
+            initialBreakpoint={0.5}
           >
             <IonHeader>
               <IonToolbar>
@@ -208,7 +208,7 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
                 </IonButtons>
               </IonToolbar>
             </IonHeader>
-            <IonContent className="ion-padding">
+            <IonContent>
               <IonDatetime
                 value={selectedDate || expiryDate}
                 onIonChange={e => handleDateChange(e.detail.value)}
@@ -219,6 +219,7 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
                 locale="es-ES"
                 className="custom-datetime"
                 min={new Date().toISOString().split('T')[0]}
+                size="cover"
               />
             </IonContent>
           </IonModal>
