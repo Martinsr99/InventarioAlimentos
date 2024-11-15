@@ -112,5 +112,9 @@
   "common.language": "Language",
   "common.yes": "Yes",
   "common.no": "No",
-  "common.optional": "optional"
+  "common.optional": "optional",
+  
+  "profile.picture": "Profile Picture",
+  "profile.selectPicture": "Select Profile Picture",
+  "profile.changePicture": "Change Picture"
 }

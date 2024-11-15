@@ -1,26 +1,29 @@
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { User } from 'firebase/auth';
 
 export interface UserSettings {
   language: 'en' | 'es';
-  // Add other user settings here as needed
+  profilePicture?: string;
 }
 
 const DEFAULT_SETTINGS: UserSettings = {
-  language: 'en'
+  language: 'en',
+  profilePicture: '/images/profile/apple.png'
 };
 
 export const getUserSettings = async (user: User): Promise<UserSettings> => {
   try {
-    const settingsDoc = await getDoc(doc(db, 'userSettings', user.uid));
-    if (settingsDoc.exists()) {
-      return settingsDoc.data() as UserSettings;
-    } else {
+    const userSettingsRef = doc(db, 'userSettings', user.uid);
+    const settingsDoc = await getDoc(userSettingsRef);
+    
+    if (!settingsDoc.exists()) {
       // If no settings exist, create default settings
-      await setDoc(doc(db, 'userSettings', user.uid), DEFAULT_SETTINGS);
+      await setDoc(userSettingsRef, DEFAULT_SETTINGS);
       return DEFAULT_SETTINGS;
     }
+    
+    return settingsDoc.data() as UserSettings;
   } catch (error) {
     console.error('Error getting user settings:', error);
     return DEFAULT_SETTINGS;
@@ -32,7 +35,12 @@ export const updateUserSettings = async (
   settings: Partial<UserSettings>
 ): Promise<void> => {
   try {
-    await updateDoc(doc(db, 'userSettings', user.uid), settings);
+    const userSettingsRef = doc(db, 'userSettings', user.uid);
+    const currentSettings = await getUserSettings(user);
+    await setDoc(userSettingsRef, {
+      ...currentSettings,
+      ...settings
+    });
   } catch (error) {
     console.error('Error updating user settings:', error);
     throw error;
