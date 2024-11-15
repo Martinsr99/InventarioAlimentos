@@ -45,6 +45,7 @@
   "products.selectDate": "Selecciona la fecha de vencimiento",
   "products.quantity": "Cantidad",
   "products.enterQuantity": "Ingresa la cantidad",
+  "products.selectQuantity": "Selecciona la cantidad",
   "products.category": "Categoría",
   "products.selectCategory": "Selecciona una categoría",
   "products.location": "Ubicación",
@@ -113,6 +114,7 @@
   "common.yes": "Sí",
   "common.no": "No",
   "common.optional": "opcional",
+  "common.custom": "Personalizado",
   
   "profile.picture": "Foto de Perfil",
   "profile.selectPicture": "Seleccionar Foto de Perfil",

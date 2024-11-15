@@ -45,6 +45,7 @@
   "products.selectDate": "Select expiry date",
   "products.quantity": "Quantity",
   "products.enterQuantity": "Enter quantity",
+  "products.selectQuantity": "Select quantity",
   "products.category": "Category",
   "products.selectCategory": "Select category",
   "products.location": "Location",
@@ -113,6 +114,7 @@
   "common.yes": "Yes",
   "common.no": "No",
   "common.optional": "optional",
+  "common.custom": "Custom",
   
   "profile.picture": "Profile Picture",
   "profile.selectPicture": "Select Profile Picture",

@@ -45,6 +45,8 @@ const LOCATIONS = [
   'other'
 ] as const;
 
+const QUANTITIES = ['1', '2', '3', '4', '5','6','7','8','9','10'];
+
 interface AddProductFormProps {
   onProductAdded?: () => void;
 }
@@ -63,6 +65,7 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
   const [validationError, setValidationError] = useState('');
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>('');
+  const [isCustomQuantity, setIsCustomQuantity] = useState(false);
 
   const resetForm = () => {
     setName('');
@@ -73,6 +76,7 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
     setLocation('fridge');
     setNotes('');
     setValidationError('');
+    setIsCustomQuantity(false);
   };
 
   const validateForm = (): boolean => {
@@ -150,6 +154,16 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
       setError(t('errors.productAdd'));
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleQuantityChange = (value: string) => {
+    if (value === 'custom') {
+      setIsCustomQuantity(true);
+      setQuantity('');
+    } else {
+      setIsCustomQuantity(false);
+      setQuantity(value);
     }
   };
 
@@ -241,13 +255,28 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
 
           <IonItem>
             <IonLabel position="stacked">{t('products.quantity')}</IonLabel>
-            <IonInput
-              type="number"
-              value={quantity}
-              placeholder={t('products.enterQuantity')}
-              onIonChange={e => setQuantity(e.detail.value!)}
-              min="1"
-            />
+            {!isCustomQuantity ? (
+              <IonSelect
+                value={quantity}
+                placeholder={t('products.selectQuantity')}
+                onIonChange={e => handleQuantityChange(e.detail.value)}
+              >
+                {QUANTITIES.map(q => (
+                  <IonSelectOption key={q} value={q}>
+                    {q}
+                  </IonSelectOption>
+                ))}
+                <IonSelectOption value="custom">{t('common.custom')}</IonSelectOption>
+              </IonSelect>
+            ) : (
+              <IonInput
+                type="number"
+                value={quantity}
+                placeholder={t('products.enterQuantity')}
+                onIonChange={e => setQuantity(e.detail.value!)}
+                min="1"
+              />
+            )}
           </IonItem>
 
           <IonItem>
