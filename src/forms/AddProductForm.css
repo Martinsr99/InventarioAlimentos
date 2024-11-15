@@ -1,135 +1,163 @@
 .date-picker-modal {
-  --height: fit-content;
-  --width: 320px;
-  --border-radius: 8px;
-  --background: var(--ion-background-color);
+  --height: auto;
+  --width: 100%;
+  --max-width: 420px;
+  --border-radius: 16px 16px 0 0;
 }
 
 .date-picker-modal::part(content) {
+  position: absolute;
+  bottom: 0;
   border-radius: var(--border-radius);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
-.calendar-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 0;
+.date-picker-modal ion-header {
   background: var(--ion-background-color);
 }
 
-.custom-datetime {
-  border-radius: 0;
-  margin: 0;
-  padding: 0;
-  background: transparent;
-}
-
-/* Calendar header styles */
-.custom-datetime::part(header) {
-  background: var(--ion-color-primary);
-  color: var(--ion-color-primary-contrast);
-  padding: 10px;
-}
-
-/* Calendar navigation buttons */
-.custom-datetime::part(navigation) {
-  background: var(--ion-background-color);
-  color: var(--ion-color-primary);
-  font-size: 16px;
-  padding: 10px;
-}
-
-/* Calendar title */
-.custom-datetime::part(title) {
-  background: var(--ion-background-color);
-  color: var(--ion-color-dark);
-  font-weight: bold;
-  font-size: 16px;
-}
-
-/* Calendar grid */
-.custom-datetime::part(calendar) {
-  background: var(--ion-background-color);
-  padding: 10px;
-}
-
-/* Weekday header */
-.custom-datetime::part(wheel-item) {
-  color: var(--ion-color-medium);
-  font-size: 14px;
-  text-transform: uppercase;
-}
-
-/* Calendar days */
-.custom-datetime::part(day) {
-  color: var(--ion-color-dark);
-  font-size: 14px;
-  border-radius: 50%;
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Selected day */
-.custom-datetime::part(day active) {
-  background: var(--ion-color-primary);
-  color: var(--ion-color-primary-contrast);
-}
-
-/* Today */
-.custom-datetime::part(day today) {
-  border: 2px solid var(--ion-color-primary);
-}
-
-/* Buttons container */
-.custom-datetime::part(buttons) {
-  background: var(--ion-background-color);
-  border-top: 1px solid var(--ion-color-light-shade);
-  padding: 10px;
-}
-
-/* Individual buttons */
-.custom-datetime::part(button) {
-  color: var(--ion-color-primary);
-  font-weight: 500;
-  font-size: 14px;
-  margin: 0 5px;
-  padding: 8px 16px;
-  border-radius: 4px;
-}
-
-/* Hover effects */
-.custom-datetime::part(day):hover {
-  background: var(--ion-color-light-shade);
-  cursor: pointer;
-}
-
-/* Disabled dates */
-.custom-datetime::part(day disabled) {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-/* Modal header toolbar */
 .date-picker-modal ion-toolbar {
   --background: var(--ion-color-primary);
   --color: var(--ion-color-primary-contrast);
   --border-color: transparent;
+  --padding-top: 8px;
+  --padding-bottom: 8px;
+  border-radius: var(--border-radius) var(--border-radius) 0 0;
 }
 
 .date-picker-modal ion-title {
-  font-size: 16px;
+  font-size: 1.1rem;
   font-weight: 600;
 }
 
 .date-picker-modal ion-button {
   --color: var(--ion-color-primary-contrast);
+  font-weight: 500;
 }
 
-/* Content padding */
-.date-picker-modal .ion-padding {
-  padding: 0;
+.custom-datetime {
+  margin: 0;
+  padding: 16px;
+  background: var(--ion-background-color);
+}
+
+/* Calendar styles */
+.custom-datetime::part(calendar-body) {
+  padding: 8px;
+}
+
+.custom-datetime::part(calendar-day) {
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  font-size: 0.9rem;
+  color: var(--ion-text-color);
+}
+
+.custom-datetime::part(calendar-day.today) {
+  border: 2px solid var(--ion-color-primary);
+  color: var(--ion-color-primary);
+}
+
+.custom-datetime::part(calendar-day.active) {
+  background: var(--ion-color-primary);
+  color: var(--ion-color-primary-contrast);
+}
+
+.custom-datetime::part(calendar-day):hover:not(.active) {
+  background: rgba(var(--ion-color-primary-rgb), 0.1);
+}
+
+.custom-datetime::part(calendar-month) {
+  font-weight: 600;
+  color: var(--ion-text-color);
+}
+
+.custom-datetime::part(calendar-year) {
+  font-weight: 600;
+  color: var(--ion-text-color);
+}
+
+.custom-datetime::part(wheel-item.active) {
+  color: var(--ion-color-primary);
+  font-weight: 600;
+}
+
+/* Button container */
+.custom-datetime::part(buttons) {
+  padding: 8px;
+  border-top: 1px solid var(--ion-color-light-shade);
+  background: var(--ion-background-color);
+}
+
+/* Done and Cancel buttons */
+.custom-datetime::part(button) {
+  border-radius: 8px;
+  padding: 8px 16px;
+  margin: 0 4px;
+  font-weight: 500;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+}
+
+.custom-datetime::part(button.datetime-button-cancel) {
+  color: var(--ion-color-medium);
+}
+
+.custom-datetime::part(button.datetime-button-done) {
+  color: var(--ion-color-primary);
+}
+
+/* Form styles */
+ion-card {
+  margin: 16px;
+  border-radius: var(--ion-card-border-radius);
+  box-shadow: var(--ion-shadow-md);
+}
+
+ion-card-header {
+  background: var(--ion-color-primary);
+  color: var(--ion-color-primary-contrast);
+  border-radius: var(--ion-card-border-radius) var(--ion-card-border-radius) 0 0;
+}
+
+ion-card-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  padding: 8px 0;
+}
+
+ion-item {
+  --padding-start: 0;
+  --inner-padding-end: 0;
+  --background: transparent;
+  margin-bottom: 8px;
+}
+
+ion-label {
+  margin-bottom: 8px;
+  color: var(--ion-text-color);
+  font-weight: 500;
+}
+
+ion-input, ion-select, ion-textarea {
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 12px;
+  --padding-bottom: 12px;
+  --background: var(--ion-color-light);
+  --border-radius: 8px;
+  margin-top: 4px;
+}
+
+ion-button[type="submit"] {
+  margin: 24px 0 8px 0;
+  height: 48px;
+  --border-radius: 8px;
+  font-weight: 600;
+}
+
+/* Error message */
+ion-text[color="danger"] p {
+  margin: 8px 0;
+  font-size: 0.9rem;
 }

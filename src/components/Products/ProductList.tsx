@@ -11,12 +11,14 @@ import {
   IonCard,
   IonCardContent,
   IonCardHeader,
-  IonCardTitle
+  IonCardTitle,
+  IonBadge
 } from '@ionic/react';
-import { trash, create } from 'ionicons/icons';
+import { trash, create, calendar } from 'ionicons/icons';
 import { deleteProduct, getProducts, Product } from '../../services/InventoryService';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useHistory } from 'react-router-dom';
+import './ProductList.css';
 
 interface ProductListProps {
   onRefreshNeeded?: () => void;
@@ -86,7 +88,7 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded }) => {
 
   if (loading) {
     return (
-      <div className="ion-text-center ion-padding">
+      <div className="loading-spinner">
         <IonSpinner />
       </div>
     );
@@ -94,7 +96,7 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded }) => {
 
   if (error) {
     return (
-      <div className="ion-text-center ion-padding">
+      <div className="error-message">
         <IonText color="danger">{error}</IonText>
       </div>
     );
@@ -102,12 +104,12 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded }) => {
 
   if (products.length === 0) {
     return (
-      <IonCard>
+      <IonCard className="product-list-card">
         <IonCardHeader>
           <IonCardTitle>{t('products.title')}</IonCardTitle>
         </IonCardHeader>
         <IonCardContent>
-          <div className="ion-text-center">
+          <div className="empty-state">
             <IonText color="medium">
               <p>{t('products.noProducts')}</p>
               <p>{t('products.addFirst')}</p>
@@ -120,7 +122,7 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded }) => {
 
   return (
     <>
-      <IonCard>
+      <IonCard className="product-list-card">
         <IonCardHeader>
           <IonCardTitle>{t('products.title')}</IonCardTitle>
         </IonCardHeader>
@@ -130,35 +132,42 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded }) => {
               const daysUntilExpiry = calculateDaysUntilExpiry(product.expiryDate);
               const expiryText = getExpiryText(daysUntilExpiry);
               const isExpired = daysUntilExpiry < 0;
+              const isNearExpiry = daysUntilExpiry <= 3 && daysUntilExpiry >= 0;
 
               return (
                 <IonItem key={product.id}>
                   <IonLabel>
                     <h2>{product.name}</h2>
                     {product.category && (
-                      <p>{t(`categories.${product.category.toLowerCase()}`)}</p>
+                      <div className="category-tag">
+                        {t(`categories.${product.category.toLowerCase()}`)}
+                      </div>
                     )}
-                    <p>
-                      {t('products.expiresIn')}: 
-                      <IonText color={isExpired ? 'danger' : daysUntilExpiry <= 3 ? 'warning' : 'medium'}>
-                        {' '}{expiryText}
+                    <div className="expiry-text">
+                      <IonIcon icon={calendar} color={isExpired ? 'danger' : isNearExpiry ? 'warning' : 'medium'} />
+                      <IonText color={isExpired ? 'danger' : isNearExpiry ? 'warning' : 'medium'}>
+                        {expiryText}
                       </IonText>
-                    </p>
-                    {product.notes && <p>{product.notes}</p>}
+                    </div>
+                    {product.notes && (
+                      <p className="notes-text">{product.notes}</p>
+                    )}
                   </IonLabel>
                   <IonButton 
                     fill="clear" 
                     slot="end"
-                    onClick={() => setProductToDelete(product.id)}
+                    onClick={() => handleEdit(product.id)}
+                    color="primary"
                   >
-                    <IonIcon icon={trash} slot="icon-only" />
+                    <IonIcon icon={create} slot="icon-only" />
                   </IonButton>
                   <IonButton 
                     fill="clear" 
                     slot="end"
-                    onClick={() => handleEdit(product.id)}
+                    onClick={() => setProductToDelete(product.id)}
+                    color="danger"
                   >
-                    <IonIcon icon={create} slot="icon-only" />
+                    <IonIcon icon={trash} slot="icon-only" />
                   </IonButton>
                 </IonItem>
               );

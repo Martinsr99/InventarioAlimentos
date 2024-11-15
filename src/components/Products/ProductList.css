@@ -1,0 +1,101 @@
+.product-list-card {
+  margin: 16px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.product-list-card ion-card-header {
+  background: var(--ion-color-primary);
+  color: var(--ion-color-primary-contrast);
+  border-radius: 12px 12px 0 0;
+  padding: 16px;
+}
+
+.product-list-card ion-card-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.product-list-card ion-item {
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 12px;
+  --padding-bottom: 12px;
+  --border-color: var(--ion-color-light-shade);
+  transition: background-color 0.2s ease;
+}
+
+.product-list-card ion-item:hover {
+  --background: var(--ion-color-light);
+}
+
+.product-list-card ion-label h2 {
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: var(--ion-text-color);
+}
+
+.product-list-card ion-label p {
+  margin: 4px 0;
+  color: var(--ion-color-medium);
+  font-size: 0.9rem;
+}
+
+.product-list-card .category-tag {
+  display: inline-block;
+  background: var(--ion-color-primary-tint);
+  color: var(--ion-color-primary-contrast);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  margin-bottom: 8px;
+}
+
+.product-list-card .expiry-text {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.product-list-card ion-button {
+  margin: 0 4px;
+  --padding-start: 8px;
+  --padding-end: 8px;
+}
+
+.product-list-card ion-button ion-icon {
+  font-size: 1.2rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 32px 16px;
+}
+
+.empty-state p {
+  color: var(--ion-color-medium);
+  margin: 8px 0;
+}
+
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+.error-message {
+  color: var(--ion-color-danger);
+  text-align: center;
+  padding: 16px;
+}
+
+/* Dark mode adjustments */
+.dark-theme .product-list-card {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.dark-theme .product-list-card ion-item:hover {
+  --background: rgba(var(--ion-color-light-rgb), 0.1);
+}

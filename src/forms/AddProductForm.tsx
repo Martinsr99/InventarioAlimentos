@@ -62,10 +62,12 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [validationError, setValidationError] = useState('');
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string>('');
 
   const resetForm = () => {
     setName('');
     setExpiryDate('');
+    setSelectedDate('');
     setQuantity('1');
     setCategory('');
     setLocation('fridge');
@@ -89,15 +91,24 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
     return true;
   };
 
-  const handleDateChange = (event: CustomEvent<DatetimeChangeEventDetail>) => {
-    const value = event.detail.value;
+  const handleDateChange = (value: string | string[] | null | undefined) => {
     if (typeof value === 'string') {
-      // Convert to YYYY-MM-DD format
-      const date = new Date(value);
+      setSelectedDate(value);
+    }
+  };
+
+  const confirmDate = () => {
+    if (selectedDate) {
+      const date = new Date(selectedDate);
       const formattedDate = date.toISOString().split('T')[0];
       setExpiryDate(formattedDate);
       setIsDatePickerOpen(false);
     }
+  };
+
+  const cancelDate = () => {
+    setSelectedDate(expiryDate);
+    setIsDatePickerOpen(false);
   };
 
   const formatDisplayDate = (dateString: string) => {
@@ -176,34 +187,38 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
           </IonItem>
 
           <IonModal 
-            isOpen={isDatePickerOpen} 
-            onDidDismiss={() => setIsDatePickerOpen(false)}
+            isOpen={isDatePickerOpen}
+            onDidDismiss={cancelDate}
             className="date-picker-modal"
             breakpoints={[0, 1]}
             initialBreakpoint={1}
           >
             <IonHeader>
               <IonToolbar>
+                <IonButtons slot="start">
+                  <IonButton onClick={cancelDate}>
+                    {t('common.cancel')}
+                  </IonButton>
+                </IonButtons>
                 <IonTitle>{t('products.expiryDate')}</IonTitle>
                 <IonButtons slot="end">
-                  <IonButton onClick={() => setIsDatePickerOpen(false)}>
-                    {t('common.cancel')}
+                  <IonButton strong={true} onClick={confirmDate}>
+                    {t('common.ok')}
                   </IonButton>
                 </IonButtons>
               </IonToolbar>
             </IonHeader>
-            <IonContent>
+            <IonContent className="ion-padding">
               <IonDatetime
-                value={expiryDate}
-                onIonChange={handleDateChange}
+                value={selectedDate || expiryDate}
+                onIonChange={e => handleDateChange(e.detail.value)}
                 presentation="date"
-                preferWheel={false}
-                showDefaultButtons={true}
-                doneText={t('common.ok')}
-                cancelText={t('common.cancel')}
+                preferWheel={true}
+                showDefaultButtons={false}
                 firstDayOfWeek={1}
                 locale="es-ES"
                 className="custom-datetime"
+                min={new Date().toISOString().split('T')[0]}
               />
             </IonContent>
           </IonModal>
