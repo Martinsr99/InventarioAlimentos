@@ -84,7 +84,7 @@ const AppContent: React.FC = () => {
     }
   };
 
-  const handleProductAdded = useCallback(() => {
+  const handleProductChange = useCallback(() => {
     setRefreshKey(prev => prev + 1);
   }, []);
 
@@ -148,7 +148,7 @@ const AppContent: React.FC = () => {
               <IonGrid>
                 <IonRow>
                   <IonCol>
-                    <AddProductForm onProductAdded={handleProductAdded} />
+                    <AddProductForm onProductAdded={handleProductChange} />
                     <ProductList key={refreshKey} />
                   </IonCol>
                 </IonRow>
@@ -156,7 +156,13 @@ const AppContent: React.FC = () => {
             </IonContent>
           </IonPage>
         </Route>
-        <Route exact path="/edit-product/:id" component={EditProduct} />
+        <Route 
+          exact 
+          path="/edit-product/:id" 
+          render={(props) => (
+            <EditProduct {...props} onProductUpdated={handleProductChange} />
+          )}
+        />
         <Route>
           <Redirect to="/" />
         </Route>

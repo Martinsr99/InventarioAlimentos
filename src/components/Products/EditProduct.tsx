@@ -30,6 +30,10 @@ import { getProducts, updateProduct } from '../../services/InventoryService';
 import { useLanguage } from '../../contexts/LanguageContext';
 import '../../forms/AddProductForm.css';
 
+interface EditProductProps {
+  onProductUpdated?: () => void;
+}
+
 const CATEGORIES = [
   'dairy',
   'meat',
@@ -48,7 +52,7 @@ const LOCATIONS = [
   'other'
 ] as const;
 
-const EditProduct: React.FC = () => {
+const EditProduct: React.FC<EditProductProps> = ({ onProductUpdated }) => {
   const { id } = useParams<{ id: string }>();
   const history = useHistory();
   const { t } = useLanguage();
@@ -145,6 +149,9 @@ const EditProduct: React.FC = () => {
       };
 
       await updateProduct(id, productData);
+      if (onProductUpdated) {
+        onProductUpdated();
+      }
       setSuccess(true);
       setTimeout(() => {
         history.goBack();
