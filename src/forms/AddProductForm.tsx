@@ -96,18 +96,30 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
   };
 
   const handleDateChange = (value: string | string[] | null | undefined) => {
-    if (typeof value === 'string') {
-      setSelectedDate(value);
+    if (value) {
+      let dateStr: string;
+      if (Array.isArray(value)) {
+        dateStr = value[0] || new Date().toISOString();
+      } else {
+        dateStr = value;
+      }
+
+      const date = new Date(dateStr);
+      if (!isNaN(date.getTime())) {
+        const formattedDate = date.toISOString().split('T')[0];
+        setSelectedDate(dateStr);
+        setExpiryDate(formattedDate);
+      }
     }
   };
 
   const confirmDate = () => {
-    if (selectedDate) {
-      const date = new Date(selectedDate);
-      const formattedDate = date.toISOString().split('T')[0];
+    if (!selectedDate && !expiryDate) {
+      const today = new Date();
+      const formattedDate = today.toISOString().split('T')[0];
       setExpiryDate(formattedDate);
-      setIsDatePickerOpen(false);
     }
+    setIsDatePickerOpen(false);
   };
 
   const cancelDate = () => {
@@ -224,7 +236,7 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
             </IonHeader>
             <IonContent>
               <IonDatetime
-                value={selectedDate || expiryDate}
+                value={selectedDate || expiryDate || new Date().toISOString()}
                 onIonChange={e => handleDateChange(e.detail.value)}
                 presentation="date"
                 preferWheel={true}
