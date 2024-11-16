@@ -280,15 +280,6 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
           </IonItem>
 
           <IonItem>
-            <IonLabel position="stacked">{t('products.notes')}</IonLabel>
-            <IonTextarea
-              value={notes}
-              placeholder={t('products.enterNotes')}
-              onIonChange={e => setNotes(e.detail.value!)}
-            />
-          </IonItem>
-
-          <IonItem>
             <IonLabel position="stacked">
               {t('products.category')} ({t('common.optional')})
             </IonLabel>
@@ -303,6 +294,17 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
                 </IonSelectOption>
               ))}
             </IonSelect>
+          </IonItem>
+
+          <IonItem>
+            <IonLabel position="stacked">
+              {t('products.notes')} ({t('common.optional')})
+            </IonLabel>
+            <IonTextarea
+              value={notes}
+              placeholder={t('products.enterNotes')}
+              onIonChange={e => setNotes(e.detail.value!)}
+            />
           </IonItem>
 
           <IonButton

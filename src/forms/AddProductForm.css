@@ -77,6 +77,35 @@ ion-item {
   margin-bottom: 8px;
 }
 
+/* Fix expiry date button styling */
+ion-item[button] {
+  --inner-padding-end: 16px;
+  position: relative;
+}
+
+/* Hide default Ionic chevron */
+ion-item[button]::part(detail-icon) {
+  display: none;
+}
+
+ion-item[button]::part(native) {
+  --padding-end: 0;
+}
+
+/* Add custom chevron icon */
+ion-item[button]::after {
+  content: '';
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid var(--ion-color-medium);
+  border-bottom: 2px solid var(--ion-color-medium);
+  transform: translateY(-25%) rotate(-45deg);
+  pointer-events: none;
+}
+
 ion-label {
   margin-bottom: 8px;
   color: var(--ion-text-color);
