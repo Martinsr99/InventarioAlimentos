@@ -23,9 +23,10 @@ import {
   IonSpinner,
   IonToast
 } from '@ionic/react';
-import { settingsOutline, languageOutline, chevronBackOutline } from 'ionicons/icons';
+import { settingsOutline, languageOutline, chevronBackOutline, logOutOutline } from 'ionicons/icons';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { auth } from '../../firebaseConfig';
+import { signOut } from 'firebase/auth';
 import { getUserSettings, updateUserSettings } from '../../services/UserSettingsService';
 import './UserSettings.css';
 
@@ -88,6 +89,16 @@ const UserSettings: React.FC = () => {
     setIsOpen(false);
   };
 
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      handleClose();
+    } catch (error) {
+      console.error('Error signing out:', error);
+      setShowError(true);
+    }
+  };
+
   return (
     <>
       <IonButton 
@@ -120,16 +131,16 @@ const UserSettings: React.FC = () => {
             </div>
           ) : (
             <>
-              <IonCard>
+              <IonCard className="profile-card">
                 <IonCardHeader>
                   <IonCardTitle>{t('profile.picture')}</IonCardTitle>
                 </IonCardHeader>
                 <IonCardContent>
-                  <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+                  <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
                     <div style={{ 
                       width: '100px',
                       height: '100px',
-                      margin: '0 auto',
+                      margin: '0 auto 2rem',
                       borderRadius: '50%',
                       border: '2px solid var(--ion-color-primary)',
                       overflow: 'hidden',
@@ -188,13 +199,13 @@ const UserSettings: React.FC = () => {
 
               <IonCard>
                 <IonCardHeader>
-                  <IonCardTitle>{t('common.settings')}</IonCardTitle>
+                  <IonCardTitle>{t('common.language')}</IonCardTitle>
                 </IonCardHeader>
                 <IonCardContent>
                   <IonList>
                     <IonItem>
                       <IonIcon icon={languageOutline} slot="start" />
-                      <IonLabel>{t('common.language')}</IonLabel>
+                      <IonLabel>{language === 'es' ? 'Español' : 'English'}</IonLabel>
                       <IonToggle
                         checked={language === 'es'}
                         onIonChange={toggleLanguage}
@@ -208,6 +219,18 @@ const UserSettings: React.FC = () => {
                   </IonList>
                 </IonCardContent>
               </IonCard>
+
+              <div className="logout-container">
+                <IonButton 
+                  expand="block"
+                  color="danger"
+                  onClick={handleLogout}
+                  className="logout-button-settings"
+                >
+                  <IonIcon icon={logOutOutline} slot="start" />
+                  {t('app.logout')}
+                </IonButton>
+              </div>
             </>
           )}
         </IonContent>

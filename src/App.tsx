@@ -6,7 +6,6 @@ import {
   IonToolbar, 
   IonPage,
   setupIonicReact,
-  IonButton,
   IonGrid,
   IonRow,
   IonCol,
@@ -18,7 +17,7 @@ import {
 import { IonReactRouter } from '@ionic/react-router';
 import { Route, Redirect } from 'react-router-dom';
 import { auth } from './firebaseConfig';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { onAuthStateChanged } from 'firebase/auth';
 import Auth from './components/Authenticator/Auth';
 import AddProductForm from './forms/AddProductForm';
 import ProductList from './components/Products/ProductList';
@@ -80,15 +79,6 @@ const AppContent: React.FC = () => {
     setIsHeaderElevated(scrollTop > 0);
   };
 
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-    } catch (error) {
-      console.error('Error signing out:', error);
-      setError(t('errors.signOut'));
-    }
-  };
-
   const handleProductChange = useCallback(() => {
     setRefreshKey(prev => prev + 1);
   }, []);
@@ -133,14 +123,6 @@ const AppContent: React.FC = () => {
               <IonToolbar className={`app-header ${isHeaderElevated ? 'header-elevation' : ''}`}>
                 <IonButtons slot="end" className="header-buttons">
                   <UserSettings />
-                  <div className="header-divider"></div>
-                  <IonButton 
-                    fill="clear"
-                    onClick={handleLogout}
-                    className="logout-button"
-                  >
-                    {t('app.logout')}
-                  </IonButton>
                 </IonButtons>
               </IonToolbar>
             </IonHeader>

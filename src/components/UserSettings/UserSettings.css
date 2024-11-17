@@ -34,6 +34,10 @@
   font-size: 1.5rem;
 }
 
+.profile-card ion-card-content {
+  padding-top: 1.5rem;
+}
+
 .profile-picture-option {
   width: 60px;
   height: 60px;
@@ -53,6 +57,52 @@
   border-color: var(--ion-color-primary);
 }
 
+.logout-container {
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.logout-button-settings {
+  --border-radius: var(--ion-border-radius);
+  --background: var(--ion-color-danger);
+  --background-hover: var(--ion-color-danger-shade);
+  --color: var(--ion-color-danger-contrast);
+  font-weight: 600;
+  font-size: 1rem;
+  height: 3rem;
+  margin: 0;
+  transition: all 0.2s ease;
+}
+
+.logout-button-settings ion-icon {
+  font-size: 1.25rem;
+  margin-right: 0.5rem;
+}
+
+ion-modal ion-content {
+  --padding-top: 1rem;
+  --padding-bottom: 1rem;
+}
+
+ion-modal ion-card {
+  margin: 1rem;
+  border-radius: var(--ion-border-radius);
+  box-shadow: var(--ion-shadow-md);
+}
+
+ion-modal ion-item {
+  --padding-start: 0;
+}
+
+ion-modal ion-icon[slot="start"] {
+  margin-right: 1rem;
+  color: var(--ion-color-primary);
+}
+
+ion-modal ion-toggle {
+  padding-right: 0;
+}
+
 @media (max-width: 576px) {
   .settings-button,
   .back-button {
@@ -69,5 +119,22 @@
 
   .back-button {
     margin: 0 0.25rem;
+  }
+
+  ion-modal ion-card {
+    margin: 0.75rem;
+  }
+
+  .logout-container {
+    padding: 0.75rem;
+  }
+
+  .logout-button-settings {
+    height: 2.75rem;
+    font-size: 0.95rem;
+  }
+
+  .logout-button-settings ion-icon {
+    font-size: 1.1rem;
   }
 }
