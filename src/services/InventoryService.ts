@@ -8,8 +8,8 @@ export interface Product {
   expiryDate: string;
   location: string;
   quantity: number;
-  category?: string; // Make category optional
-  notes?: string;
+  category?: string;
+  notes: string; // Changed from optional to required
   userId: string;
   addedAt: string;
 }
@@ -27,7 +27,8 @@ export const getProducts = async (): Promise<Product[]> => {
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => ({
       id: doc.id,
-      ...doc.data()
+      ...doc.data(),
+      notes: doc.data().notes || '' // Ensure notes is always a string
     } as Product));
   } catch (error) {
     console.error('Error getting products:', error);
@@ -43,6 +44,7 @@ export const addProduct = async (product: Omit<Product, 'id' | 'userId' | 'added
   try {
     const docRef = await addDoc(collection(db, 'products'), {
       ...product,
+      notes: product.notes || '', // Ensure notes is always a string
       addedAt: new Date().toISOString(),
       userId: auth.currentUser.uid
     });
@@ -60,7 +62,11 @@ export const updateProduct = async (productId: string, updates: Partial<Omit<Pro
 
   try {
     const productRef = doc(db, 'products', productId);
-    await updateDoc(productRef, updates);
+    const updatedData = {
+      ...updates,
+      notes: updates.notes || '' // Ensure notes is always a string
+    };
+    await updateDoc(productRef, updatedData);
   } catch (error) {
     console.error('Error updating product:', error);
     throw error;

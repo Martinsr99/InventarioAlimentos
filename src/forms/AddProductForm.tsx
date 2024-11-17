@@ -145,22 +145,26 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
     setIsLoading(true);
 
     try {
-      const trimmedNotes = notes.trim();
       const productData = {
         name: name.trim(),
         expiryDate,
         quantity: Number(quantity),
         location,
-        ...(category ? { category } : {}),
-        ...(trimmedNotes ? { notes: trimmedNotes } : {})
+        notes: notes.trim(),
+        ...(category ? { category } : {})
       };
 
       await addProduct(productData);
-      setSuccess(true);
-      resetForm();
+      
+      // Notify parent about the update before resetting the form
       if (onProductAdded) {
         onProductAdded();
       }
+
+      // Wait a bit before showing success and resetting
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setSuccess(true);
+      resetForm();
     } catch (error) {
       console.error('Error adding product:', error);
       setError(t('errors.productAdd'));

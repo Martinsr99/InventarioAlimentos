@@ -138,24 +138,26 @@ const EditProduct: React.FC<EditProductProps> = ({ onProductUpdated }) => {
     setIsLoading(true);
 
     try {
-      const trimmedNotes = notes.trim();
       const productData = {
         name: name.trim(),
         expiryDate,
         quantity: Number(quantity),
         location,
-        ...(category ? { category } : {}),
-        ...(trimmedNotes ? { notes: trimmedNotes } : {})
+        notes: notes.trim(),
+        ...(category ? { category } : {})
       };
 
       await updateProduct(id, productData);
+      setSuccess(true);
+      
+      // Notify parent about the update
       if (onProductUpdated) {
         onProductUpdated();
       }
-      setSuccess(true);
-      setTimeout(() => {
-        history.goBack();
-      }, 1500);
+
+      // Wait a bit to show the success message before navigating
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      history.replace('/'); // Use replace instead of goBack to ensure we're on the main page
     } catch (error) {
       console.error('Error updating product:', error);
       setError(t('errors.productUpdate'));
@@ -331,7 +333,7 @@ const EditProduct: React.FC<EditProductProps> = ({ onProductUpdated }) => {
 
         <IonToast
           isOpen={success}
-          message={t('products.addSuccess')}
+          message={t('products.updateSuccess')}
           duration={2000}
           color="success"
           onDidDismiss={() => setSuccess(false)}

@@ -91,6 +91,73 @@
   padding: 16px;
 }
 
+/* New styles for filters and sorting */
+.filters-container {
+  margin-bottom: 16px;
+  background: var(--ion-color-light);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.product-searchbar {
+  padding: 0;
+  --background: var(--ion-background-color);
+  --border-radius: 8px;
+  --box-shadow: none;
+  --placeholder-color: var(--ion-color-medium);
+  margin-bottom: 12px;
+}
+
+.sort-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+}
+
+.sort-segment {
+  flex-grow: 1;
+  min-width: 0;
+  background: var(--ion-background-color);
+  border-radius: 8px;
+  --background: var(--ion-background-color);
+}
+
+.sort-segment-button {
+  --background-checked: var(--ion-color-primary);
+  --color-checked: var(--ion-color-primary-contrast);
+  --indicator-color: transparent;
+  --border-radius: 6px;
+  --margin-top: 2px;
+  --margin-bottom: 2px;
+  --margin-start: 2px;
+  --margin-end: 2px;
+  font-size: 0.9rem;
+}
+
+.sort-segment-button ion-icon {
+  margin-right: 4px;
+  font-size: 1.1rem;
+}
+
+.sort-direction-button {
+  margin: 0;
+  height: 38px;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --border-radius: 8px;
+  --background: var(--ion-background-color);
+  --color: var(--ion-color-primary);
+  --box-shadow: none;
+  --border-width: 1px;
+  --border-style: solid;
+  --border-color: var(--ion-color-light-shade);
+}
+
+.sort-direction-button ion-icon {
+  font-size: 1.2rem;
+}
+
 /* Dark mode adjustments */
 .dark-theme .product-list-card {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
@@ -98,4 +165,18 @@
 
 .dark-theme .product-list-card ion-item:hover {
   --background: rgba(var(--ion-color-light-rgb), 0.1);
+}
+
+.dark-theme .filters-container {
+  background: rgba(var(--ion-color-light-rgb), 0.1);
+}
+
+.dark-theme .product-searchbar,
+.dark-theme .sort-segment,
+.dark-theme .sort-direction-button {
+  --background: rgba(var(--ion-color-light-rgb), 0.1);
+}
+
+.dark-theme .sort-direction-button {
+  --border-color: rgba(var(--ion-color-light-rgb), 0.2);
 }

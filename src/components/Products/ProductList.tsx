@@ -12,9 +12,23 @@ import {
   IonCardContent,
   IonCardHeader,
   IonCardTitle,
-  IonBadge
+  IonRefresher,
+  IonRefresherContent,
+  RefresherEventDetail,
+  IonSearchbar,
+  IonSegment,
+  IonSegmentButton,
+  IonToolbar
 } from '@ionic/react';
-import { trash, create, calendar } from 'ionicons/icons';
+import { 
+  trash, 
+  create, 
+  calendar,
+  arrowUp,
+  arrowDown,
+  text,
+  time
+} from 'ionicons/icons';
 import { deleteProduct, getProducts, Product } from '../../services/InventoryService';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useHistory } from 'react-router-dom';
@@ -24,11 +38,18 @@ interface ProductListProps {
   onRefreshNeeded?: () => void;
 }
 
+type SortOption = 'name' | 'expiryDate';
+type SortDirection = 'asc' | 'desc';
+
 const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded }) => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [productToDelete, setProductToDelete] = useState<string | null>(null);
+  const [searchText, setSearchText] = useState('');
+  const [sortBy, setSortBy] = useState<SortOption>('expiryDate');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const { t } = useLanguage();
   const history = useHistory();
 
@@ -36,7 +57,12 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded }) => {
     loadProducts();
   }, []);
 
+  useEffect(() => {
+    filterAndSortProducts();
+  }, [products, searchText, sortBy, sortDirection]);
+
   const loadProducts = async () => {
+    setLoading(true);
     try {
       const fetchedProducts = await getProducts();
       setProducts(fetchedProducts);
@@ -50,10 +76,51 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded }) => {
     }
   };
 
+  const filterAndSortProducts = () => {
+    let result = [...products];
+
+    // Apply search filter
+    if (searchText) {
+      const searchLower = searchText.toLowerCase().trim();
+      result = result.filter(product =>
+        product.name.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Apply sorting
+    result.sort((a, b) => {
+      if (sortBy === 'name') {
+        return sortDirection === 'asc'
+          ? a.name.localeCompare(b.name)
+          : b.name.localeCompare(a.name);
+      } else {
+        const dateA = new Date(a.expiryDate).getTime();
+        const dateB = new Date(b.expiryDate).getTime();
+        return sortDirection === 'asc'
+          ? dateA - dateB
+          : dateB - dateA;
+      }
+    });
+
+    setFilteredProducts(result);
+  };
+
+  const toggleSortDirection = () => {
+    setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+  };
+
+  const handleRefresh = async (event: CustomEvent<RefresherEventDetail>) => {
+    try {
+      await loadProducts();
+    } finally {
+      event.detail.complete();
+    }
+  };
+
   const handleDelete = async (productId: string) => {
     try {
       await deleteProduct(productId);
-      setProducts(products.filter(p => p.id !== productId));
+      await loadProducts();
     } catch (error) {
       setError(t('errors.productDelete'));
     }
@@ -102,77 +169,106 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded }) => {
     );
   }
 
-  if (products.length === 0) {
-    return (
-      <IonCard className="product-list-card">
-        <IonCardHeader>
-          <IonCardTitle>{t('products.title')}</IonCardTitle>
-        </IonCardHeader>
-        <IonCardContent>
-          <div className="empty-state">
-            <IonText color="medium">
-              <p>{t('products.noProducts')}</p>
-              <p>{t('products.addFirst')}</p>
-            </IonText>
-          </div>
-        </IonCardContent>
-      </IonCard>
-    );
-  }
-
   return (
     <>
+      <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
+        <IonRefresherContent></IonRefresherContent>
+      </IonRefresher>
+      
       <IonCard className="product-list-card">
         <IonCardHeader>
           <IonCardTitle>{t('products.title')}</IonCardTitle>
         </IonCardHeader>
         <IonCardContent>
-          <IonList>
-            {products.map(product => {
-              const daysUntilExpiry = calculateDaysUntilExpiry(product.expiryDate);
-              const expiryText = getExpiryText(daysUntilExpiry);
-              const isExpired = daysUntilExpiry < 0;
-              const isNearExpiry = daysUntilExpiry <= 3 && daysUntilExpiry >= 0;
+          <div className="filters-container">
+            <IonSearchbar
+              value={searchText}
+              onIonInput={e => setSearchText(e.detail.value || '')}
+              placeholder={t('products.searchPlaceholder')}
+              className="product-searchbar"
+              debounce={0}
+              animated={false}
+            />
+            <div className="sort-controls">
+              <IonSegment 
+                value={sortBy} 
+                onIonChange={e => setSortBy(e.detail.value as SortOption)}
+                className="sort-segment"
+              >
+                <IonSegmentButton value="name" className="sort-segment-button">
+                  <IonIcon icon={text} />
+                  <IonLabel>{t('products.sortByName')}</IonLabel>
+                </IonSegmentButton>
+                <IonSegmentButton value="expiryDate" className="sort-segment-button">
+                  <IonIcon icon={time} />
+                  <IonLabel>{t('products.sortByExpiry')}</IonLabel>
+                </IonSegmentButton>
+              </IonSegment>
+              <IonButton
+                fill="clear"
+                className="sort-direction-button"
+                onClick={toggleSortDirection}
+              >
+                <IonIcon icon={sortDirection === 'asc' ? arrowUp : arrowDown} />
+              </IonButton>
+            </div>
+          </div>
 
-              return (
-                <IonItem key={product.id}>
-                  <IonLabel>
-                    <h2>{product.name}</h2>
-                    {product.category && (
-                      <div className="category-tag">
-                        {t(`categories.${product.category.toLowerCase()}`)}
+          {filteredProducts.length === 0 ? (
+            <div className="empty-state">
+              <IonText color="medium">
+                <p>{searchText ? t('products.noSearchResults') : t('products.noProducts')}</p>
+                {!searchText && <p>{t('products.addFirst')}</p>}
+              </IonText>
+            </div>
+          ) : (
+            <IonList>
+              {filteredProducts.map(product => {
+                const daysUntilExpiry = calculateDaysUntilExpiry(product.expiryDate);
+                const expiryText = getExpiryText(daysUntilExpiry);
+                const isExpired = daysUntilExpiry < 0;
+                const isNearExpiry = daysUntilExpiry <= 3 && daysUntilExpiry >= 0;
+
+                return (
+                  <IonItem key={product.id}>
+                    <IonLabel>
+                      <h2>{product.name}</h2>
+                      {product.category && (
+                        <div className="category-tag">
+                          {t(`categories.${product.category.toLowerCase()}`)}
+                        </div>
+                      )}
+                      <div className="expiry-text">
+                        <IonIcon icon={calendar} color={isExpired ? 'danger' : isNearExpiry ? 'warning' : 'medium'} />
+                        <IonText color={isExpired ? 'danger' : isNearExpiry ? 'warning' : 'medium'}>
+                          {expiryText}
+                        </IonText>
                       </div>
-                    )}
-                    <div className="expiry-text">
-                      <IonIcon icon={calendar} color={isExpired ? 'danger' : isNearExpiry ? 'warning' : 'medium'} />
-                      <IonText color={isExpired ? 'danger' : isNearExpiry ? 'warning' : 'medium'}>
-                        {expiryText}
-                      </IonText>
-                    </div>
-                    {product.notes && (
-                      <p className="notes-text">{product.notes}</p>
-                    )}
-                  </IonLabel>
-                  <IonButton 
-                    fill="clear" 
-                    slot="end"
-                    onClick={() => handleEdit(product.id)}
-                    color="primary"
-                  >
-                    <IonIcon icon={create} slot="icon-only" />
-                  </IonButton>
-                  <IonButton 
-                    fill="clear" 
-                    slot="end"
-                    onClick={() => setProductToDelete(product.id)}
-                    color="danger"
-                  >
-                    <IonIcon icon={trash} slot="icon-only" />
-                  </IonButton>
-                </IonItem>
-              );
-            })}
-          </IonList>
+                      {product.notes && product.notes.trim() !== '' && (
+                        <p className="notes-text">{product.notes}</p>
+                      )}
+                    </IonLabel>
+                    <IonButton 
+                      fill="clear" 
+                      slot="end"
+                      onClick={() => handleEdit(product.id)}
+                      color="primary"
+                    >
+                      <IonIcon icon={create} slot="icon-only" />
+                    </IonButton>
+                    <IonButton 
+                      fill="clear" 
+                      slot="end"
+                      onClick={() => setProductToDelete(product.id)}
+                      color="danger"
+                    >
+                      <IonIcon icon={trash} slot="icon-only" />
+                    </IonButton>
+                  </IonItem>
+                );
+              })}
+            </IonList>
+          )}
         </IonCardContent>
       </IonCard>
 
