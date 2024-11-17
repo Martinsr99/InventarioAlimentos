@@ -4,7 +4,6 @@ import {
   IonContent, 
   IonHeader, 
   IonToolbar, 
-  IonTitle,
   IonPage,
   setupIonicReact,
   IonButton,
@@ -44,8 +43,8 @@ import '@ionic/react/css/text-transformation.css';
 import '@ionic/react/css/flex-utils.css';
 import '@ionic/react/css/display.css';
 
-/* Theme variables */
 import './theme/variables.css';
+import './styles/Header.css';
 
 setupIonicReact({
   mode: 'ios'
@@ -57,6 +56,7 @@ const AppContent: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
   const [refreshKey, setRefreshKey] = useState(0);
+  const [isHeaderElevated, setIsHeaderElevated] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -74,6 +74,11 @@ const AppContent: React.FC = () => {
 
     return () => unsubscribe();
   }, [t]);
+
+  const handleScroll = (e: CustomEvent) => {
+    const scrollTop = (e.detail as any).scrollTop;
+    setIsHeaderElevated(scrollTop > 0);
+  };
 
   const handleLogout = async () => {
     try {
@@ -111,11 +116,6 @@ const AppContent: React.FC = () => {
     return (
       <IonApp>
         <IonPage>
-          <IonHeader>
-            <IonToolbar>
-              <IonTitle>{t('app.title')}</IonTitle>
-            </IonToolbar>
-          </IonHeader>
           <IonContent>
             <Auth />
           </IonContent>
@@ -130,10 +130,10 @@ const AppContent: React.FC = () => {
         <Route exact path="/">
           <IonPage>
             <IonHeader>
-              <IonToolbar>
-                <IonTitle>{t('app.title')}</IonTitle>
-                <IonButtons slot="end" className="ion-padding-end">
+              <IonToolbar className={`app-header ${isHeaderElevated ? 'header-elevation' : ''}`}>
+                <IonButtons slot="end" className="header-buttons">
                   <UserSettings />
+                  <div className="header-divider"></div>
                   <IonButton 
                     fill="clear"
                     onClick={handleLogout}
@@ -144,7 +144,7 @@ const AppContent: React.FC = () => {
                 </IonButtons>
               </IonToolbar>
             </IonHeader>
-            <IonContent>
+            <IonContent scrollEvents={true} onIonScroll={handleScroll}>
               <IonGrid>
                 <IonRow>
                   <IonCol>

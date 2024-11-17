@@ -1,24 +1,48 @@
-.profile-picture-option {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto;
-  border-radius: 50%;
-  border: 2px solid transparent;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  padding: 0;
-  background-color: var(--ion-color-light);
-  transition: transform 0.2s ease, border-color 0.2s ease;
+.settings-button {
+  --color: var(--ion-color-primary-contrast);
+  --background-hover: rgba(255, 255, 255, 0.1);
+  --border-radius: var(--ion-border-radius);
+  font-weight: 500;
+  height: 2.5rem;
+  margin: 0;
+  transition: opacity 0.2s ease;
 }
 
-.profile-picture-option img {
-  width: 120% !important;
-  height: 120% !important;
-  object-fit: cover;
-  transform: scale(1.2);
+.settings-button:hover {
+  opacity: 0.9;
+}
+
+.settings-button ion-icon {
+  font-size: 1.25rem;
+}
+
+.back-button {
+  --color: var(--ion-color-primary-contrast);
+  --background-hover: rgba(255, 255, 255, 0.1);
+  --border-radius: var(--ion-border-radius);
+  font-weight: 500;
+  height: 2.5rem;
+  margin: 0 0.5rem;
+  transition: opacity 0.2s ease;
+}
+
+.back-button:hover {
+  opacity: 0.9;
+}
+
+.back-button ion-icon {
+  font-size: 1.5rem;
+}
+
+.profile-picture-option {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+  margin: 0 auto;
 }
 
 .profile-picture-option:hover {
@@ -27,4 +51,23 @@
 
 .profile-picture-option.selected {
   border-color: var(--ion-color-primary);
+}
+
+@media (max-width: 576px) {
+  .settings-button,
+  .back-button {
+    height: 2.25rem;
+  }
+
+  .settings-button ion-icon {
+    font-size: 1.1rem;
+  }
+
+  .back-button ion-icon {
+    font-size: 1.3rem;
+  }
+
+  .back-button {
+    margin: 0 0.25rem;
+  }
 }

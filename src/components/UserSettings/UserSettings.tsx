@@ -23,7 +23,7 @@ import {
   IonSpinner,
   IonToast
 } from '@ionic/react';
-import { settingsOutline, languageOutline, closeOutline } from 'ionicons/icons';
+import { settingsOutline, languageOutline, chevronBackOutline } from 'ionicons/icons';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { auth } from '../../firebaseConfig';
 import { getUserSettings, updateUserSettings } from '../../services/UserSettingsService';
@@ -84,21 +84,32 @@ const UserSettings: React.FC = () => {
     }
   };
 
+  const handleClose = () => {
+    setIsOpen(false);
+  };
+
   return (
     <>
-      <IonButton fill="clear" onClick={() => setIsOpen(true)}>
+      <IonButton 
+        fill="clear" 
+        onClick={() => setIsOpen(true)}
+        className="settings-button"
+      >
         <IonIcon icon={settingsOutline} />
       </IonButton>
 
-      <IonModal isOpen={isOpen} onDidDismiss={() => setIsOpen(false)}>
+      <IonModal isOpen={isOpen} onDidDismiss={handleClose}>
         <IonHeader>
-          <IonToolbar>
-            <IonTitle>{t('common.settings')}</IonTitle>
-            <IonButtons slot="end">
-              <IonButton onClick={() => setIsOpen(false)}>
-                <IonIcon icon={closeOutline} />
+          <IonToolbar className="app-header">
+            <IonButtons slot="start">
+              <IonButton 
+                onClick={handleClose}
+                className="back-button"
+              >
+                <IonIcon icon={chevronBackOutline} />
               </IonButton>
             </IonButtons>
+            <IonTitle>{t('common.settings')}</IonTitle>
           </IonToolbar>
         </IonHeader>
         
