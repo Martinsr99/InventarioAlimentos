@@ -50,12 +50,17 @@ setupIonicReact({
 });
 
 const AppContent: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
   const [refreshKey, setRefreshKey] = useState(0);
   const [isHeaderElevated, setIsHeaderElevated] = useState(false);
+
+  // Set Firebase language based on current language context
+  useEffect(() => {
+    auth.languageCode = language;
+  }, [language]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {

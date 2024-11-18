@@ -33,19 +33,74 @@ interface LanguageProviderProps {
   children: ReactNode;
 }
 
-export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
-  const [language, setLanguage] = useState<Language>('en');
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+// Get browser language
+const getBrowserLanguage = (): Language => {
+  // Primero intentar obtener el idioma completo (e.g., 'es-ES', 'en-US')
+  const fullLang = navigator.language;
+  
+  // Si el idioma completo empieza con 'es', usar español
+  if (fullLang.startsWith('es')) {
+    return 'es';
+  }
+  
+  // Si no, intentar con los idiomas preferidos del navegador
+  const languages = navigator.languages || [navigator.language];
+  for (const lang of languages) {
+    if (lang.startsWith('es')) {
+      return 'es';
+    }
+  }
+  
+  return 'en';
+};
 
-  // Listen for auth state changes
+// Get stored language from localStorage or use browser language
+const getInitialLanguage = (): Language => {
+  const stored = localStorage.getItem('language');
+  if (stored === 'es' || stored === 'en') {
+    return stored;
+  }
+  const browserLang = getBrowserLanguage();
+  localStorage.setItem('language', browserLang);
+  return browserLang;
+};
+
+export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
+  const [language, setLanguage] = useState<Language>(getInitialLanguage());
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isLoadingSettings, setIsLoadingSettings] = useState(true);
+
+  // Listen for auth state changes and load user settings
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
+      setIsLoadingSettings(true);
+
       if (user) {
-        // Load user settings when authenticated
-        const settings = await getUserSettings(user);
-        setLanguage(settings.language);
+        try {
+          const settings = await getUserSettings(user);
+          if (settings.language) {
+            setLanguage(settings.language);
+            localStorage.setItem('language', settings.language);
+            auth.languageCode = settings.language;
+          }
+        } catch (error) {
+          console.error('Error loading user language settings:', error);
+          // Si hay error, usar el idioma del navegador
+          const browserLang = getBrowserLanguage();
+          setLanguage(browserLang);
+          localStorage.setItem('language', browserLang);
+          auth.languageCode = browserLang;
+        }
+      } else {
+        // Si no hay usuario, usar el idioma almacenado o el del navegador
+        const initialLang = getInitialLanguage();
+        setLanguage(initialLang);
+        localStorage.setItem('language', initialLang);
+        auth.languageCode = initialLang;
       }
+
+      setIsLoadingSettings(false);
     });
 
     return () => unsubscribe();
@@ -53,7 +108,13 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
 
   // Update user settings when language changes
   const handleLanguageChange = async (newLanguage: Language) => {
+    // Prevent language change while loading settings
+    if (isLoadingSettings) return;
+
     setLanguage(newLanguage);
+    localStorage.setItem('language', newLanguage);
+    auth.languageCode = newLanguage;
+    
     if (currentUser) {
       try {
         await updateUserSettings(currentUser, { language: newLanguage });
@@ -67,6 +128,11 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     const currentTranslations = translations[language];
     return currentTranslations[key] || key;
   };
+
+  // Show loading state while fetching initial settings
+  if (isLoadingSettings) {
+    return null; // or a loading spinner
+  }
 
   return (
     <LanguageContext.Provider 

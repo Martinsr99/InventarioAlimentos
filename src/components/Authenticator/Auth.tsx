@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { auth } from '../../firebaseConfig';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, AuthError } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, AuthError } from 'firebase/auth';
 import Swal from 'sweetalert2';
 import { useLanguage } from '../../contexts/LanguageContext';
+import LanguageSwitch from '../common/LanguageSwitch';
+import { updateUserSettings } from '../../services/UserSettingsService';
 import {
     IonCard,
     IonCardContent,
@@ -19,7 +21,8 @@ import {
     IonNote,
     IonIcon,
     IonButtons,
-    InputChangeEventDetail
+    InputChangeEventDetail,
+    IonToolbar
 } from '@ionic/react';
 import { checkmarkCircle, closeCircle, eyeOutline, eyeOffOutline } from 'ionicons/icons';
 
@@ -53,13 +56,18 @@ const initialRequirements = (t: (key: string) => string): PasswordRequirement[] 
 ];
 
 const Auth: React.FC = () => {
-    const { t } = useLanguage();
+    const { t, language, setLanguage } = useLanguage();
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
-    const [isRegistering, setIsRegistering] = useState<boolean>(true);
+    const [isRegistering, setIsRegistering] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [showPassword, setShowPassword] = useState<boolean>(false);
     const [requirements, setRequirements] = useState<PasswordRequirement[]>(() => initialRequirements(t));
+
+    // Set Firebase language based on current language context
+    useEffect(() => {
+        auth.languageCode = language;
+    }, [language]);
 
     // Set initial password visibility based on registration state
     useEffect(() => {
@@ -120,6 +128,26 @@ const Auth: React.FC = () => {
             },
             willClose: () => {
                 clearInterval(timerInterval);
+            }
+        });
+    };
+
+    const showSuccess = (title: string, message: string) => {
+        Swal.fire({
+            title,
+            text: message,
+            icon: 'success',
+            confirmButtonText: t('common.ok'),
+            confirmButtonColor: '#3880ff',
+            background: '#ffffff',
+            heightAuto: false,
+            timer: 3000,
+            timerProgressBar: true,
+            customClass: {
+                popup: 'auth-modal',
+                title: 'auth-modal-title',
+                htmlContainer: 'auth-modal-content',
+                confirmButton: 'auth-modal-button'
             }
         });
     };
@@ -202,10 +230,47 @@ const Auth: React.FC = () => {
         setIsLoading(true);
         try {
             if (isRegistering) {
-                await createUserWithEmailAndPassword(auth, email, password);
+                // Capturar el idioma actual antes del registro
+                const currentLanguage = language;
+                
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                
+                // Forzar el idioma en localStorage y el contexto
+                localStorage.setItem('language', currentLanguage);
+                setLanguage(currentLanguage);
+                
+                // Guardar en Firestore
+                await updateUserSettings(userCredential.user, { 
+                    language: currentLanguage,
+                    profilePicture: '/images/profile/apple.png'
+                });
+                
+                // Forzar el idioma en Firebase Auth
+                auth.languageCode = currentLanguage;
             } else {
                 await signInWithEmailAndPassword(auth, email, password);
             }
+        } catch (error: any) {
+            const errorInfo = getFirebaseErrorMessage(error);
+            showError(errorInfo.title, errorInfo.message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handlePasswordReset = async () => {
+        if (!validateEmail(email)) {
+            showError(t('auth.errors.invalidEmail'), t('auth.errors.pleaseEnterValidEmail'));
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            await sendPasswordResetEmail(auth, email, {
+                url: window.location.origin,
+                handleCodeInApp: false
+            });
+            showSuccess(t('auth.resetPasswordSuccess'), t('auth.resetPasswordSuccessMessage'));
         } catch (error: any) {
             const errorInfo = getFirebaseErrorMessage(error);
             showError(errorInfo.title, errorInfo.message);
@@ -219,8 +284,15 @@ const Auth: React.FC = () => {
             <IonRow>
                 <IonCol size="12" sizeMd="6" offsetMd="3">
                     <IonCard>
-                        <IonCardHeader>
-                            <IonCardTitle>{isRegistering ? t('auth.register') : t('auth.login')}</IonCardTitle>
+                        <IonCardHeader className="auth-header">
+                            <IonToolbar style={{ '--background': 'transparent' } as any}>
+                                <IonCardTitle slot="start" style={{ margin: 0 }}>
+                                    {isRegistering ? t('auth.register') : t('auth.login')}
+                                </IonCardTitle>
+                                <IonButtons slot="end">
+                                    <LanguageSwitch />
+                                </IonButtons>
+                            </IonToolbar>
                         </IonCardHeader>
                         <IonCardContent>
                             <form onSubmit={handleAuth}>
@@ -308,6 +380,18 @@ const Auth: React.FC = () => {
                                     ? t('auth.alreadyHaveAccount')
                                     : t('auth.dontHaveAccount')}
                             </IonButton>
+
+                            {!isRegistering && (
+                                <IonButton
+                                    expand="block"
+                                    fill="clear"
+                                    onClick={handlePasswordReset}
+                                    className="ion-margin-top"
+                                    disabled={isLoading}
+                                >
+                                    {t('auth.forgotPassword')}
+                                </IonButton>
+                            )}
                         </IonCardContent>
                     </IonCard>
                 </IonCol>
@@ -340,6 +424,9 @@ const Auth: React.FC = () => {
                     align-items: center;
                     margin: 8px 0;
                     font-size: 0.9rem;
+                }
+                .auth-header ion-toolbar {
+                    padding: 0;
                 }
             `}</style>
         </IonGrid>
