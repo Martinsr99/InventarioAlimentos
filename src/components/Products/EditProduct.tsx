@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useHistory } from 'react-router-dom';
 import {
   IonCard,
@@ -56,6 +56,7 @@ const EditProduct: React.FC<EditProductProps> = ({ onProductUpdated }) => {
   const { id } = useParams<{ id: string }>();
   const history = useHistory();
   const { t } = useLanguage();
+  const formRef = useRef<HTMLFormElement>(null);
   const [name, setName] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
   const [quantity, setQuantity] = useState('1');
@@ -67,6 +68,13 @@ const EditProduct: React.FC<EditProductProps> = ({ onProductUpdated }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [validationError, setValidationError] = useState('');
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+
+  // Refs to store the latest input values
+  const inputValues = useRef({
+    name: '',
+    quantity: '1',
+    notes: '',
+  });
 
   useEffect(() => {
     loadProduct();
@@ -83,6 +91,12 @@ const EditProduct: React.FC<EditProductProps> = ({ onProductUpdated }) => {
         setCategory(product.category || '');
         setLocation(product.location);
         setNotes(product.notes || '');
+        // Initialize input values ref
+        inputValues.current = {
+          name: product.name,
+          quantity: product.quantity.toString(),
+          notes: product.notes || '',
+        };
       } else {
         history.replace('/');
       }
@@ -95,7 +109,11 @@ const EditProduct: React.FC<EditProductProps> = ({ onProductUpdated }) => {
   };
 
   const validateForm = (): boolean => {
-    if (!name.trim()) {
+    // Synchronize the latest input values
+    const currentName = inputValues.current.name || name;
+    const currentQuantity = inputValues.current.quantity || quantity;
+
+    if (!currentName.trim()) {
       setValidationError(t('validation.nameRequired'));
       return false;
     }
@@ -103,7 +121,7 @@ const EditProduct: React.FC<EditProductProps> = ({ onProductUpdated }) => {
       setValidationError(t('validation.expiryRequired'));
       return false;
     }
-    if (!quantity || Number(quantity) < 1) {
+    if (!currentQuantity || Number(currentQuantity) < 1) {
       setValidationError(t('validation.quantityRequired'));
       return false;
     }
@@ -126,10 +144,31 @@ const EditProduct: React.FC<EditProductProps> = ({ onProductUpdated }) => {
     return date.toLocaleDateString();
   };
 
+  const handleInputChange = (field: keyof typeof inputValues.current, value: string) => {
+    inputValues.current[field] = value;
+    // Also update the state for immediate UI feedback
+    switch (field) {
+      case 'name':
+        setName(value);
+        break;
+      case 'quantity':
+        setQuantity(value);
+        break;
+      case 'notes':
+        setNotes(value);
+        break;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setValidationError('');
+
+    // Synchronize the latest input values with state
+    setName(inputValues.current.name || name);
+    setQuantity(inputValues.current.quantity || quantity);
+    setNotes(inputValues.current.notes || notes);
 
     if (!validateForm()) {
       return;
@@ -139,25 +178,23 @@ const EditProduct: React.FC<EditProductProps> = ({ onProductUpdated }) => {
 
     try {
       const productData = {
-        name: name.trim(),
+        name: (inputValues.current.name || name).trim(),
         expiryDate,
-        quantity: Number(quantity),
+        quantity: Number(inputValues.current.quantity || quantity),
         location,
-        notes: notes.trim(),
+        notes: (inputValues.current.notes || notes).trim(),
         ...(category ? { category } : {})
       };
 
       await updateProduct(id, productData);
       setSuccess(true);
       
-      // Notify parent about the update
       if (onProductUpdated) {
         onProductUpdated();
       }
 
-      // Wait a bit to show the success message before navigating
       await new Promise(resolve => setTimeout(resolve, 1000));
-      history.replace('/'); // Use replace instead of goBack to ensure we're on the main page
+      history.replace('/');
     } catch (error) {
       console.error('Error updating product:', error);
       setError(t('errors.productUpdate'));
@@ -190,7 +227,7 @@ const EditProduct: React.FC<EditProductProps> = ({ onProductUpdated }) => {
       </IonHeader>
 
       <IonContent>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} ref={formRef}>
           <IonCard>
             <IonCardHeader>
               <IonCardTitle>{t('products.edit')}</IonCardTitle>
@@ -209,7 +246,11 @@ const EditProduct: React.FC<EditProductProps> = ({ onProductUpdated }) => {
                 <IonInput
                   value={name}
                   placeholder={t('products.enterName')}
-                  onIonChange={e => setName(e.detail.value!)}
+                  onIonInput={e => handleInputChange('name', e.detail.value || '')}
+                  onIonBlur={() => {
+                    const input = formRef.current?.querySelector('ion-input[placeholder="' + t('products.enterName') + '"]') as HTMLIonInputElement;
+                    handleInputChange('name', input?.value?.toString() || '');
+                  }}
                 />
               </IonItem>
 
@@ -276,7 +317,11 @@ const EditProduct: React.FC<EditProductProps> = ({ onProductUpdated }) => {
                   type="number"
                   value={quantity}
                   placeholder={t('products.enterQuantity')}
-                  onIonChange={e => setQuantity(e.detail.value!)}
+                  onIonInput={e => handleInputChange('quantity', e.detail.value || '1')}
+                  onIonBlur={() => {
+                    const input = formRef.current?.querySelector('ion-input[placeholder="' + t('products.enterQuantity') + '"]') as HTMLIonInputElement;
+                    handleInputChange('quantity', input?.value?.toString() || '1');
+                  }}
                   min="1"
                 />
               </IonItem>
@@ -286,7 +331,11 @@ const EditProduct: React.FC<EditProductProps> = ({ onProductUpdated }) => {
                 <IonTextarea
                   value={notes}
                   placeholder={t('products.enterNotes')}
-                  onIonChange={e => setNotes(e.detail.value!)}
+                  onIonInput={e => handleInputChange('notes', e.detail.value || '')}
+                  onIonBlur={() => {
+                    const textarea = formRef.current?.querySelector('ion-textarea') as HTMLIonTextareaElement;
+                    handleInputChange('notes', textarea?.value?.toString() || '');
+                  }}
                 />
               </IonItem>
 

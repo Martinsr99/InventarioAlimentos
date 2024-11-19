@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   IonCard,
   IonCardContent,
@@ -53,6 +53,7 @@ interface AddProductFormProps {
 
 const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
   const { t } = useLanguage();
+  const formRef = useRef<HTMLFormElement>(null);
   const [name, setName] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
   const [quantity, setQuantity] = useState('1');
@@ -67,6 +68,13 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [isCustomQuantity, setIsCustomQuantity] = useState(false);
 
+  // Refs to store the latest input values
+  const inputValues = useRef({
+    name: '',
+    quantity: '1',
+    notes: '',
+  });
+
   const resetForm = () => {
     setName('');
     setExpiryDate('');
@@ -77,10 +85,19 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
     setNotes('');
     setValidationError('');
     setIsCustomQuantity(false);
+    inputValues.current = {
+      name: '',
+      quantity: '1',
+      notes: '',
+    };
   };
 
   const validateForm = (): boolean => {
-    if (!name.trim()) {
+    // Synchronize the latest input values
+    const currentName = inputValues.current.name || name;
+    const currentQuantity = inputValues.current.quantity || quantity;
+
+    if (!currentName.trim()) {
       setValidationError(t('validation.nameRequired'));
       return false;
     }
@@ -88,7 +105,7 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
       setValidationError(t('validation.expiryRequired'));
       return false;
     }
-    if (!quantity || Number(quantity) < 1) {
+    if (!currentQuantity || Number(currentQuantity) < 1) {
       setValidationError(t('validation.quantityRequired'));
       return false;
     }
@@ -138,6 +155,11 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
     setError('');
     setValidationError('');
 
+    // Synchronize the latest input values with state
+    setName(inputValues.current.name || name);
+    setQuantity(inputValues.current.quantity || quantity);
+    setNotes(inputValues.current.notes || notes);
+
     if (!validateForm()) {
       return;
     }
@@ -146,22 +168,20 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
 
     try {
       const productData = {
-        name: name.trim(),
+        name: (inputValues.current.name || name).trim(),
         expiryDate,
-        quantity: Number(quantity),
+        quantity: Number(inputValues.current.quantity || quantity),
         location,
-        notes: notes.trim(),
+        notes: (inputValues.current.notes || notes).trim(),
         ...(category ? { category } : {})
       };
 
       await addProduct(productData);
       
-      // Notify parent about the update before resetting the form
       if (onProductAdded) {
         onProductAdded();
       }
 
-      // Wait a bit before showing success and resetting
       await new Promise(resolve => setTimeout(resolve, 500));
       setSuccess(true);
       resetForm();
@@ -177,14 +197,32 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
     if (value === 'custom') {
       setIsCustomQuantity(true);
       setQuantity('');
+      inputValues.current.quantity = '';
     } else {
       setIsCustomQuantity(false);
       setQuantity(value);
+      inputValues.current.quantity = value;
+    }
+  };
+
+  const handleInputChange = (field: keyof typeof inputValues.current, value: string) => {
+    inputValues.current[field] = value;
+    // Also update the state for immediate UI feedback
+    switch (field) {
+      case 'name':
+        setName(value);
+        break;
+      case 'quantity':
+        setQuantity(value);
+        break;
+      case 'notes':
+        setNotes(value);
+        break;
     }
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} ref={formRef}>
       <IonCard>
         <IonCardHeader>
           <IonCardTitle>{t('products.add')}</IonCardTitle>
@@ -203,7 +241,11 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
             <IonInput
               value={name}
               placeholder={t('products.enterName')}
-              onIonChange={e => setName(e.detail.value!)}
+              onIonInput={e => handleInputChange('name', e.detail.value || '')}
+              onIonBlur={() => {
+                const input = formRef.current?.querySelector('ion-input[placeholder="' + t('products.enterName') + '"]') as HTMLIonInputElement;
+                handleInputChange('name', input?.value?.toString() || '');
+              }}
             />
           </IonItem>
 
@@ -289,7 +331,11 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
                 type="number"
                 value={quantity}
                 placeholder={t('products.enterQuantity')}
-                onIonChange={e => setQuantity(e.detail.value!)}
+                onIonInput={e => handleInputChange('quantity', e.detail.value || '1')}
+                onIonBlur={() => {
+                  const input = formRef.current?.querySelector('ion-input[placeholder="' + t('products.enterQuantity') + '"]') as HTMLIonInputElement;
+                  handleInputChange('quantity', input?.value?.toString() || '1');
+                }}
                 min="1"
               />
             )}
@@ -319,7 +365,11 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
             <IonTextarea
               value={notes}
               placeholder={t('products.enterNotes')}
-              onIonChange={e => setNotes(e.detail.value!)}
+              onIonInput={e => handleInputChange('notes', e.detail.value || '')}
+              onIonBlur={() => {
+                const textarea = formRef.current?.querySelector('ion-textarea') as HTMLIonTextareaElement;
+                handleInputChange('notes', textarea?.value?.toString() || '');
+              }}
             />
           </IonItem>
 
