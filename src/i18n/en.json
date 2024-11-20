@@ -25,6 +25,7 @@
   "auth.backToLogin": "Back to login",
   "auth.passwordResetSuccess": "Password Reset",
   "auth.passwordResetSuccessMessage": "Your password has been reset successfully",
+  "auth.sendResetLink": "Send Reset Link",
   
   "auth.errors.invalidEmail": "Invalid Email",
   "auth.errors.pleaseEnterValidEmail": "Please enter a valid email address",

@@ -25,6 +25,7 @@
   "auth.backToLogin": "Volver al inicio de sesión",
   "auth.passwordResetSuccess": "Contraseña Restablecida",
   "auth.passwordResetSuccessMessage": "Tu contraseña ha sido restablecida exitosamente",
+  "auth.sendResetLink": "Enviar Enlace de Restablecimiento",
   
   "auth.errors.invalidEmail": "Correo Inválido",
   "auth.errors.pleaseEnterValidEmail": "Por favor ingresa un correo electrónico válido",

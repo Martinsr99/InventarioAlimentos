@@ -21,10 +21,15 @@ import {
     IonNote,
     IonIcon,
     IonButtons,
+    IonToolbar,
+    IonModal,
+    IonHeader,
+    IonContent,
     InputChangeEventDetail,
-    IonToolbar
+    IonTitle,
+    IonPage
 } from '@ionic/react';
-import { checkmarkCircle, closeCircle, eyeOutline, eyeOffOutline } from 'ionicons/icons';
+import { checkmarkCircle, closeCircle, eyeOutline, eyeOffOutline, arrowBack } from 'ionicons/icons';
 
 interface PasswordRequirement {
     text: string;
@@ -63,13 +68,13 @@ const Auth: React.FC = () => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [showPassword, setShowPassword] = useState<boolean>(false);
     const [requirements, setRequirements] = useState<PasswordRequirement[]>(() => initialRequirements(t));
+    const [showForgotPasswordModal, setShowForgotPasswordModal] = useState<boolean>(false);
+    const [resetEmail, setResetEmail] = useState<string>('');
 
-    // Set Firebase language based on current language context
     useEffect(() => {
         auth.languageCode = language;
     }, [language]);
 
-    // Set initial password visibility based on registration state
     useEffect(() => {
         setShowPassword(isRegistering);
     }, [isRegistering]);
@@ -215,13 +220,11 @@ const Auth: React.FC = () => {
     const handleAuth = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Email validation
         if (!validateEmail(email)) {
             showError(t('auth.errors.invalidEmail'), t('auth.errors.pleaseEnterValidEmail'));
             return;
         }
 
-        // Password validation for registration
         if (isRegistering && !requirements.every(req => req.met)) {
             showError(t('auth.errors.passwordRequirements'), t('auth.errors.meetAllRequirements'));
             return;
@@ -230,22 +233,17 @@ const Auth: React.FC = () => {
         setIsLoading(true);
         try {
             if (isRegistering) {
-                // Capturar el idioma actual antes del registro
                 const currentLanguage = language;
-                
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 
-                // Forzar el idioma en localStorage y el contexto
                 localStorage.setItem('language', currentLanguage);
                 setLanguage(currentLanguage);
                 
-                // Guardar en Firestore
                 await updateUserSettings(userCredential.user, { 
                     language: currentLanguage,
                     profilePicture: '/images/profile/apple.png'
                 });
                 
-                // Forzar el idioma en Firebase Auth
                 auth.languageCode = currentLanguage;
             } else {
                 await signInWithEmailAndPassword(auth, email, password);
@@ -258,19 +256,23 @@ const Auth: React.FC = () => {
         }
     };
 
-    const handlePasswordReset = async () => {
-        if (!validateEmail(email)) {
+    const handlePasswordReset = async (e: React.FormEvent) => {
+        e.preventDefault();
+        
+        if (!validateEmail(resetEmail)) {
             showError(t('auth.errors.invalidEmail'), t('auth.errors.pleaseEnterValidEmail'));
             return;
         }
 
         setIsLoading(true);
         try {
-            await sendPasswordResetEmail(auth, email, {
+            await sendPasswordResetEmail(auth, resetEmail, {
                 url: window.location.origin,
                 handleCodeInApp: false
             });
+            setShowForgotPasswordModal(false);
             showSuccess(t('auth.resetPasswordSuccess'), t('auth.resetPasswordSuccessMessage'));
+            setResetEmail('');
         } catch (error: any) {
             const errorInfo = getFirebaseErrorMessage(error);
             showError(errorInfo.title, errorInfo.message);
@@ -385,7 +387,10 @@ const Auth: React.FC = () => {
                                 <IonButton
                                     expand="block"
                                     fill="clear"
-                                    onClick={handlePasswordReset}
+                                    onClick={() => {
+                                        setResetEmail(email);
+                                        setShowForgotPasswordModal(true);
+                                    }}
                                     className="ion-margin-top"
                                     disabled={isLoading}
                                 >
@@ -397,10 +402,85 @@ const Auth: React.FC = () => {
                 </IonCol>
             </IonRow>
 
+            <IonModal
+                isOpen={showForgotPasswordModal}
+                onDidDismiss={() => setShowForgotPasswordModal(false)}
+                className="auth-modal"
+            >
+                <IonPage className="ion-page">
+                    <IonHeader>
+                        <IonToolbar color="primary">
+                            <IonButtons slot="start">
+                                <IonButton 
+                                    onClick={() => setShowForgotPasswordModal(false)}
+                                    className="custom-back-button"
+                                >
+                                    <IonIcon 
+                                        icon={arrowBack} 
+                                        slot="icon-only"
+                                        style={{ fontSize: '24px' }}
+                                    />
+                                </IonButton>
+                            </IonButtons>
+                            <IonTitle>{t('auth.resetPassword')}</IonTitle>
+                        </IonToolbar>
+                    </IonHeader>
+                    <IonContent>
+                        <form onSubmit={handlePasswordReset} className="ion-padding">
+                            <IonItem lines="full">
+                                <IonLabel position="stacked">{t('auth.email')}</IonLabel>
+                                <IonInput
+                                    type="email"
+                                    value={resetEmail}
+                                    placeholder={t('auth.enterEmail')}
+                                    onIonChange={e => setResetEmail(e.detail.value!)}
+                                    required
+                                    className="ion-padding-top"
+                                />
+                            </IonItem>
+                            <IonButton
+                                expand="block"
+                                type="submit"
+                                className="ion-margin-top"
+                                disabled={isLoading}
+                            >
+                                {isLoading ? (
+                                    <IonSpinner name="crescent" />
+                                ) : (
+                                    t('auth.sendResetLink')
+                                )}
+                            </IonButton>
+                        </form>
+                    </IonContent>
+                </IonPage>
+            </IonModal>
+
             <style>{`
                 .auth-modal {
-                    border-radius: 10px;
-                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+                    --height: 100%;
+                    --width: 100%;
+                }
+                @media (min-width: 768px) {
+                    .auth-modal {
+                        --height: auto;
+                        --width: 400px;
+                        --border-radius: 8px;
+                    }
+                }
+                .auth-modal ion-content {
+                    --padding-top: 20px;
+                    --padding-bottom: 20px;
+                }
+                .auth-modal ion-toolbar {
+                    --background: var(--ion-color-primary);
+                    --color: var(--ion-color-primary-contrast);
+                }
+                .auth-modal ion-title {
+                    color: var(--ion-color-primary-contrast);
+                }
+                .custom-back-button {
+                    --color: var(--ion-color-primary-contrast);
+                    margin-left: 8px;
                 }
                 .auth-modal-title {
                     font-size: 1.5rem;
