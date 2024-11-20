@@ -1,0 +1,178 @@
+{
+  "fruits": [
+    {
+      "name": "Apple",
+      "category": "fruits"
+    },
+    {
+      "name": "Banana",
+      "category": "fruits"
+    },
+    {
+      "name": "Orange",
+      "category": "fruits"
+    },
+    {
+      "name": "Strawberry",
+      "category": "fruits"
+    },
+    {
+      "name": "Grape",
+      "category": "fruits"
+    }
+  ],
+  "vegetables": [
+    {
+      "name": "Carrot",
+      "category": "vegetables"
+    },
+    {
+      "name": "Tomato",
+      "category": "vegetables"
+    },
+    {
+      "name": "Potato",
+      "category": "vegetables"
+    },
+    {
+      "name": "Onion",
+      "category": "vegetables"
+    },
+    {
+      "name": "Lettuce",
+      "category": "vegetables"
+    }
+  ],
+  "dairy": [
+    {
+      "name": "Milk",
+      "category": "dairy"
+    },
+    {
+      "name": "Cheese",
+      "category": "dairy"
+    },
+    {
+      "name": "Yogurt",
+      "category": "dairy"
+    },
+    {
+      "name": "Butter",
+      "category": "dairy"
+    },
+    {
+      "name": "Eggs",
+      "category": "dairy"
+    }
+  ],
+  "meat": [
+    {
+      "name": "Chicken",
+      "category": "meat"
+    },
+    {
+      "name": "Beef",
+      "category": "meat"
+    },
+    {
+      "name": "Pork",
+      "category": "meat"
+    },
+    {
+      "name": "Fish",
+      "category": "meat"
+    },
+    {
+      "name": "Turkey",
+      "category": "meat"
+    }
+  ],
+  "pantry": [
+    {
+      "name": "Rice",
+      "category": "pantry"
+    },
+    {
+      "name": "Pasta",
+      "category": "pantry"
+    },
+    {
+      "name": "Flour",
+      "category": "pantry"
+    },
+    {
+      "name": "Sugar",
+      "category": "pantry"
+    },
+    {
+      "name": "Salt",
+      "category": "pantry"
+    }
+  ],
+  "snacks": [
+    {
+      "name": "Chips",
+      "category": "snacks"
+    },
+    {
+      "name": "Cookies",
+      "category": "snacks"
+    },
+    {
+      "name": "Crackers",
+      "category": "snacks"
+    },
+    {
+      "name": "Nuts",
+      "category": "snacks"
+    },
+    {
+      "name": "Chocolate",
+      "category": "snacks"
+    }
+  ],
+  "beverages": [
+    {
+      "name": "Water",
+      "category": "beverages"
+    },
+    {
+      "name": "Coffee",
+      "category": "beverages"
+    },
+    {
+      "name": "Tea",
+      "category": "beverages"
+    },
+    {
+      "name": "Juice",
+      "category": "beverages"
+    },
+    {
+      "name": "Soda",
+      "category": "beverages"
+    }
+  ],
+  "condiments": [
+    {
+      "name": "Ketchup",
+      "category": "condiments"
+    },
+    {
+      "name": "Mayonnaise",
+      "category": "condiments"
+    },
+    {
+      "name": "Mustard",
+      "category": "condiments"
+    },
+    {
+      "name": "Oil",
+      "category": "condiments"
+    },
+    {
+      "name": "Vinegar",
+      "category": "condiments"
+    }
+  ]
+}

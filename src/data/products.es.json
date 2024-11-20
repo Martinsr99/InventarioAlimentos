@@ -1,0 +1,178 @@
+{
+  "lacteos": [
+    {
+      "name": "Leche",
+      "category": "lacteos"
+    },
+    {
+      "name": "Queso",
+      "category": "lacteos"
+    },
+    {
+      "name": "Yogur",
+      "category": "lacteos"
+    },
+    {
+      "name": "Mantequilla",
+      "category": "lacteos"
+    },
+    {
+      "name": "Huevos",
+      "category": "lacteos"
+    }
+  ],
+  "carnes": [
+    {
+      "name": "Pollo",
+      "category": "carnes"
+    },
+    {
+      "name": "Res",
+      "category": "carnes"
+    },
+    {
+      "name": "Cerdo",
+      "category": "carnes"
+    },
+    {
+      "name": "Pescado",
+      "category": "carnes"
+    },
+    {
+      "name": "Pavo",
+      "category": "carnes"
+    }
+  ],
+  "verduras": [
+    {
+      "name": "Zanahoria",
+      "category": "verduras"
+    },
+    {
+      "name": "Tomate",
+      "category": "verduras"
+    },
+    {
+      "name": "Papa",
+      "category": "verduras"
+    },
+    {
+      "name": "Cebolla",
+      "category": "verduras"
+    },
+    {
+      "name": "Lechuga",
+      "category": "verduras"
+    }
+  ],
+  "frutas": [
+    {
+      "name": "Manzana",
+      "category": "frutas"
+    },
+    {
+      "name": "Plátano",
+      "category": "frutas"
+    },
+    {
+      "name": "Naranja",
+      "category": "frutas"
+    },
+    {
+      "name": "Fresa",
+      "category": "frutas"
+    },
+    {
+      "name": "Uva",
+      "category": "frutas"
+    }
+  ],
+  "granos": [
+    {
+      "name": "Arroz",
+      "category": "granos"
+    },
+    {
+      "name": "Pasta",
+      "category": "granos"
+    },
+    {
+      "name": "Harina",
+      "category": "granos"
+    },
+    {
+      "name": "Avena",
+      "category": "granos"
+    },
+    {
+      "name": "Quinoa",
+      "category": "granos"
+    }
+  ],
+  "bebidas": [
+    {
+      "name": "Agua",
+      "category": "bebidas"
+    },
+    {
+      "name": "Café",
+      "category": "bebidas"
+    },
+    {
+      "name": "Té",
+      "category": "bebidas"
+    },
+    {
+      "name": "Jugo",
+      "category": "bebidas"
+    },
+    {
+      "name": "Refresco",
+      "category": "bebidas"
+    }
+  ],
+  "snacks": [
+    {
+      "name": "Papas Fritas",
+      "category": "snacks"
+    },
+    {
+      "name": "Galletas",
+      "category": "snacks"
+    },
+    {
+      "name": "Galletas Saladas",
+      "category": "snacks"
+    },
+    {
+      "name": "Nueces",
+      "category": "snacks"
+    },
+    {
+      "name": "Chocolate",
+      "category": "snacks"
+    }
+  ],
+  "otros": [
+    {
+      "name": "Aceite",
+      "category": "otros"
+    },
+    {
+      "name": "Sal",
+      "category": "otros"
+    },
+    {
+      "name": "Azúcar",
+      "category": "otros"
+    },
+    {
+      "name": "Vinagre",
+      "category": "otros"
+    },
+    {
+      "name": "Salsa de Tomate",
+      "category": "otros"
+    }
+  ]
+}

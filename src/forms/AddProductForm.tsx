@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   IonCard,
   IonCardContent,
@@ -21,10 +21,11 @@ import {
   IonToolbar,
   IonTitle,
   IonButtons,
-  DatetimeChangeEventDetail
+  IonList,
 } from '@ionic/react';
 import { addProduct } from '../services/InventoryService';
 import { useLanguage } from '../contexts/LanguageContext';
+import { searchPredefinedProducts, getCategoryForProduct, PredefinedProduct } from '../services/PredefinedProductsService';
 import './AddProductForm.css';
 
 const CATEGORIES = [
@@ -52,9 +53,11 @@ interface AddProductFormProps {
 }
 
 const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const formRef = useRef<HTMLFormElement>(null);
   const [name, setName] = useState('');
+  const [suggestions, setSuggestions] = useState<PredefinedProduct[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [expiryDate, setExpiryDate] = useState('');
   const [quantity, setQuantity] = useState('1');
   const [category, setCategory] = useState('');
@@ -75,6 +78,24 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
     notes: '',
   });
 
+  useEffect(() => {
+    if (name.trim().length > 0) {
+      const results = searchPredefinedProducts(name, language);
+      setSuggestions(results);
+      setShowSuggestions(results.length > 0);
+    } else {
+      setSuggestions([]);
+      setShowSuggestions(false);
+    }
+  }, [name, language]);
+
+  const handleSuggestionClick = (suggestion: PredefinedProduct) => {
+    setName(suggestion.name);
+    inputValues.current.name = suggestion.name;
+    setCategory(suggestion.category);
+    setShowSuggestions(false);
+  };
+
   const resetForm = () => {
     setName('');
     setExpiryDate('');
@@ -85,6 +106,8 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
     setNotes('');
     setValidationError('');
     setIsCustomQuantity(false);
+    setSuggestions([]);
+    setShowSuggestions(false);
     inputValues.current = {
       name: '',
       quantity: '1',
@@ -236,18 +259,41 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
             </IonItem>
           )}
 
-          <IonItem>
-            <IonLabel position="stacked">{t('products.name')}</IonLabel>
-            <IonInput
-              value={name}
-              placeholder={t('products.enterName')}
-              onIonInput={e => handleInputChange('name', e.detail.value || '')}
-              onIonBlur={() => {
-                const input = formRef.current?.querySelector('ion-input[placeholder="' + t('products.enterName') + '"]') as HTMLIonInputElement;
-                handleInputChange('name', input?.value?.toString() || '');
-              }}
-            />
-          </IonItem>
+          <div className="product-name-container">
+            <IonItem>
+              <IonLabel position="stacked">{t('products.name')}</IonLabel>
+              <IonInput
+                value={name}
+                placeholder={t('products.enterName')}
+                onIonInput={e => handleInputChange('name', e.detail.value || '')}
+                onIonBlur={() => {
+                  setTimeout(() => {
+                    setShowSuggestions(false);
+                  }, 200);
+                }}
+                onFocus={() => {
+                  if (suggestions.length > 0) {
+                    setShowSuggestions(true);
+                  }
+                }}
+              />
+            </IonItem>
+            
+            {showSuggestions && suggestions.length > 0 && (
+              <IonList className="suggestions-list">
+                {suggestions.map((suggestion, index) => (
+                  <IonItem
+                    key={index}
+                    button
+                    onClick={() => handleSuggestionClick(suggestion)}
+                    className="suggestion-item"
+                  >
+                    <IonLabel>{suggestion.name}</IonLabel>
+                  </IonItem>
+                ))}
+              </IonList>
+            )}
+          </div>
 
           <IonItem button onClick={() => setIsDatePickerOpen(true)}>
             <IonLabel position="stacked">{t('products.expiryDate')}</IonLabel>

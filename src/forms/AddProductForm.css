@@ -1,165 +1,49 @@
-.date-picker-modal {
-  --height: auto;
-  --width: 100%;
-  --max-width: 420px;
-}
-
-.date-picker-modal::part(content) {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  margin: 0;
-  border-radius: 0 0 16px 16px;
-}
-
-.date-picker-modal ion-header {
-  background: var(--ion-background-color);
-}
-
-.date-picker-modal ion-toolbar {
-  --background: var(--ion-color-primary);
-  --color: var(--ion-color-primary-contrast);
-  --border-color: transparent;
-  --padding-top: 8px;
-  --padding-bottom: 8px;
-}
-
-.date-picker-modal ion-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-
-.date-picker-modal ion-button {
-  --color: var(--ion-color-primary-contrast);
-  font-weight: 500;
-}
-
-.date-picker-modal ion-content {
-  --background: var(--ion-background-color);
-  --padding-top: 0;
-  --padding-bottom: 0;
-  --padding-start: 0;
-  --padding-end: 0;
-}
-
-.custom-datetime {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  min-height: 300px;
-  background: var(--ion-background-color);
-}
-
-/* Form styles */
-ion-card {
-  margin: 16px;
-  border-radius: var(--ion-card-border-radius);
-  box-shadow: var(--ion-shadow-md);
-}
-
-ion-card-header {
-  background: var(--ion-color-primary);
-  color: var(--ion-color-primary-contrast);
-  border-radius: var(--ion-card-border-radius) var(--ion-card-border-radius) 0 0;
-}
-
-ion-card-title {
-  font-size: 1.4rem;
-  font-weight: 600;
-  padding: 8px 0;
-}
-
-ion-item {
-  --padding-start: 0;
-  --inner-padding-end: 0;
-  --background: transparent;
-  margin-bottom: 8px;
-}
-
-/* Fix expiry date button styling */
-ion-item[button] {
-  --inner-padding-end: 16px;
+.product-name-container {
   position: relative;
 }
 
-/* Hide default Ionic chevron */
-ion-item[button]::part(detail-icon) {
-  display: none;
-}
-
-ion-item[button]::part(native) {
-  --padding-end: 0;
-}
-
-/* Add custom chevron icon */
-ion-item[button]::after {
-  content: '';
+.suggestions-list {
   position: absolute;
-  right: 16px;
-  top: 50%;
-  width: 10px;
-  height: 10px;
-  border-right: 2px solid var(--ion-color-medium);
-  border-bottom: 2px solid var(--ion-color-medium);
-  transform: translateY(-25%) rotate(-45deg);
-  pointer-events: none;
-}
-
-ion-label {
-  margin-bottom: 8px;
-  color: var(--ion-text-color);
-  font-weight: 500;
-}
-
-ion-input, ion-select, ion-textarea {
-  --padding-start: 16px;
-  --padding-end: 16px;
-  --padding-top: 12px;
-  --padding-bottom: 12px;
-  --background: var(--ion-color-light);
-  --border-radius: 8px;
+  z-index: 1000;
+  width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
+  background: var(--ion-background-color);
+  border: 1px solid var(--ion-color-medium);
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   margin-top: 4px;
 }
 
-ion-button[type="submit"] {
-  margin: 24px 0 8px 0;
-  height: 48px;
-  --border-radius: 8px;
-  font-weight: 600;
+.suggestion-item {
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --min-height: 44px;
+  cursor: pointer;
 }
 
-/* Error message */
-ion-text[color="danger"] p {
-  margin: 8px 0;
-  font-size: 0.9rem;
+.suggestion-item:hover {
+  --background: var(--ion-color-light);
 }
 
-/* Date picker wheel styles */
-.datetime-wheel {
+.date-picker-modal {
+  --height: auto;
+  --width: 90%;
+  max-width: 400px;
+}
+
+.custom-datetime {
+  width: 100%;
+  margin: 0;
   padding: 0;
-  max-height: 260px;
 }
 
-.wheel-picker {
-  max-height: 260px;
+/* Asegurarse de que el contenedor de sugerencias esté sobre otros elementos */
+.product-name-container ion-item {
+  z-index: 1001;
 }
 
-.wheel-item {
-  font-size: 1rem;
-  height: 34px;
-  line-height: 34px;
-  padding: 0 8px;
-  min-width: 60px;
-  text-align: center;
-}
-
-/* Calendar styles */
-.calendar-action-buttons {
-  padding: 8px 16px;
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  background: var(--ion-background-color);
-  border-top: 1px solid var(--ion-color-light-shade);
+/* Estilo para el input cuando hay sugerencias activas */
+.product-name-container ion-item.has-suggestions {
+  --border-color: var(--ion-color-primary);
 }
