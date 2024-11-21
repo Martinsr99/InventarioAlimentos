@@ -308,25 +308,26 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
             isOpen={isDatePickerOpen}
             onDidDismiss={cancelDate}
             className="date-picker-modal"
-            breakpoints={[0, 0.5, 1]}
-            initialBreakpoint={0.5}
+            mode="ios"
+            backdropDismiss={false}
+            animated={true}
           >
-            <IonHeader>
-              <IonToolbar>
-                <IonButtons slot="start">
-                  <IonButton onClick={cancelDate}>
-                    {t('common.cancel')}
-                  </IonButton>
-                </IonButtons>
-                <IonTitle>{t('products.expiryDate')}</IonTitle>
-                <IonButtons slot="end">
-                  <IonButton strong={true} onClick={confirmDate}>
-                    {t('common.ok')}
-                  </IonButton>
-                </IonButtons>
-              </IonToolbar>
-            </IonHeader>
-            <IonContent>
+            <IonContent className="ion-padding">
+              <IonHeader>
+                <IonToolbar>
+                  <IonButtons slot="start">
+                    <IonButton onClick={cancelDate}>
+                      {t('common.cancel')}
+                    </IonButton>
+                  </IonButtons>
+                  <IonTitle>{t('products.expiryDate')}</IonTitle>
+                  <IonButtons slot="end">
+                    <IonButton strong={true} onClick={confirmDate}>
+                      {t('common.ok')}
+                    </IonButton>
+                  </IonButtons>
+                </IonToolbar>
+              </IonHeader>
               <IonDatetime
                 value={selectedDate || expiryDate || new Date().toISOString()}
                 onIonChange={e => handleDateChange(e.detail.value)}
@@ -337,7 +338,6 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
                 locale="es-ES"
                 className="custom-datetime"
                 min={new Date().toISOString().split('T')[0]}
-                size="cover"
               />
             </IonContent>
           </IonModal>
