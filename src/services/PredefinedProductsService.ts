@@ -16,9 +16,11 @@ export const searchPredefinedProducts = (query: string, language: string): Prede
   
   return Object.values(products)
     .flat()
-    .filter(product => 
-      product.name.toLowerCase().includes(searchQuery)
-    )
+    .filter(product => {
+      const words = product.name.toLowerCase().split(' ');
+      
+      return words.some(word => word.startsWith(searchQuery));
+    })
     .slice(0, 5); // Limitar a 5 sugerencias
 };
 
