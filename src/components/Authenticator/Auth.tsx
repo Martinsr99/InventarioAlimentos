@@ -5,6 +5,7 @@ import Swal from 'sweetalert2';
 import { useLanguage } from '../../contexts/LanguageContext';
 import LanguageSwitch from '../common/LanguageSwitch';
 import { updateUserSettings } from '../../services/UserSettingsService';
+import { initializeUserSharing } from '../../services/SharedProductsService';
 import {
     IonCard,
     IonCardContent,
@@ -239,10 +240,14 @@ const Auth: React.FC = () => {
                 localStorage.setItem('language', currentLanguage);
                 setLanguage(currentLanguage);
                 
-                await updateUserSettings(userCredential.user, { 
-                    language: currentLanguage,
-                    profilePicture: '/images/profile/apple.png'
-                });
+                // Initialize user settings and sharing data
+                await Promise.all([
+                    updateUserSettings(userCredential.user, { 
+                        language: currentLanguage,
+                        profilePicture: '/images/profile/apple.png'
+                    }),
+                    initializeUserSharing(userCredential.user)
+                ]);
                 
                 auth.languageCode = currentLanguage;
             } else {

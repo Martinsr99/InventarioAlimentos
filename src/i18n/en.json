@@ -119,6 +119,8 @@
   "errors.productUpdate": "Error updating product",
   "errors.productDelete": "Error deleting product",
   "errors.productLoad": "Error loading products",
+  "errors.invitationSend": "Error sending invitation",
+  "errors.invitationResponse": "Error responding to invitation",
   
   "common.loading": "Loading",
   "common.error": "Error",
@@ -137,5 +139,22 @@
   
   "profile.picture": "Profile Picture",
   "profile.selectPicture": "Select Profile Picture",
-  "profile.changePicture": "Change Picture"
+  "profile.changePicture": "Change Picture",
+
+  "sharing.title": "Share Products",
+  "sharing.inviteUser": "Invite User",
+  "sharing.enterEmail": "Enter user's email",
+  "sharing.sendInvite": "Send Invite",
+  "sharing.inviteSent": "Invitation sent",
+  "sharing.invitePending": "Invitation pending",
+  "sharing.inviteAccepted": "Invitation accepted",
+  "sharing.inviteRejected": "Invitation rejected",
+  "sharing.receivedInvites": "Received Invitations",
+  "sharing.sentInvites": "Sent Invitations",
+  "sharing.accept": "Accept",
+  "sharing.reject": "Reject",
+  "sharing.noInvites": "No invitations",
+  "sharing.alreadyInvited": "User already invited",
+  "sharing.sharedProducts": "Shared Products",
+  "sharing.noSharedProducts": "No shared products"
 }

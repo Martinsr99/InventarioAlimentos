@@ -57,6 +57,71 @@
   border-color: var(--ion-color-primary);
 }
 
+/* New styles for invitation section */
+ion-card ion-item {
+  --padding-start: 1rem;
+  --inner-padding-end: 1rem;
+  --background: transparent;
+  margin-bottom: 0.5rem;
+}
+
+ion-card ion-input {
+  --padding-start: 0.5rem;
+  --background: var(--ion-color-light);
+  border-radius: var(--ion-border-radius);
+  margin-right: 0.5rem;
+}
+
+ion-card ion-button[slot="end"] {
+  --padding-start: 1rem;
+  --padding-end: 1rem;
+  margin: 0;
+  height: 2.5rem;
+}
+
+ion-card h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--ion-color-dark);
+  margin: 1.5rem 0 1rem;
+  padding: 0 1rem;
+}
+
+ion-card ion-badge {
+  font-size: 0.8rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 1rem;
+  margin-top: 0.5rem;
+}
+
+/* Invitation list items */
+ion-list ion-item {
+  --background: var(--ion-color-light);
+  --border-radius: var(--ion-border-radius);
+  margin: 0.5rem 0;
+}
+
+ion-list ion-item h2 {
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin: 0;
+  padding: 0;
+}
+
+ion-list ion-item p {
+  font-size: 0.85rem;
+  color: var(--ion-color-medium);
+}
+
+/* Response buttons */
+ion-list ion-item ion-button {
+  --padding-start: 0.75rem;
+  --padding-end: 0.75rem;
+  height: 2rem;
+  font-size: 0.9rem;
+  margin-left: 0.5rem;
+}
+
 .logout-container {
   padding: 1rem;
   margin-top: 1rem;
@@ -123,6 +188,16 @@ ion-modal ion-toggle {
 
   ion-modal ion-card {
     margin: 0.75rem;
+  }
+
+  ion-card ion-button[slot="end"] {
+    font-size: 0.9rem;
+    height: 2.25rem;
+  }
+
+  ion-list ion-item ion-button {
+    font-size: 0.8rem;
+    height: 1.8rem;
   }
 
   .logout-container {

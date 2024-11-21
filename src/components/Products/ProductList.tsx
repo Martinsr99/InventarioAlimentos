@@ -18,7 +18,10 @@ import {
   IonSearchbar,
   IonSegment,
   IonSegmentButton,
-  IonToolbar
+  IonToolbar,
+  IonBadge,
+  IonToast,
+  IonChip
 } from '@ionic/react';
 import { 
   trash, 
@@ -27,11 +30,16 @@ import {
   arrowUp,
   arrowDown,
   text,
-  time
+  time,
+  peopleOutline,
+  personOutline,
+  personCircleOutline
 } from 'ionicons/icons';
 import { deleteProduct, getProducts, Product } from '../../services/InventoryService';
+import { getSharedProducts } from '../../services/SharedProductsService';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useHistory } from 'react-router-dom';
+import { auth } from '../../firebaseConfig';
 import './ProductList.css';
 
 interface ProductListProps {
@@ -40,16 +48,25 @@ interface ProductListProps {
 
 type SortOption = 'name' | 'expiryDate';
 type SortDirection = 'asc' | 'desc';
+type ViewMode = 'personal' | 'shared';
+
+interface ExtendedProduct extends Product {
+  sharedBy?: string;
+}
 
 const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded }) => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState<ExtendedProduct[]>([]);
+  const [sharedProducts, setSharedProducts] = useState<ExtendedProduct[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<ExtendedProduct[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [loadingShared, setLoadingShared] = useState(false);
   const [error, setError] = useState('');
   const [productToDelete, setProductToDelete] = useState<string | null>(null);
   const [searchText, setSearchText] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('expiryDate');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [viewMode, setViewMode] = useState<ViewMode>('personal');
+  const [showToast, setShowToast] = useState(false);
   const { t } = useLanguage();
   const history = useHistory();
 
@@ -58,26 +75,52 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded }) => {
   }, []);
 
   useEffect(() => {
+    if (viewMode === 'shared') {
+      loadSharedProducts();
+    }
+  }, [viewMode]);
+
+  useEffect(() => {
     filterAndSortProducts();
-  }, [products, searchText, sortBy, sortDirection]);
+  }, [products, sharedProducts, searchText, sortBy, sortDirection, viewMode]);
 
   const loadProducts = async () => {
+    if (!auth.currentUser) return;
+
     setLoading(true);
     try {
-      const fetchedProducts = await getProducts();
-      setProducts(fetchedProducts);
+      const personalProducts = await getProducts();
+      setProducts(personalProducts);
       if (onRefreshNeeded) {
         onRefreshNeeded();
       }
     } catch (error) {
+      console.error('Error loading products:', error);
       setError(t('errors.productLoad'));
+      setShowToast(true);
     } finally {
       setLoading(false);
     }
   };
 
+  const loadSharedProducts = async () => {
+    if (!auth.currentUser) return;
+
+    setLoadingShared(true);
+    try {
+      const shared = await getSharedProducts(auth.currentUser);
+      setSharedProducts(shared);
+    } catch (error) {
+      console.error('Error loading shared products:', error);
+      setError(t('errors.productLoad'));
+      setShowToast(true);
+    } finally {
+      setLoadingShared(false);
+    }
+  };
+
   const filterAndSortProducts = () => {
-    let result = [...products];
+    let result = viewMode === 'personal' ? [...products] : [...sharedProducts];
 
     // Apply search filter
     if (searchText) {
@@ -111,7 +154,11 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded }) => {
 
   const handleRefresh = async (event: CustomEvent<RefresherEventDetail>) => {
     try {
-      await loadProducts();
+      if (viewMode === 'personal') {
+        await loadProducts();
+      } else {
+        await loadSharedProducts();
+      }
     } finally {
       event.detail.complete();
     }
@@ -122,7 +169,9 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded }) => {
       await deleteProduct(productId);
       await loadProducts();
     } catch (error) {
+      console.error('Error deleting product:', error);
       setError(t('errors.productDelete'));
+      setShowToast(true);
     }
     setProductToDelete(null);
   };
@@ -153,21 +202,92 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded }) => {
     return `${daysUntilExpiry} ${t('products.days')}`;
   };
 
-  if (loading) {
-    return (
-      <div className="loading-spinner">
-        <IonSpinner />
-      </div>
-    );
-  }
+  const renderContent = () => {
+    if (loading || (loadingShared && viewMode === 'shared')) {
+      return (
+        <div className="loading-spinner">
+          <IonSpinner />
+        </div>
+      );
+    }
 
-  if (error) {
+    if (filteredProducts.length === 0) {
+      return (
+        <div className="empty-state">
+          <IonText color="medium">
+            <p>
+              {searchText 
+                ? t('products.noSearchResults')
+                : viewMode === 'shared'
+                  ? t('sharing.noSharedProducts')
+                  : t('products.noProducts')
+              }
+            </p>
+            {!searchText && viewMode === 'personal' && <p>{t('products.addFirst')}</p>}
+          </IonText>
+        </div>
+      );
+    }
+
     return (
-      <div className="error-message">
-        <IonText color="danger">{error}</IonText>
-      </div>
+      <IonList>
+        {filteredProducts.map(product => {
+          const daysUntilExpiry = calculateDaysUntilExpiry(product.expiryDate);
+          const expiryText = getExpiryText(daysUntilExpiry);
+          const isExpired = daysUntilExpiry < 0;
+          const isNearExpiry = daysUntilExpiry <= 3 && daysUntilExpiry >= 0;
+
+          return (
+            <IonItem key={product.id}>
+              <IonLabel>
+                <h2>{product.name}</h2>
+                {product.category && (
+                  <div className="category-tag">
+                    {t(`categories.${product.category.toLowerCase()}`)}
+                  </div>
+                )}
+                <div className="expiry-text">
+                  <IonIcon icon={calendar} color={isExpired ? 'danger' : isNearExpiry ? 'warning' : 'medium'} />
+                  <IonText color={isExpired ? 'danger' : isNearExpiry ? 'warning' : 'medium'}>
+                    {expiryText}
+                  </IonText>
+                </div>
+                {product.notes && product.notes.trim() !== '' && (
+                  <p className="notes-text">{product.notes}</p>
+                )}
+                {viewMode === 'shared' && product.sharedBy && (
+                  <IonChip color="primary">
+                    <IonIcon icon={personCircleOutline} />
+                    <IonLabel>{product.sharedBy}</IonLabel>
+                  </IonChip>
+                )}
+              </IonLabel>
+              {viewMode === 'personal' && (
+                <>
+                  <IonButton 
+                    fill="clear" 
+                    slot="end"
+                    onClick={() => handleEdit(product.id)}
+                    color="primary"
+                  >
+                    <IonIcon icon={create} slot="icon-only" />
+                  </IonButton>
+                  <IonButton 
+                    fill="clear" 
+                    slot="end"
+                    onClick={() => setProductToDelete(product.id)}
+                    color="danger"
+                  >
+                    <IonIcon icon={trash} slot="icon-only" />
+                  </IonButton>
+                </>
+              )}
+            </IonItem>
+          );
+        })}
+      </IonList>
     );
-  }
+  };
 
   return (
     <>
@@ -180,6 +300,24 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded }) => {
           <IonCardTitle>{t('products.title')}</IonCardTitle>
         </IonCardHeader>
         <IonCardContent>
+          <IonSegment 
+            value={viewMode}
+            onIonChange={e => setViewMode(e.detail.value as ViewMode)}
+            className="view-mode-segment"
+          >
+            <IonSegmentButton value="personal">
+              <IonIcon icon={personOutline} />
+              <IonLabel>{t('products.title')}</IonLabel>
+            </IonSegmentButton>
+            <IonSegmentButton value="shared">
+              <IonIcon icon={peopleOutline} />
+              <IonLabel>{t('sharing.sharedProducts')}</IonLabel>
+              {sharedProducts.length > 0 && (
+                <IonBadge color="primary">{sharedProducts.length}</IonBadge>
+              )}
+            </IonSegmentButton>
+          </IonSegment>
+
           <div className="filters-container">
             <IonSearchbar
               value={searchText}
@@ -214,61 +352,7 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded }) => {
             </div>
           </div>
 
-          {filteredProducts.length === 0 ? (
-            <div className="empty-state">
-              <IonText color="medium">
-                <p>{searchText ? t('products.noSearchResults') : t('products.noProducts')}</p>
-                {!searchText && <p>{t('products.addFirst')}</p>}
-              </IonText>
-            </div>
-          ) : (
-            <IonList>
-              {filteredProducts.map(product => {
-                const daysUntilExpiry = calculateDaysUntilExpiry(product.expiryDate);
-                const expiryText = getExpiryText(daysUntilExpiry);
-                const isExpired = daysUntilExpiry < 0;
-                const isNearExpiry = daysUntilExpiry <= 3 && daysUntilExpiry >= 0;
-
-                return (
-                  <IonItem key={product.id}>
-                    <IonLabel>
-                      <h2>{product.name}</h2>
-                      {product.category && (
-                        <div className="category-tag">
-                          {t(`categories.${product.category.toLowerCase()}`)}
-                        </div>
-                      )}
-                      <div className="expiry-text">
-                        <IonIcon icon={calendar} color={isExpired ? 'danger' : isNearExpiry ? 'warning' : 'medium'} />
-                        <IonText color={isExpired ? 'danger' : isNearExpiry ? 'warning' : 'medium'}>
-                          {expiryText}
-                        </IonText>
-                      </div>
-                      {product.notes && product.notes.trim() !== '' && (
-                        <p className="notes-text">{product.notes}</p>
-                      )}
-                    </IonLabel>
-                    <IonButton 
-                      fill="clear" 
-                      slot="end"
-                      onClick={() => handleEdit(product.id)}
-                      color="primary"
-                    >
-                      <IonIcon icon={create} slot="icon-only" />
-                    </IonButton>
-                    <IonButton 
-                      fill="clear" 
-                      slot="end"
-                      onClick={() => setProductToDelete(product.id)}
-                      color="danger"
-                    >
-                      <IonIcon icon={trash} slot="icon-only" />
-                    </IonButton>
-                  </IonItem>
-                );
-              })}
-            </IonList>
-          )}
+          {renderContent()}
         </IonCardContent>
       </IonCard>
 
@@ -292,6 +376,14 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded }) => {
             }
           }
         ]}
+      />
+
+      <IonToast
+        isOpen={showToast}
+        onDidDismiss={() => setShowToast(false)}
+        message={error}
+        duration={3000}
+        color="danger"
       />
     </>
   );
