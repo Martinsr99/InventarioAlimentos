@@ -27,7 +27,7 @@ import {
   IonBadge,
   IonAvatar
 } from '@ionic/react';
-import { settingsOutline, languageOutline, chevronBackOutline, logOutOutline, personAddOutline, mailOutline, checkmarkCircleOutline, closeCircleOutline } from 'ionicons/icons';
+import { settingsOutline, languageOutline, chevronBackOutline, logOutOutline, personAddOutline, mailOutline, checkmarkCircleOutline, closeCircleOutline, checkmarkCircle, closeCircle } from 'ionicons/icons';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { auth } from '../../firebaseConfig';
 import { signOut } from 'firebase/auth';
@@ -50,6 +50,7 @@ const UserSettings: React.FC = () => {
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [inviteEmail, setInviteEmail] = useState('');
+  const [isEmailValid, setIsEmailValid] = useState(false);
   const [receivedInvitations, setReceivedInvitations] = useState<ShareInvitation[]>([]);
   const [sentInvitations, setSentInvitations] = useState<ShareInvitation[]>([]);
   const { language, setLanguage, t } = useLanguage();
@@ -82,6 +83,17 @@ const UserSettings: React.FC = () => {
     loadUserSettings();
   }, [user, t]);
 
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const handleEmailChange = (event: CustomEvent) => {
+    const newEmail = event.detail.value || '';
+    setInviteEmail(newEmail);
+    setIsEmailValid(validateEmail(newEmail));
+  };
+
   const toggleLanguage = () => {
     setLanguage(language === 'es' ? 'en' : 'es');
   };
@@ -103,7 +115,7 @@ const UserSettings: React.FC = () => {
   };
 
   const handleSendInvite = async () => {
-    if (!user || !inviteEmail.trim()) return;
+    if (!user || !isEmailValid) return;
 
     try {
       setIsLoading(true);
@@ -111,6 +123,7 @@ const UserSettings: React.FC = () => {
       const sent = await getSentInvitations(user);
       setSentInvitations(sent);
       setInviteEmail('');
+      setIsEmailValid(false);
       setErrorMessage(t('sharing.inviteSent'));
       setShowError(true);
     } catch (error: any) {
@@ -283,18 +296,28 @@ const UserSettings: React.FC = () => {
                   <IonCardTitle>{t('sharing.title')}</IonCardTitle>
                 </IonCardHeader>
                 <IonCardContent>
-                  <IonItem lines="none" className="invite-input-container">
+                  <IonItem lines="none" className={`invite-input-container ${inviteEmail && (isEmailValid ? 'valid-email' : 'invalid-email')}`}>
                     <IonIcon icon={mailOutline} slot="start" />
                     <IonInput
                       type="email"
                       value={inviteEmail}
-                      onIonChange={e => setInviteEmail(e.detail.value || '')}
+                      onIonInput={handleEmailChange}
                       placeholder={t('sharing.enterEmail')}
                     />
+                    {inviteEmail && (
+                      <IonIcon
+                        slot="end"
+                        icon={isEmailValid ? checkmarkCircle : closeCircle}
+                        color={isEmailValid ? 'success' : 'danger'}
+                        className="email-validation-icon"
+                      />
+                    )}
                     <IonButton 
                       slot="end" 
                       onClick={handleSendInvite}
-                      disabled={!inviteEmail.trim()}
+                      disabled={!isEmailValid}
+                      color={isEmailValid ? 'primary' : 'medium'}
+                      className={isEmailValid ? 'enabled-button' : ''}
                     >
                       <IonIcon icon={personAddOutline} slot="start" />
                       {t('sharing.sendInvite')}
@@ -391,6 +414,28 @@ const UserSettings: React.FC = () => {
         duration={3000}
         color={errorMessage === t('sharing.inviteSent') ? 'success' : 'danger'}
       />
+
+      <style>{`
+        .email-validation-icon {
+          font-size: 1.5rem;
+          margin-right: 8px;
+        }
+        .valid-email {
+          --highlight-background: var(--ion-color-success);
+        }
+        .invalid-email {
+          --highlight-background: var(--ion-color-danger);
+        }
+        .enabled-button {
+          transition: background-color 0.3s ease;
+        }
+        .invite-input-container {
+          --padding-end: 0;
+        }
+        ion-button[disabled] {
+          opacity: 0.7;
+        }
+      `}</style>
     </>
   );
 };
