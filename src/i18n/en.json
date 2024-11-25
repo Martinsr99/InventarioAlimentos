@@ -121,6 +121,7 @@
   "errors.productLoad": "Error loading products",
   "errors.invitationSend": "Error sending invitation",
   "errors.invitationResponse": "Error responding to invitation",
+  "errors.invitationDelete": "Error deleting invitation",
   
   "common.loading": "Loading",
   "common.error": "Error",
@@ -153,6 +154,10 @@
   "sharing.sentInvites": "Sent Invitations",
   "sharing.accept": "Accept",
   "sharing.reject": "Reject",
+  "sharing.delete": "Delete Invitation",
+  "sharing.deleteConfirm": "Delete Invitation?",
+  "sharing.deleteConfirmMessage": "Are you sure you want to delete this invitation?",
+  "sharing.deleteSuccess": "Invitation deleted successfully",
   "sharing.noInvites": "No invitations",
   "sharing.alreadyInvited": "User already invited",
   "sharing.sharedProducts": "Shared Products",

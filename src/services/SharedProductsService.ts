@@ -1,5 +1,5 @@
 import { db } from '../firebaseConfig';
-import { collection, addDoc, getDocs, doc, updateDoc, query, where, setDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, doc, updateDoc, query, where, setDoc, deleteDoc } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 import { Product } from './InventoryService';
 
@@ -96,6 +96,18 @@ export const respondToInvitation = async (
 
   const invitationRef = doc(db, 'shareInvitations', invitationId);
   await updateDoc(invitationRef, { status: response });
+};
+
+export const deleteInvitation = async (
+  currentUser: User,
+  invitationId: string
+): Promise<void> => {
+  if (!currentUser?.uid) {
+    throw new Error('No authenticated user');
+  }
+
+  const invitationRef = doc(db, 'shareInvitations', invitationId);
+  await deleteDoc(invitationRef);
 };
 
 export const getSharedProducts = async (currentUser: User): Promise<Product[]> => {

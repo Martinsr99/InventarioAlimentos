@@ -25,14 +25,15 @@ import {
   IonInput,
   IonText,
   IonBadge,
-  IonAvatar
+  IonAvatar,
+  IonAlert
 } from '@ionic/react';
-import { settingsOutline, languageOutline, chevronBackOutline, logOutOutline, personAddOutline, mailOutline, checkmarkCircleOutline, closeCircleOutline, checkmarkCircle, closeCircle } from 'ionicons/icons';
+import { settingsOutline, languageOutline, chevronBackOutline, logOutOutline, personAddOutline, mailOutline, checkmarkCircleOutline, closeCircleOutline, checkmarkCircle, closeCircle, trashOutline } from 'ionicons/icons';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { auth } from '../../firebaseConfig';
 import { signOut } from 'firebase/auth';
 import { getUserSettings, updateUserSettings } from '../../services/UserSettingsService';
-import { sendShareInvitation, getReceivedInvitations, getSentInvitations, respondToInvitation, ShareInvitation } from '../../services/SharedProductsService';
+import { sendShareInvitation, getReceivedInvitations, getSentInvitations, respondToInvitation, deleteInvitation, ShareInvitation } from '../../services/SharedProductsService';
 import './UserSettings.css';
 
 const profilePictures = [
@@ -53,6 +54,8 @@ const UserSettings: React.FC = () => {
   const [isEmailValid, setIsEmailValid] = useState(false);
   const [receivedInvitations, setReceivedInvitations] = useState<ShareInvitation[]>([]);
   const [sentInvitations, setSentInvitations] = useState<ShareInvitation[]>([]);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [invitationToDelete, setInvitationToDelete] = useState<string>('');
   const { language, setLanguage, t } = useLanguage();
   const user = auth.currentUser;
 
@@ -151,6 +154,27 @@ const UserSettings: React.FC = () => {
       setShowError(true);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDeleteInvitation = async () => {
+    if (!user || !invitationToDelete) return;
+
+    try {
+      setIsLoading(true);
+      await deleteInvitation(user, invitationToDelete);
+      const sent = await getSentInvitations(user);
+      setSentInvitations(sent);
+      setErrorMessage(t('sharing.deleteSuccess'));
+      setShowError(true);
+    } catch (error) {
+      console.error('Error deleting invitation:', error);
+      setErrorMessage(t('errors.invitationDelete'));
+      setShowError(true);
+    } finally {
+      setIsLoading(false);
+      setShowDeleteConfirm(false);
+      setInvitationToDelete('');
     }
   };
 
@@ -377,6 +401,17 @@ const UserSettings: React.FC = () => {
                                 {t(`sharing.invite${invitation.status.charAt(0).toUpperCase() + invitation.status.slice(1)}`)}
                               </IonBadge>
                             </IonLabel>
+                            <IonButton
+                              slot="end"
+                              color="danger"
+                              fill="clear"
+                              onClick={() => {
+                                setInvitationToDelete(invitation.id);
+                                setShowDeleteConfirm(true);
+                              }}
+                            >
+                              <IonIcon icon={trashOutline} />
+                            </IonButton>
                           </IonItem>
                         ))}
                       </IonList>
@@ -407,12 +442,37 @@ const UserSettings: React.FC = () => {
         </IonContent>
       </IonModal>
 
+      <IonAlert
+        isOpen={showDeleteConfirm}
+        onDidDismiss={() => {
+          setShowDeleteConfirm(false);
+          setInvitationToDelete('');
+        }}
+        header={t('sharing.deleteConfirm')}
+        message={t('sharing.deleteConfirmMessage')}
+        buttons={[
+          {
+            text: t('common.cancel'),
+            role: 'cancel',
+            handler: () => {
+              setShowDeleteConfirm(false);
+              setInvitationToDelete('');
+            }
+          },
+          {
+            text: t('common.delete'),
+            role: 'destructive',
+            handler: handleDeleteInvitation
+          }
+        ]}
+      />
+
       <IonToast
         isOpen={showError}
         onDidDismiss={() => setShowError(false)}
         message={errorMessage}
         duration={3000}
-        color={errorMessage === t('sharing.inviteSent') ? 'success' : 'danger'}
+        color={errorMessage === t('sharing.inviteSent') || errorMessage === t('sharing.deleteSuccess') ? 'success' : 'danger'}
       />
 
       <style>{`
