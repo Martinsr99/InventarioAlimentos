@@ -9,9 +9,10 @@ export interface Product {
   location: string;
   quantity: number;
   category?: string;
-  notes: string; // Changed from optional to required
+  notes: string;
   userId: string;
   addedAt: string;
+  sharedWith?: string[];
 }
 
 export const getProducts = async (): Promise<Product[]> => {
@@ -28,7 +29,8 @@ export const getProducts = async (): Promise<Product[]> => {
     return querySnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
-      notes: doc.data().notes || '' // Ensure notes is always a string
+      notes: doc.data().notes || '', // Ensure notes is always a string
+      sharedWith: doc.data().sharedWith || [] // Ensure sharedWith is always an array
     } as Product));
   } catch (error) {
     console.error('Error getting products:', error);
@@ -45,6 +47,7 @@ export const addProduct = async (product: Omit<Product, 'id' | 'userId' | 'added
     const docRef = await addDoc(collection(db, 'products'), {
       ...product,
       notes: product.notes || '', // Ensure notes is always a string
+      sharedWith: product.sharedWith || [], // Ensure sharedWith is always an array
       addedAt: new Date().toISOString(),
       userId: auth.currentUser.uid
     });
@@ -64,7 +67,8 @@ export const updateProduct = async (productId: string, updates: Partial<Omit<Pro
     const productRef = doc(db, 'products', productId);
     const updatedData = {
       ...updates,
-      notes: updates.notes || '' // Ensure notes is always a string
+      notes: updates.notes || '', // Ensure notes is always a string
+      sharedWith: updates.sharedWith || [] // Ensure sharedWith is always an array
     };
     await updateDoc(productRef, updatedData);
   } catch (error) {

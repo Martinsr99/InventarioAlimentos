@@ -5,9 +5,10 @@ import { User } from 'firebase/auth';
 export interface UserSettings {
   language: 'en' | 'es';
   profilePicture?: string;
+  email: string;
 }
 
-const DEFAULT_SETTINGS: Omit<UserSettings, 'language'> = {
+const DEFAULT_SETTINGS: Omit<UserSettings, 'language' | 'email'> = {
   profilePicture: '/images/profile/apple.png'
 };
 
@@ -46,7 +47,8 @@ export const getUserSettings = async (user: User): Promise<UserSettings> => {
       
       const initialSettings = {
         ...DEFAULT_SETTINGS,
-        language: defaultLanguage
+        language: defaultLanguage,
+        email: user.email || ''
       };
       
       // Guardar las configuraciones iniciales
@@ -66,6 +68,12 @@ export const getUserSettings = async (user: User): Promise<UserSettings> => {
       // Actualizar las configuraciones con el idioma
       await setDoc(userSettingsRef, settings);
     }
+
+    // Asegurarse de que el email esté presente
+    if (!settings.email && user.email) {
+      settings.email = user.email;
+      await setDoc(userSettingsRef, settings);
+    }
     
     return settings;
   } catch (error) {
@@ -78,7 +86,8 @@ export const getUserSettings = async (user: User): Promise<UserSettings> => {
     
     return {
       ...DEFAULT_SETTINGS,
-      language: defaultLanguage
+      language: defaultLanguage,
+      email: user.email || ''
     };
   }
 };
@@ -102,6 +111,7 @@ export const updateUserSettings = async (
       
       await setDoc(userSettingsRef, {
         ...DEFAULT_SETTINGS,
+        email: user.email || '',
         ...settings
       });
     } else {

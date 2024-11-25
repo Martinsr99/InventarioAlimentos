@@ -84,6 +84,9 @@
   "products.sortByExpiry": "Date",
   "products.sortAsc": "Ascending",
   "products.sortDesc": "Descending",
+  "products.sharedWith": "Share with",
+  "products.selectSharedWith": "Select who to share with",
+  "products.noSharedUsers": "No shared users available",
   
   "validation.nameRequired": "Please enter a product name",
   "validation.expiryRequired": "Please select an expiry date",
@@ -122,6 +125,10 @@
   "errors.invitationSend": "Error sending invitation",
   "errors.invitationResponse": "Error responding to invitation",
   "errors.invitationDelete": "Error deleting invitation",
+  "errors.userNotFound": "User not found",
+  "errors.userNotFoundMessage": "The user must be registered to receive invitations",
+  "errors.invitationExists": "Invitation already exists",
+  "errors.invitationExistsMessage": "You have already sent an invitation to this user",
   
   "common.loading": "Loading",
   "common.error": "Error",

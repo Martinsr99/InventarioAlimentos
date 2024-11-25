@@ -26,6 +26,8 @@ import {
 import { addProduct } from '../services/InventoryService';
 import { useLanguage } from '../contexts/LanguageContext';
 import { searchPredefinedProducts, getCategoryForProduct, PredefinedProduct } from '../services/PredefinedProductsService';
+import { getAcceptedShareUsers } from '../services/SharedProductsService';
+import { auth } from '../firebaseConfig';
 import './AddProductForm.css';
 
 const CATEGORIES = [
@@ -70,6 +72,8 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [isCustomQuantity, setIsCustomQuantity] = useState(false);
+  const [sharedUsers, setSharedUsers] = useState<{ userId: string; email: string }[]>([]);
+  const [selectedSharedUsers, setSelectedSharedUsers] = useState<string[]>([]);
 
   // Refs to store the latest input values
   const inputValues = useRef({
@@ -88,6 +92,16 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
       setShowSuggestions(false);
     }
   }, [name, language]);
+
+  useEffect(() => {
+    const loadSharedUsers = async () => {
+      if (auth.currentUser) {
+        const users = await getAcceptedShareUsers(auth.currentUser);
+        setSharedUsers(users);
+      }
+    };
+    loadSharedUsers();
+  }, []);
 
   const handleSuggestionClick = (suggestion: PredefinedProduct) => {
     setName(suggestion.name);
@@ -108,6 +122,7 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
     setIsCustomQuantity(false);
     setSuggestions([]);
     setShowSuggestions(false);
+    setSelectedSharedUsers([]);
     inputValues.current = {
       name: '',
       quantity: '1',
@@ -196,7 +211,8 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
         quantity: Number(inputValues.current.quantity || quantity),
         location,
         notes: (inputValues.current.notes || notes).trim(),
-        ...(category ? { category } : {})
+        ...(category ? { category } : {}),
+        sharedWith: selectedSharedUsers
       };
 
       await addProduct(productData);
@@ -403,6 +419,26 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
               ))}
             </IonSelect>
           </IonItem>
+
+          {sharedUsers.length > 0 && (
+            <IonItem>
+              <IonLabel position="stacked">
+                {t('products.sharedWith')} ({t('common.optional')})
+              </IonLabel>
+              <IonSelect
+                value={selectedSharedUsers}
+                placeholder={t('products.selectSharedWith')}
+                onIonChange={e => setSelectedSharedUsers(e.detail.value)}
+                multiple={true}
+              >
+                {sharedUsers.map(user => (
+                  <IonSelectOption key={user.userId} value={user.userId}>
+                    {user.email}
+                  </IonSelectOption>
+                ))}
+              </IonSelect>
+            </IonItem>
+          )}
 
           <IonItem>
             <IonLabel position="stacked">

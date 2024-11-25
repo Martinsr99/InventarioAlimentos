@@ -2,6 +2,7 @@ import { db } from '../firebaseConfig';
 import { collection, addDoc, getDocs, doc, updateDoc, query, where, setDoc, deleteDoc } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 import { Product } from './InventoryService';
+import { sendShareInvitationNotification } from './NotificationService';
 
 export interface ShareInvitation {
   id: string;
@@ -28,9 +29,86 @@ export const initializeUserSharing = async (user: User): Promise<void> => {
   }
 };
 
+const checkUserExists = async (email: string): Promise<{ exists: boolean; userId?: string }> => {
+  try {
+    // First try to find the user in userSettings
+    const userSettingsQuery = query(
+      collection(db, 'userSettings'),
+      where('email', '==', email)
+    );
+    
+    const userSettingsSnapshot = await getDocs(userSettingsQuery);
+    if (!userSettingsSnapshot.empty) {
+      return { exists: true, userId: userSettingsSnapshot.docs[0].id };
+    }
+    
+    // If not found in userSettings, try userSharing
+    const sharingsQuery = query(
+      collection(db, 'userSharing'),
+      where('email', '==', email)
+    );
+    
+    const sharingsSnapshot = await getDocs(sharingsQuery);
+    if (!sharingsSnapshot.empty) {
+      return { exists: true, userId: sharingsSnapshot.docs[0].id };
+    }
+    
+    // If not found in either collection, check if the email format is valid
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return { exists: false };
+    }
+    
+    return { exists: true };
+  } catch (error) {
+    return { exists: false };
+  }
+};
+
+export const getAcceptedShareUsers = async (currentUser: User): Promise<{ userId: string; email: string }[]> => {
+  if (!currentUser?.email) return [];
+
+  try {
+    const invitationsQuery = query(
+      collection(db, 'shareInvitations'),
+      where('fromUserEmail', '==', currentUser.email),
+      where('status', '==', 'accepted')
+    );
+    
+    const querySnapshot = await getDocs(invitationsQuery);
+    return querySnapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        userId: data.toUserId,
+        email: data.toUserEmail
+      };
+    });
+  } catch (error) {
+    return [];
+  }
+};
+
 export const sendShareInvitation = async (currentUser: User, toUserEmail: string): Promise<void> => {
   if (!currentUser?.email || !currentUser?.uid) {
     throw new Error('No authenticated user');
+  }
+
+  // Check if the target user exists
+  const { exists, userId } = await checkUserExists(toUserEmail);
+  if (!exists) {
+    throw new Error('user_not_found');
+  }
+
+  // Check if an invitation already exists
+  const existingInvitationsQuery = query(
+    collection(db, 'shareInvitations'),
+    where('fromUserId', '==', currentUser.uid),
+    where('toUserEmail', '==', toUserEmail)
+  );
+  
+  const existingInvitations = await getDocs(existingInvitationsQuery);
+  if (!existingInvitations.empty) {
+    throw new Error('invitation_exists');
   }
 
   const invitationData = {
@@ -41,7 +119,17 @@ export const sendShareInvitation = async (currentUser: User, toUserEmail: string
     createdAt: new Date().toISOString()
   };
 
-  await addDoc(collection(db, 'shareInvitations'), invitationData);
+  // Create the invitation
+  const invitationRef = await addDoc(collection(db, 'shareInvitations'), invitationData);
+
+  // Send notification and email
+  try {
+    if (userId) {
+      await sendShareInvitationNotification(userId, currentUser);
+    }
+  } catch (error) {
+    // Don't throw here - the invitation was created successfully
+  }
 };
 
 export const getReceivedInvitations = async (currentUser: User): Promise<ShareInvitation[]> => {
@@ -60,7 +148,6 @@ export const getReceivedInvitations = async (currentUser: User): Promise<ShareIn
       ...doc.data()
     } as ShareInvitation));
   } catch (error) {
-    console.log('No received invitations found');
     return [];
   }
 };
@@ -80,7 +167,6 @@ export const getSentInvitations = async (currentUser: User): Promise<ShareInvita
       ...doc.data()
     } as ShareInvitation));
   } catch (error) {
-    console.log('No sent invitations found');
     return [];
   }
 };
@@ -144,14 +230,29 @@ export const getSharedProducts = async (currentUser: User): Promise<Product[]> =
           } as Product & { sharedBy: string })));
         }
       } catch (error) {
-        console.log('Error getting products for invitation, skipping...');
         continue;
       }
     }
 
     return sharedProducts;
   } catch (error) {
-    console.log('No shared products found');
     return [];
+  }
+};
+
+export const hasAcceptedInvitations = async (currentUser: User): Promise<boolean> => {
+  if (!currentUser?.email) return false;
+
+  try {
+    const invitationsQuery = query(
+      collection(db, 'shareInvitations'),
+      where('toUserEmail', '==', currentUser.email),
+      where('status', '==', 'accepted')
+    );
+    
+    const querySnapshot = await getDocs(invitationsQuery);
+    return !querySnapshot.empty;
+  } catch (error) {
+    return false;
   }
 };

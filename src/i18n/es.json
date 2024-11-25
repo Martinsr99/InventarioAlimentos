@@ -84,6 +84,9 @@
   "products.sortByExpiry": "Fecha",
   "products.sortAsc": "Ascendente",
   "products.sortDesc": "Descendente",
+  "products.sharedWith": "Compartir con",
+  "products.selectSharedWith": "Selecciona con quién compartir",
+  "products.noSharedUsers": "No hay usuarios compartidos disponibles",
   
   "validation.nameRequired": "Por favor ingresa un nombre de producto",
   "validation.expiryRequired": "Por favor selecciona una fecha de vencimiento",
@@ -122,6 +125,10 @@
   "errors.invitationSend": "Error al enviar invitación",
   "errors.invitationResponse": "Error al responder a la invitación",
   "errors.invitationDelete": "Error al eliminar invitación",
+  "errors.userNotFound": "Usuario no encontrado",
+  "errors.userNotFoundMessage": "El usuario debe estar registrado para recibir invitaciones",
+  "errors.invitationExists": "Invitación ya existe",
+  "errors.invitationExistsMessage": "Ya has enviado una invitación a este usuario",
   
   "common.loading": "Cargando",
   "common.error": "Error",

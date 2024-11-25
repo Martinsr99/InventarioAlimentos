@@ -28,6 +28,8 @@ import {
 } from '@ionic/react';
 import { getProducts, updateProduct } from '../../services/InventoryService';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { getAcceptedShareUsers } from '../../services/SharedProductsService';
+import { auth } from '../../firebaseConfig';
 import '../../forms/AddProductForm.css';
 
 interface EditProductProps {
@@ -68,6 +70,8 @@ const EditProduct: React.FC<EditProductProps> = ({ onProductUpdated }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [validationError, setValidationError] = useState('');
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const [sharedUsers, setSharedUsers] = useState<{ userId: string; email: string }[]>([]);
+  const [selectedSharedUsers, setSelectedSharedUsers] = useState<string[]>([]);
 
   // Refs to store the latest input values
   const inputValues = useRef({
@@ -77,7 +81,14 @@ const EditProduct: React.FC<EditProductProps> = ({ onProductUpdated }) => {
   });
 
   useEffect(() => {
-    loadProduct();
+    const loadData = async () => {
+      if (auth.currentUser) {
+        const users = await getAcceptedShareUsers(auth.currentUser);
+        setSharedUsers(users);
+      }
+      await loadProduct();
+    };
+    loadData();
   }, [id]);
 
   const loadProduct = async () => {
@@ -91,6 +102,7 @@ const EditProduct: React.FC<EditProductProps> = ({ onProductUpdated }) => {
         setCategory(product.category || '');
         setLocation(product.location);
         setNotes(product.notes || '');
+        setSelectedSharedUsers(product.sharedWith || []);
         // Initialize input values ref
         inputValues.current = {
           name: product.name,
@@ -183,7 +195,8 @@ const EditProduct: React.FC<EditProductProps> = ({ onProductUpdated }) => {
         quantity: Number(inputValues.current.quantity || quantity),
         location,
         notes: (inputValues.current.notes || notes).trim(),
-        ...(category ? { category } : {})
+        ...(category ? { category } : {}),
+        sharedWith: selectedSharedUsers
       };
 
       await updateProduct(id, productData);
@@ -327,19 +340,6 @@ const EditProduct: React.FC<EditProductProps> = ({ onProductUpdated }) => {
               </IonItem>
 
               <IonItem>
-                <IonLabel position="stacked">{t('products.notes')}</IonLabel>
-                <IonTextarea
-                  value={notes}
-                  placeholder={t('products.enterNotes')}
-                  onIonInput={e => handleInputChange('notes', e.detail.value || '')}
-                  onIonBlur={() => {
-                    const textarea = formRef.current?.querySelector('ion-textarea') as HTMLIonTextareaElement;
-                    handleInputChange('notes', textarea?.value?.toString() || '');
-                  }}
-                />
-              </IonItem>
-
-              <IonItem>
                 <IonLabel position="stacked">
                   {t('products.category')} ({t('common.optional')})
                 </IonLabel>
@@ -354,6 +354,39 @@ const EditProduct: React.FC<EditProductProps> = ({ onProductUpdated }) => {
                     </IonSelectOption>
                   ))}
                 </IonSelect>
+              </IonItem>
+
+              {sharedUsers.length > 0 && (
+                <IonItem>
+                  <IonLabel position="stacked">
+                    {t('products.sharedWith')} ({t('common.optional')})
+                  </IonLabel>
+                  <IonSelect
+                    value={selectedSharedUsers}
+                    placeholder={t('products.selectSharedWith')}
+                    onIonChange={e => setSelectedSharedUsers(e.detail.value)}
+                    multiple={true}
+                  >
+                    {sharedUsers.map(user => (
+                      <IonSelectOption key={user.userId} value={user.userId}>
+                        {user.email}
+                      </IonSelectOption>
+                    ))}
+                  </IonSelect>
+                </IonItem>
+              )}
+
+              <IonItem>
+                <IonLabel position="stacked">{t('products.notes')}</IonLabel>
+                <IonTextarea
+                  value={notes}
+                  placeholder={t('products.enterNotes')}
+                  onIonInput={e => handleInputChange('notes', e.detail.value || '')}
+                  onIonBlur={() => {
+                    const textarea = formRef.current?.querySelector('ion-textarea') as HTMLIonTextareaElement;
+                    handleInputChange('notes', textarea?.value?.toString() || '');
+                  }}
+                />
               </IonItem>
 
               <IonButton
