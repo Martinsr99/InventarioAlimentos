@@ -25,6 +25,7 @@ import EditProduct from './components/Products/EditProduct/EditProduct';
 import { scheduleExpiryNotifications } from './services/NotificationService';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import UserSettings from './components/UserSettings/UserSettings';
+import { Capacitor } from '@capacitor/core';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -70,8 +71,11 @@ const AppContent: React.FC = () => {
         try {
           await scheduleExpiryNotifications();
         } catch (error) {
-          console.error('Error scheduling notifications:', error);
-          setError(t('errors.notificationSetup'));
+          // Only show notification errors on native platforms
+          if (Capacitor.isNativePlatform()) {
+            console.error('Error scheduling notifications:', error);
+            setError(t('errors.notificationSetup'));
+          }
         }
       }
       setIsLoading(false);

@@ -2,8 +2,16 @@ import { LocalNotifications } from '@capacitor/local-notifications';
 import { db } from '../firebaseConfig';
 import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
 import { User } from 'firebase/auth';
+import { Capacitor } from '@capacitor/core';
+
+const isNative = Capacitor.isNativePlatform();
 
 export const scheduleExpiryNotifications = async () => {
+    // Skip notification scheduling on web
+    if (!isNative) {
+        return;
+    }
+
     const today = new Date();
     const threeDaysFromNow = new Date(today);
     threeDaysFromNow.setDate(today.getDate() + 3);
@@ -37,15 +45,17 @@ export const sendShareInvitationNotification = async (toUserId: string, fromUser
             createdAt: new Date().toISOString()
         });
 
-        // Schedule local notification
-        await LocalNotifications.schedule({
-            notifications: [{
-                title: 'New Share Invitation',
-                body: `${fromUser.email} wants to share their products with you`,
-                id: Math.floor(Math.random() * 100000),
-                schedule: { at: new Date() }
-            }]
-        });
+        // Schedule local notification only on native platforms
+        if (isNative) {
+            await LocalNotifications.schedule({
+                notifications: [{
+                    title: 'New Share Invitation',
+                    body: `${fromUser.email} wants to share their products with you`,
+                    id: Math.floor(Math.random() * 100000),
+                    schedule: { at: new Date() }
+                }]
+            });
+        }
 
         // Add email notification to queue in Firestore
         await addDoc(collection(db, 'mail'), {
