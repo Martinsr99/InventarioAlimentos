@@ -284,7 +284,7 @@ export const getSharedProducts = async (currentUser: User): Promise<Product[]> =
   try {
     const sharedProducts: Product[] = [];
 
-    // Get products shared with the user directly
+    // Get products shared with me
     const sharedWithMeQuery = query(
       collection(db, 'products'),
       where('sharedWith', 'array-contains', currentUser.uid)
@@ -304,7 +304,7 @@ export const getSharedProducts = async (currentUser: User): Promise<Product[]> =
         ...productData,
         notes: productData.notes || '',
         sharedBy: ownerEmail,
-        isOwner: false
+        isOwner: productData.userId === currentUser.uid
       } as Product & { sharedBy: string; isOwner: boolean });
     }
 
@@ -317,13 +317,15 @@ export const getSharedProducts = async (currentUser: User): Promise<Product[]> =
     
     const ownProductsSnapshot = await getDocs(ownProductsQuery);
     if (!ownProductsSnapshot.empty) {
-      sharedProducts.push(...ownProductsSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        notes: doc.data().notes || '',
-        sharedBy: currentUser.email,
-        isOwner: true
-      } as Product & { sharedBy: string; isOwner: boolean })));
+      sharedProducts.push(...ownProductsSnapshot.docs
+        .filter(doc => !sharedProducts.some(p => p.id === doc.id)) // Evitar duplicados
+        .map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          notes: doc.data().notes || '',
+          sharedBy: currentUser.email,
+          isOwner: true
+        } as Product & { sharedBy: string; isOwner: boolean })));
     }
 
     return sharedProducts;
@@ -331,13 +333,19 @@ export const getSharedProducts = async (currentUser: User): Promise<Product[]> =
     console.error('Error getting shared products:', error);
     if (error instanceof Error && error.message.includes('requires an index')) {
       console.error(`
-        Please create the following index in Firebase Console:
-        Collection: products
-        Fields to index: 
-        1. sharedWith (Array)
-        2. __name__ (Ascending)
+        Please create the following indices in Firebase Console:
+        1. Collection: products
+           Fields to index: 
+           - sharedWith (Array)
+           - __name__ (Ascending)
         
-        You can create it by visiting the URL in the error message above.
+        2. Collection: products
+           Fields to index:
+           - userId (Ascending)
+           - sharedWith (Array)
+           - __name__ (Ascending)
+        
+        You can create them by visiting the URL in the error message above.
       `);
     }
     return [];

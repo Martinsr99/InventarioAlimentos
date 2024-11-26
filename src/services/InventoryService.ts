@@ -23,7 +23,8 @@ export const getProducts = async (): Promise<Product[]> => {
   try {
     const q = query(
       collection(db, 'products'),
-      where('userId', '==', auth.currentUser.uid)
+      where('userId', '==', auth.currentUser.uid),
+      where('sharedWith', '==', []) // Solo productos no compartidos
     );
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => ({
@@ -68,8 +69,17 @@ export const updateProduct = async (productId: string, updates: Partial<Omit<Pro
     const updatedData = {
       ...updates,
       notes: updates.notes || '', // Ensure notes is always a string
-      sharedWith: updates.sharedWith || [] // Ensure sharedWith is always an array
     };
+
+    // Si se está actualizando sharedWith y no está vacío, asegurarse de que el propietario esté incluido
+    if (updates.sharedWith && updates.sharedWith.length > 0) {
+      const sharedWith = new Set(updates.sharedWith);
+      sharedWith.add(auth.currentUser.uid); // Agregar al propietario al array
+      updatedData.sharedWith = Array.from(sharedWith);
+    } else {
+      updatedData.sharedWith = [];
+    }
+
     await updateDoc(productRef, updatedData);
   } catch (error) {
     console.error('Error updating product:', error);
