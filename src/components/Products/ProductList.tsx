@@ -12,9 +12,10 @@ import {
   IonRefresher,
   IonRefresherContent,
   RefresherEventDetail,
+  IonButton,
 } from '@ionic/react';
 import { deleteProduct, getProducts, Product } from '../../services/InventoryService';
-import { getSharedProducts } from '../../services/SharedProductsService';
+import { getSharedProducts, getAcceptedShareUsers } from '../../services/SharedProductsService';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useHistory } from 'react-router-dom';
 import { auth } from '../../firebaseConfig';
@@ -25,6 +26,7 @@ import './ProductList.css';
 
 interface ProductListProps {
   onRefreshNeeded?: () => void;
+  onOpenSettingsToShare?: () => void;
 }
 
 type SortOption = 'name' | 'expiryDate';
@@ -36,7 +38,7 @@ interface ExtendedProduct extends Product {
   isOwner?: boolean;
 }
 
-const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded }) => {
+const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded, onOpenSettingsToShare }) => {
   const [products, setProducts] = useState<ExtendedProduct[]>([]);
   const [sharedProducts, setSharedProducts] = useState<ExtendedProduct[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<ExtendedProduct[]>([]);
@@ -49,11 +51,13 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded }) => {
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [viewMode, setViewMode] = useState<ViewMode>('personal');
   const [showToast, setShowToast] = useState(false);
+  const [hasFriends, setHasFriends] = useState(false);
   const { t } = useLanguage();
   const history = useHistory();
 
   useEffect(() => {
     loadProducts();
+    checkFriends();
   }, []);
 
   useEffect(() => {
@@ -65,6 +69,12 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded }) => {
   useEffect(() => {
     filterAndSortProducts();
   }, [products, sharedProducts, searchText, sortBy, sortDirection, viewMode]);
+
+  const checkFriends = async () => {
+    if (!auth.currentUser) return;
+    const friends = await getAcceptedShareUsers(auth.currentUser);
+    setHasFriends(friends.length > 0);
+  };
 
   const loadProducts = async () => {
     if (!auth.currentUser) return;
@@ -134,6 +144,7 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded }) => {
         await loadProducts();
       } else {
         await loadSharedProducts();
+        await checkFriends();
       }
     } finally {
       event.detail.complete();
@@ -156,6 +167,12 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded }) => {
     history.push(`/edit-product/${productId}`);
   };
 
+  const navigateToFriends = () => {
+    if (onOpenSettingsToShare) {
+      onOpenSettingsToShare();
+    }
+  };
+
   const renderContent = () => {
     if (loading || (loadingShared && viewMode === 'shared')) {
       return (
@@ -173,11 +190,21 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded }) => {
               {searchText 
                 ? t('products.noSearchResults')
                 : viewMode === 'shared'
-                  ? t('sharing.noSharedProducts')
+                  ? hasFriends 
+                    ? t('sharing.noSharedProducts')
+                    : t('sharing.noFriendsYet')
                   : t('products.noProducts')
               }
             </p>
             {!searchText && viewMode === 'personal' && <p>{t('products.addFirst')}</p>}
+            {!searchText && viewMode === 'shared' && !hasFriends && (
+              <>
+                <p>{t('sharing.inviteFriends')}</p>
+                <IonButton onClick={navigateToFriends} fill="outline" size="small">
+                  {t('sharing.friendsSection')}
+                </IonButton>
+              </>
+            )}
           </IonText>
         </div>
       );

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   IonCard,
   IonCardContent,
@@ -36,6 +36,11 @@ import { getUserSettings, updateUserSettings } from '../../services/UserSettings
 import { sendShareInvitation, getReceivedInvitations, getSentInvitations, respondToInvitation, deleteInvitation, ShareInvitation, getAcceptedShareUsers } from '../../services/SharedProductsService';
 import './UserSettings.css';
 
+interface UserSettingsProps {
+  openToShare?: boolean;
+  onClose?: () => void;
+}
+
 const profilePictures = [
   '/images/profile/apple.png',
   '/images/profile/carrot.png',
@@ -44,7 +49,7 @@ const profilePictures = [
   '/images/profile/taco.png'
 ];
 
-const UserSettings: React.FC = () => {
+const UserSettings: React.FC<UserSettingsProps> = ({ openToShare = false, onClose }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [profilePicture, setProfilePicture] = useState('/images/profile/apple.png');
   const [isLoading, setIsLoading] = useState(false);
@@ -59,6 +64,15 @@ const UserSettings: React.FC = () => {
   const [friends, setFriends] = useState<{ userId: string; email: string }[]>([]);
   const { language, setLanguage, t } = useLanguage();
   const user = auth.currentUser;
+  const sharingCardRef = useRef<HTMLIonCardElement>(null);
+  const contentRef = useRef<HTMLIonContentElement>(null);
+
+  // Add effect to handle openToShare prop changes
+  useEffect(() => {
+    if (openToShare) {
+      setIsOpen(true);
+    }
+  }, [openToShare]);
 
   useEffect(() => {
     const loadUserSettings = async () => {
@@ -91,8 +105,20 @@ const UserSettings: React.FC = () => {
         }
       }
     };
-    loadUserSettings();
-  }, [user, t]);
+    if (isOpen) {
+      loadUserSettings();
+    }
+  }, [user, t, isOpen]);
+
+  useEffect(() => {
+    if (isOpen && openToShare && !isLoading) {
+      setTimeout(() => {
+        if (sharingCardRef.current && contentRef.current) {
+          contentRef.current.scrollToPoint(0, sharingCardRef.current.offsetTop, 500);
+        }
+      }, 100);
+    }
+  }, [isOpen, openToShare, isLoading]);
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -197,6 +223,9 @@ const UserSettings: React.FC = () => {
 
   const handleClose = () => {
     setIsOpen(false);
+    if (onClose) {
+      onClose();
+    }
   };
 
   const handleLogout = async () => {
@@ -235,7 +264,7 @@ const UserSettings: React.FC = () => {
           </IonToolbar>
         </IonHeader>
         
-        <IonContent>
+        <IonContent ref={contentRef}>
           {isLoading ? (
             <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}>
               <IonSpinner />
@@ -332,7 +361,7 @@ const UserSettings: React.FC = () => {
                 </IonCardContent>
               </IonCard>
 
-              <IonCard>
+              <IonCard ref={sharingCardRef}>
                 <IonCardHeader>
                   <IonCardTitle>{t('sharing.title')}</IonCardTitle>
                 </IonCardHeader>

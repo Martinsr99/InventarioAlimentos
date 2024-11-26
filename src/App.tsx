@@ -56,6 +56,7 @@ const AppContent: React.FC = () => {
   const [error, setError] = useState<string>('');
   const [refreshKey, setRefreshKey] = useState(0);
   const [isHeaderElevated, setIsHeaderElevated] = useState(false);
+  const [openSettingsToShare, setOpenSettingsToShare] = useState(false);
 
   // Set Firebase language based on current language context
   useEffect(() => {
@@ -87,6 +88,14 @@ const AppContent: React.FC = () => {
   const handleProductChange = useCallback(() => {
     setRefreshKey(prev => prev + 1);
   }, []);
+
+  const handleOpenSettingsToShare = () => {
+    setOpenSettingsToShare(true);
+  };
+
+  const handleSettingsClose = () => {
+    setOpenSettingsToShare(false);
+  };
 
   if (isLoading) {
     return (
@@ -127,7 +136,10 @@ const AppContent: React.FC = () => {
             <IonHeader>
               <IonToolbar className={`app-header ${isHeaderElevated ? 'header-elevation' : ''}`}>
                 <IonButtons slot="end" className="header-buttons">
-                  <UserSettings />
+                  <UserSettings 
+                    openToShare={openSettingsToShare} 
+                    onClose={handleSettingsClose}
+                  />
                 </IonButtons>
               </IonToolbar>
             </IonHeader>
@@ -136,7 +148,10 @@ const AppContent: React.FC = () => {
                 <IonRow>
                   <IonCol>
                     <AddProductForm onProductAdded={handleProductChange} />
-                    <ProductList key={refreshKey} />
+                    <ProductList 
+                      key={refreshKey} 
+                      onOpenSettingsToShare={handleOpenSettingsToShare}
+                    />
                   </IonCol>
                 </IonRow>
               </IonGrid>

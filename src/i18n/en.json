@@ -169,6 +169,8 @@
   "sharing.alreadyInvited": "User already invited",
   "sharing.sharedProducts": "Shared Products",
   "sharing.noSharedProducts": "No shared products",
+  "sharing.noFriendsYet": "You don't have any friends yet",
+  "sharing.inviteFriends": "Invite friends to share products",
   "sharing.friends": "Friends",
   "sharing.noFriends": "No friends yet",
   "sharing.friendsSection": "Your Friends"
