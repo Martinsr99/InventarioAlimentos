@@ -1,0 +1,19 @@
+.date-picker-modal {
+  --height: 400px;
+}
+
+.custom-datetime {
+  margin: 20px;
+}
+
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  margin: 20px 0;
+}
+
+.ion-margin-top {
+  margin-top: 20px;
+}

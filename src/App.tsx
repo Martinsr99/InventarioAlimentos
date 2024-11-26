@@ -21,7 +21,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import Auth from './components/Authenticator/Auth';
 import AddProductForm from './forms/AddProductForm';
 import ProductList from './components/Products/ProductList';
-import EditProduct from './components/Products/EditProduct';
+import EditProduct from './components/Products/EditProduct/EditProduct';
 import { scheduleExpiryNotifications } from './services/NotificationService';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import UserSettings from './components/UserSettings/UserSettings';

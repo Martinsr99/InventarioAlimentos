@@ -9,7 +9,7 @@ export interface ShareInvitation {
   fromUserId: string;
   fromUserEmail: string;
   toUserEmail: string;
-  toUserId?: string;  // Add this field
+  toUserId?: string;
   status: 'pending' | 'accepted' | 'rejected';
   createdAt: string;
 }
@@ -142,7 +142,7 @@ export const sendShareInvitation = async (currentUser: User, toUserEmail: string
     fromUserId: currentUser.uid,
     fromUserEmail: currentUser.email,
     toUserEmail: toUserEmail,
-    toUserId: userId,  // Store the userId if we have it
+    toUserId: userId,
     status: 'pending' as const,
     createdAt: new Date().toISOString()
   };
@@ -279,41 +279,33 @@ export const deleteInvitation = async (
 };
 
 export const getSharedProducts = async (currentUser: User): Promise<Product[]> => {
-  if (!currentUser?.email) return [];
+  if (!currentUser?.email || !currentUser?.uid) return [];
 
   try {
-    // Get products shared with the user
-    const invitationsQuery = query(
-      collection(db, 'shareInvitations'),
-      where('toUserEmail', '==', currentUser.email),
-      where('status', '==', 'accepted')
-    );
-    
-    const invitationsSnapshot = await getDocs(invitationsQuery);
     const sharedProducts: Product[] = [];
 
-    // Get products shared by others
-    for (const invitationDoc of invitationsSnapshot.docs) {
-      try {
-        const invitation = invitationDoc.data() as ShareInvitation;
-        const productsQuery = query(
-          collection(db, 'products'),
-          where('userId', '==', invitation.fromUserId)
-        );
-        
-        const productsSnapshot = await getDocs(productsQuery);
-        if (!productsSnapshot.empty) {
-          sharedProducts.push(...productsSnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-            notes: doc.data().notes || '',
-            sharedBy: invitation.fromUserEmail,
-            isOwner: false
-          } as Product & { sharedBy: string; isOwner: boolean })));
-        }
-      } catch (error) {
-        continue;
-      }
+    // Get products shared with the user directly
+    const sharedWithMeQuery = query(
+      collection(db, 'products'),
+      where('sharedWith', 'array-contains', currentUser.uid)
+    );
+    
+    const sharedWithMeSnapshot = await getDocs(sharedWithMeQuery);
+    
+    // Process shared products
+    for (const productDoc of sharedWithMeSnapshot.docs) {
+      const productData = productDoc.data();
+      const ownerDoc = await getDoc(doc(db, 'userSharing', productData.userId));
+      const ownerData = ownerDoc.data() as UserSharing | undefined;
+      const ownerEmail = ownerData?.email || '';
+      
+      sharedProducts.push({
+        id: productDoc.id,
+        ...productData,
+        notes: productData.notes || '',
+        sharedBy: ownerEmail,
+        isOwner: false
+      } as Product & { sharedBy: string; isOwner: boolean });
     }
 
     // Get user's own shared products
@@ -336,6 +328,18 @@ export const getSharedProducts = async (currentUser: User): Promise<Product[]> =
 
     return sharedProducts;
   } catch (error) {
+    console.error('Error getting shared products:', error);
+    if (error instanceof Error && error.message.includes('requires an index')) {
+      console.error(`
+        Please create the following index in Firebase Console:
+        Collection: products
+        Fields to index: 
+        1. sharedWith (Array)
+        2. __name__ (Ascending)
+        
+        You can create it by visiting the URL in the error message above.
+      `);
+    }
     return [];
   }
 };
