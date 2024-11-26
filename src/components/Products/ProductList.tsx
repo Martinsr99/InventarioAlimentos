@@ -1,13 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import {
   IonList,
-  IonItem,
-  IonLabel,
-  IonButton,
-  IonIcon,
+  IonSpinner,
   IonText,
   IonAlert,
-  IonSpinner,
+  IonToast,
   IonCard,
   IonCardContent,
   IonCardHeader,
@@ -15,31 +12,15 @@ import {
   IonRefresher,
   IonRefresherContent,
   RefresherEventDetail,
-  IonSearchbar,
-  IonSegment,
-  IonSegmentButton,
-  IonToolbar,
-  IonBadge,
-  IonToast,
-  IonChip
 } from '@ionic/react';
-import { 
-  trash, 
-  create, 
-  calendar,
-  arrowUp,
-  arrowDown,
-  text,
-  time,
-  peopleOutline,
-  personOutline,
-  personCircleOutline
-} from 'ionicons/icons';
 import { deleteProduct, getProducts, Product } from '../../services/InventoryService';
 import { getSharedProducts } from '../../services/SharedProductsService';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useHistory } from 'react-router-dom';
 import { auth } from '../../firebaseConfig';
+import ProductListItem from './ProductListItem';
+import ProductListFilters from './ProductListFilters';
+import ProductListHeader from './ProductListHeader';
 import './ProductList.css';
 
 interface ProductListProps {
@@ -123,7 +104,6 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded }) => {
   const filterAndSortProducts = () => {
     let result = viewMode === 'personal' ? [...products] : [...sharedProducts];
 
-    // Apply search filter
     if (searchText) {
       const searchLower = searchText.toLowerCase().trim();
       result = result.filter(product =>
@@ -131,7 +111,6 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded }) => {
       );
     }
 
-    // Apply sorting
     result.sort((a, b) => {
       if (sortBy === 'name') {
         return sortDirection === 'asc'
@@ -147,10 +126,6 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded }) => {
     });
 
     setFilteredProducts(result);
-  };
-
-  const toggleSortDirection = () => {
-    setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
   };
 
   const handleRefresh = async (event: CustomEvent<RefresherEventDetail>) => {
@@ -179,28 +154,6 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded }) => {
 
   const handleEdit = (productId: string) => {
     history.push(`/edit-product/${productId}`);
-  };
-
-  const calculateDaysUntilExpiry = (expiryDate: string) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const expiry = new Date(expiryDate);
-    expiry.setHours(0, 0, 0, 0);
-    const diffTime = expiry.getTime() - today.getTime();
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  };
-
-  const getExpiryText = (daysUntilExpiry: number) => {
-    if (daysUntilExpiry < 0) {
-      return t('products.expired');
-    }
-    if (daysUntilExpiry === 0) {
-      return t('products.today');
-    }
-    if (daysUntilExpiry === 1) {
-      return t('products.tomorrow');
-    }
-    return `${daysUntilExpiry} ${t('products.days')}`;
   };
 
   const renderContent = () => {
@@ -232,65 +185,15 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded }) => {
 
     return (
       <IonList>
-        {filteredProducts.map(product => {
-          const daysUntilExpiry = calculateDaysUntilExpiry(product.expiryDate);
-          const expiryText = getExpiryText(daysUntilExpiry);
-          const isExpired = daysUntilExpiry < 0;
-          const isNearExpiry = daysUntilExpiry <= 3 && daysUntilExpiry >= 0;
-          const isSharedProduct = viewMode === 'shared';
-          const isOwnedShared = isSharedProduct && product.isOwner;
-
-          return (
-            <IonItem 
-              key={product.id}
-              className={isOwnedShared ? 'owned-shared-product' : isSharedProduct ? 'shared-product' : ''}
-            >
-              <IonLabel>
-                <h2>{product.name}</h2>
-                {product.category && (
-                  <div className="category-tag">
-                    {t(`categories.${product.category.toLowerCase()}`)}
-                  </div>
-                )}
-                <div className="expiry-text">
-                  <IonIcon icon={calendar} color={isExpired ? 'danger' : isNearExpiry ? 'warning' : 'medium'} />
-                  <IonText color={isExpired ? 'danger' : isNearExpiry ? 'warning' : 'medium'}>
-                    {expiryText}
-                  </IonText>
-                </div>
-                {product.notes && product.notes.trim() !== '' && (
-                  <p className="notes-text">{product.notes}</p>
-                )}
-                {isSharedProduct && product.sharedBy && (
-                  <IonChip className={`shared-by-chip ${isOwnedShared ? 'owner' : ''}`}>
-                    <IonIcon icon={personCircleOutline} />
-                    <IonLabel>{product.sharedBy}</IonLabel>
-                  </IonChip>
-                )}
-              </IonLabel>
-              {(viewMode === 'personal' || isOwnedShared) && (
-                <>
-                  <IonButton 
-                    fill="clear" 
-                    slot="end"
-                    onClick={() => handleEdit(product.id)}
-                    color="primary"
-                  >
-                    <IonIcon icon={create} slot="icon-only" />
-                  </IonButton>
-                  <IonButton 
-                    fill="clear" 
-                    slot="end"
-                    onClick={() => setProductToDelete(product.id)}
-                    color="danger"
-                  >
-                    <IonIcon icon={trash} slot="icon-only" />
-                  </IonButton>
-                </>
-              )}
-            </IonItem>
-          );
-        })}
+        {filteredProducts.map(product => (
+          <ProductListItem
+            key={product.id}
+            product={product}
+            viewMode={viewMode}
+            onEdit={handleEdit}
+            onDelete={setProductToDelete}
+          />
+        ))}
       </IonList>
     );
   };
@@ -306,57 +209,20 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded }) => {
           <IonCardTitle>{t('products.title')}</IonCardTitle>
         </IonCardHeader>
         <IonCardContent>
-          <IonSegment 
-            value={viewMode}
-            onIonChange={e => setViewMode(e.detail.value as ViewMode)}
-            className="view-mode-segment"
-          >
-            <IonSegmentButton value="personal">
-              <IonIcon icon={personOutline} />
-              <IonLabel>{t('products.title')}</IonLabel>
-            </IonSegmentButton>
-            <IonSegmentButton value="shared">
-              <IonIcon icon={peopleOutline} />
-              <IonLabel>{t('sharing.sharedProducts')}</IonLabel>
-              {sharedProducts.length > 0 && (
-                <IonBadge color="primary">{sharedProducts.length}</IonBadge>
-              )}
-            </IonSegmentButton>
-          </IonSegment>
+          <ProductListHeader
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            sharedProductsCount={sharedProducts.length}
+          />
 
-          <div className="filters-container">
-            <IonSearchbar
-              value={searchText}
-              onIonInput={e => setSearchText(e.detail.value || '')}
-              placeholder={t('products.searchPlaceholder')}
-              className="product-searchbar"
-              debounce={0}
-              animated={false}
-            />
-            <div className="sort-controls">
-              <IonSegment 
-                value={sortBy} 
-                onIonChange={e => setSortBy(e.detail.value as SortOption)}
-                className="sort-segment"
-              >
-                <IonSegmentButton value="name" className="sort-segment-button">
-                  <IonIcon icon={text} />
-                  <IonLabel>{t('products.sortByName')}</IonLabel>
-                </IonSegmentButton>
-                <IonSegmentButton value="expiryDate" className="sort-segment-button">
-                  <IonIcon icon={time} />
-                  <IonLabel>{t('products.sortByExpiry')}</IonLabel>
-                </IonSegmentButton>
-              </IonSegment>
-              <IonButton
-                fill="clear"
-                className="sort-direction-button"
-                onClick={toggleSortDirection}
-              >
-                <IonIcon icon={sortDirection === 'asc' ? arrowUp : arrowDown} />
-              </IonButton>
-            </div>
-          </div>
+          <ProductListFilters
+            searchText={searchText}
+            onSearchChange={setSearchText}
+            sortBy={sortBy}
+            onSortByChange={setSortBy}
+            sortDirection={sortDirection}
+            onSortDirectionChange={() => setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')}
+          />
 
           {renderContent()}
         </IonCardContent>

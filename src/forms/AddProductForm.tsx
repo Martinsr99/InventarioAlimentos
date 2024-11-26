@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import {
   IonCard,
   IonCardContent,
@@ -6,7 +6,6 @@ import {
   IonCardTitle,
   IonItem,
   IonLabel,
-  IonInput,
   IonButton,
   IonSelect,
   IonSelectOption,
@@ -14,20 +13,15 @@ import {
   IonToast,
   IonSpinner,
   IonText,
-  IonDatetime,
-  IonModal,
-  IonContent,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonButtons,
-  IonList,
 } from '@ionic/react';
 import { addProduct } from '../services/InventoryService';
 import { useLanguage } from '../contexts/LanguageContext';
-import { searchPredefinedProducts, getCategoryForProduct, PredefinedProduct } from '../services/PredefinedProductsService';
+import { searchPredefinedProducts, PredefinedProduct } from '../services/PredefinedProductsService';
 import { getAcceptedShareUsers } from '../services/SharedProductsService';
 import { auth } from '../firebaseConfig';
+import DateSelector from '../components/Products/AddProduct/DateSelector';
+import QuantitySelector from '../components/Products/AddProduct/QuantitySelector';
+import ProductSuggestions from '../components/Products/AddProduct/ProductSuggestions';
 import './AddProductForm.css';
 
 const CATEGORIES = [
@@ -48,8 +42,6 @@ const LOCATIONS = [
   'other'
 ] as const;
 
-const QUANTITIES = ['1', '2', '3', '4', '5','6','7','8','9','10'];
-
 interface AddProductFormProps {
   onProductAdded?: () => void;
 }
@@ -57,14 +49,19 @@ interface AddProductFormProps {
 const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
   const { t, language } = useLanguage();
   const formRef = useRef<HTMLFormElement>(null);
+  
+  // Product data states
   const [name, setName] = useState('');
-  const [suggestions, setSuggestions] = useState<PredefinedProduct[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
   const [expiryDate, setExpiryDate] = useState('');
   const [quantity, setQuantity] = useState('1');
   const [category, setCategory] = useState('');
   const [location, setLocation] = useState('fridge');
   const [notes, setNotes] = useState('');
+  const [selectedSharedUsers, setSelectedSharedUsers] = useState<string[]>([]);
+
+  // UI states
+  const [suggestions, setSuggestions] = useState<PredefinedProduct[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -73,9 +70,8 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [isCustomQuantity, setIsCustomQuantity] = useState(false);
   const [sharedUsers, setSharedUsers] = useState<{ userId: string; email: string }[]>([]);
-  const [selectedSharedUsers, setSelectedSharedUsers] = useState<string[]>([]);
 
-  // Refs to store the latest input values
+  // Input value refs for handling blur events
   const inputValues = useRef({
     name: '',
     quantity: '1',
@@ -131,7 +127,6 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
   };
 
   const validateForm = (): boolean => {
-    // Synchronize the latest input values
     const currentName = inputValues.current.name || name;
     const currentQuantity = inputValues.current.quantity || quantity;
 
@@ -168,32 +163,11 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
     }
   };
 
-  const confirmDate = () => {
-    if (!selectedDate && !expiryDate) {
-      const today = new Date();
-      const formattedDate = today.toISOString().split('T')[0];
-      setExpiryDate(formattedDate);
-    }
-    setIsDatePickerOpen(false);
-  };
-
-  const cancelDate = () => {
-    setSelectedDate(expiryDate);
-    setIsDatePickerOpen(false);
-  };
-
-  const formatDisplayDate = (dateString: string) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString();
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setValidationError('');
 
-    // Synchronize the latest input values with state
     setName(inputValues.current.name || name);
     setQuantity(inputValues.current.quantity || quantity);
     setNotes(inputValues.current.notes || notes);
@@ -246,7 +220,6 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
 
   const handleInputChange = (field: keyof typeof inputValues.current, value: string) => {
     inputValues.current[field] = value;
-    // Also update the state for immediate UI feedback
     switch (field) {
       case 'name':
         setName(value);
@@ -275,88 +248,43 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
             </IonItem>
           )}
 
-          <div className="product-name-container">
-            <IonItem>
-              <IonLabel position="stacked">{t('products.name')}</IonLabel>
-              <IonInput
-                value={name}
-                placeholder={t('products.enterName')}
-                onIonInput={e => handleInputChange('name', e.detail.value || '')}
-                onIonBlur={() => {
-                  setTimeout(() => {
-                    setShowSuggestions(false);
-                  }, 200);
-                }}
-                onFocus={() => {
-                  if (suggestions.length > 0) {
-                    setShowSuggestions(true);
-                  }
-                }}
-              />
-            </IonItem>
-            
-            {showSuggestions && suggestions.length > 0 && (
-              <IonList className="suggestions-list">
-                {suggestions.map((suggestion, index) => (
-                  <IonItem
-                    key={index}
-                    button
-                    onClick={() => handleSuggestionClick(suggestion)}
-                    className="suggestion-item"
-                  >
-                    <IonLabel>{suggestion.name}</IonLabel>
-                  </IonItem>
-                ))}
-              </IonList>
-            )}
-          </div>
+          <ProductSuggestions
+            name={name}
+            showSuggestions={showSuggestions}
+            suggestions={suggestions}
+            onNameChange={value => handleInputChange('name', value)}
+            onSuggestionClick={handleSuggestionClick}
+            onInputBlur={() => {
+              setTimeout(() => {
+                setShowSuggestions(false);
+              }, 200);
+            }}
+            onInputFocus={() => {
+              if (suggestions.length > 0) {
+                setShowSuggestions(true);
+              }
+            }}
+          />
 
-          <IonItem button onClick={() => setIsDatePickerOpen(true)}>
-            <IonLabel position="stacked">{t('products.expiryDate')}</IonLabel>
-            <IonInput
-              readonly
-              value={formatDisplayDate(expiryDate)}
-              placeholder={t('products.selectDate')}
-            />
-          </IonItem>
-
-          <IonModal 
+          <DateSelector
+            expiryDate={expiryDate}
+            selectedDate={selectedDate}
             isOpen={isDatePickerOpen}
-            onDidDismiss={cancelDate}
-            className="date-picker-modal"
-            mode="ios"
-            backdropDismiss={false}
-            animated={true}
-          >
-            <IonContent className="ion-padding">
-              <IonHeader>
-                <IonToolbar>
-                  <IonButtons slot="start">
-                    <IonButton onClick={cancelDate}>
-                      {t('common.cancel')}
-                    </IonButton>
-                  </IonButtons>
-                  <IonTitle>{t('products.expiryDate')}</IonTitle>
-                  <IonButtons slot="end">
-                    <IonButton strong={true} onClick={confirmDate}>
-                      {t('common.ok')}
-                    </IonButton>
-                  </IonButtons>
-                </IonToolbar>
-              </IonHeader>
-              <IonDatetime
-                value={selectedDate || expiryDate || new Date().toISOString()}
-                onIonChange={e => handleDateChange(e.detail.value)}
-                presentation="date"
-                preferWheel={true}
-                showDefaultButtons={false}
-                firstDayOfWeek={1}
-                locale="es-ES"
-                className="custom-datetime"
-                min={new Date().toISOString().split('T')[0]}
-              />
-            </IonContent>
-          </IonModal>
+            onOpen={() => setIsDatePickerOpen(true)}
+            onCancel={() => {
+              setSelectedDate(expiryDate);
+              setIsDatePickerOpen(false);
+            }}
+            onConfirm={() => {
+              if (!selectedDate && !expiryDate) {
+                const today = new Date();
+                const formattedDate = today.toISOString().split('T')[0];
+                setExpiryDate(formattedDate);
+              }
+              setIsDatePickerOpen(false);
+            }}
+            onDateChange={handleDateChange}
+          />
 
           <IonItem>
             <IonLabel position="stacked">{t('products.location')}</IonLabel>
@@ -373,35 +301,12 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
             </IonSelect>
           </IonItem>
 
-          <IonItem>
-            <IonLabel position="stacked">{t('products.quantity')}</IonLabel>
-            {!isCustomQuantity ? (
-              <IonSelect
-                value={quantity}
-                placeholder={t('products.selectQuantity')}
-                onIonChange={e => handleQuantityChange(e.detail.value)}
-              >
-                {QUANTITIES.map(q => (
-                  <IonSelectOption key={q} value={q}>
-                    {q}
-                  </IonSelectOption>
-                ))}
-                <IonSelectOption value="custom">{t('common.custom')}</IonSelectOption>
-              </IonSelect>
-            ) : (
-              <IonInput
-                type="number"
-                value={quantity}
-                placeholder={t('products.enterQuantity')}
-                onIonInput={e => handleInputChange('quantity', e.detail.value || '1')}
-                onIonBlur={() => {
-                  const input = formRef.current?.querySelector('ion-input[placeholder="' + t('products.enterQuantity') + '"]') as HTMLIonInputElement;
-                  handleInputChange('quantity', input?.value?.toString() || '1');
-                }}
-                min="1"
-              />
-            )}
-          </IonItem>
+          <QuantitySelector
+            quantity={quantity}
+            isCustomQuantity={isCustomQuantity}
+            onQuantityChange={handleQuantityChange}
+            onCustomQuantityChange={value => handleInputChange('quantity', value)}
+          />
 
           <IonItem>
             <IonLabel position="stacked">
