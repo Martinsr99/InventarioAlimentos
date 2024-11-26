@@ -180,3 +180,18 @@
 .dark-theme .sort-direction-button {
   --border-color: rgba(var(--ion-color-light-rgb), 0.2);
 }
+
+/* Shared product styles */
+.owned-shared-product {
+  --background: rgba(var(--ion-color-primary-rgb), 0.05);
+  border-left: 4px solid var(--ion-color-primary);
+}
+
+.shared-product {
+  --background: rgba(var(--ion-color-medium-rgb), 0.05);
+}
+
+.shared-by-chip.owner {
+  --background: var(--ion-color-primary);
+  --color: var(--ion-color-primary-contrast);
+}

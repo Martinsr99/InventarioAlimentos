@@ -52,6 +52,7 @@ type ViewMode = 'personal' | 'shared';
 
 interface ExtendedProduct extends Product {
   sharedBy?: string;
+  isOwner?: boolean;
 }
 
 const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded }) => {
@@ -236,9 +237,14 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded }) => {
           const expiryText = getExpiryText(daysUntilExpiry);
           const isExpired = daysUntilExpiry < 0;
           const isNearExpiry = daysUntilExpiry <= 3 && daysUntilExpiry >= 0;
+          const isSharedProduct = viewMode === 'shared';
+          const isOwnedShared = isSharedProduct && product.isOwner;
 
           return (
-            <IonItem key={product.id}>
+            <IonItem 
+              key={product.id}
+              className={isOwnedShared ? 'owned-shared-product' : isSharedProduct ? 'shared-product' : ''}
+            >
               <IonLabel>
                 <h2>{product.name}</h2>
                 {product.category && (
@@ -255,14 +261,14 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded }) => {
                 {product.notes && product.notes.trim() !== '' && (
                   <p className="notes-text">{product.notes}</p>
                 )}
-                {viewMode === 'shared' && product.sharedBy && (
-                  <IonChip color="primary">
+                {isSharedProduct && product.sharedBy && (
+                  <IonChip className={`shared-by-chip ${isOwnedShared ? 'owner' : ''}`}>
                     <IonIcon icon={personCircleOutline} />
                     <IonLabel>{product.sharedBy}</IonLabel>
                   </IonChip>
                 )}
               </IonLabel>
-              {viewMode === 'personal' && (
+              {(viewMode === 'personal' || isOwnedShared) && (
                 <>
                   <IonButton 
                     fill="clear" 

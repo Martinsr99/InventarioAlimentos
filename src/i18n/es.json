@@ -168,5 +168,8 @@
   "sharing.noInvites": "No hay invitaciones",
   "sharing.alreadyInvited": "Usuario ya invitado",
   "sharing.sharedProducts": "Productos Compartidos",
-  "sharing.noSharedProducts": "No hay productos compartidos"
+  "sharing.noSharedProducts": "No hay productos compartidos",
+  "sharing.friends": "Amigos",
+  "sharing.noFriends": "No tienes amigos aún",
+  "sharing.friendsSection": "Tus Amigos"
 }

@@ -28,12 +28,12 @@ import {
   IonAvatar,
   IonAlert
 } from '@ionic/react';
-import { settingsOutline, languageOutline, chevronBackOutline, logOutOutline, personAddOutline, mailOutline, checkmarkCircleOutline, closeCircleOutline, checkmarkCircle, closeCircle, trashOutline } from 'ionicons/icons';
+import { settingsOutline, languageOutline, chevronBackOutline, logOutOutline, personAddOutline, mailOutline, checkmarkCircleOutline, closeCircleOutline, checkmarkCircle, closeCircle, trashOutline, peopleOutline } from 'ionicons/icons';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { auth } from '../../firebaseConfig';
 import { signOut } from 'firebase/auth';
 import { getUserSettings, updateUserSettings } from '../../services/UserSettingsService';
-import { sendShareInvitation, getReceivedInvitations, getSentInvitations, respondToInvitation, deleteInvitation, ShareInvitation } from '../../services/SharedProductsService';
+import { sendShareInvitation, getReceivedInvitations, getSentInvitations, respondToInvitation, deleteInvitation, ShareInvitation, getAcceptedShareUsers } from '../../services/SharedProductsService';
 import './UserSettings.css';
 
 const profilePictures = [
@@ -56,6 +56,7 @@ const UserSettings: React.FC = () => {
   const [sentInvitations, setSentInvitations] = useState<ShareInvitation[]>([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [invitationToDelete, setInvitationToDelete] = useState<string>('');
+  const [friends, setFriends] = useState<{ userId: string; email: string }[]>([]);
   const { language, setLanguage, t } = useLanguage();
   const user = auth.currentUser;
 
@@ -69,11 +70,18 @@ const UserSettings: React.FC = () => {
             setProfilePicture(settings.profilePicture);
           }
           
-          // Load invitations
-          const received = await getReceivedInvitations(user);
-          const sent = await getSentInvitations(user);
-          setReceivedInvitations(received);
+          // Load invitations and friends
+          const [received, sent, acceptedUsers] = await Promise.all([
+            getReceivedInvitations(user),
+            getSentInvitations(user),
+            getAcceptedShareUsers(user)
+          ]);
+
+          // Filter received invitations to show only pending ones
+          const pendingInvitations = received.filter(inv => inv.status === 'pending');
+          setReceivedInvitations(pendingInvitations);
           setSentInvitations(sent);
+          setFriends(acceptedUsers);
         } catch (error) {
           console.error('Error loading settings:', error);
           setErrorMessage(t('errors.settingsLoad'));
@@ -146,8 +154,17 @@ const UserSettings: React.FC = () => {
     try {
       setIsLoading(true);
       await respondToInvitation(user, invitationId, response);
-      const received = await getReceivedInvitations(user);
-      setReceivedInvitations(received);
+      
+      // Reload all data after response
+      const [received, acceptedUsers] = await Promise.all([
+        getReceivedInvitations(user),
+        getAcceptedShareUsers(user)
+      ]);
+      
+      // Filter received invitations to show only pending ones
+      const pendingInvitations = received.filter(inv => inv.status === 'pending');
+      setReceivedInvitations(pendingInvitations);
+      setFriends(acceptedUsers);
     } catch (error) {
       console.error('Error responding to invitation:', error);
       setErrorMessage(t('errors.invitationResponse'));
@@ -348,6 +365,30 @@ const UserSettings: React.FC = () => {
                     </IonButton>
                   </IonItem>
 
+                  {friends.length > 0 && (
+                    <>
+                      <h2>
+                        <IonIcon icon={peopleOutline} style={{ marginRight: '8px', verticalAlign: 'middle' }} />
+                        {t('sharing.friendsSection')}
+                      </h2>
+                      <IonList>
+                        {friends.map(friend => (
+                          <IonItem key={friend.userId}>
+                            <IonAvatar slot="start">
+                              <IonImg src="/images/profile/apple.png" alt="User" />
+                            </IonAvatar>
+                            <IonLabel>
+                              <h2>{friend.email}</h2>
+                              <IonBadge color="success">
+                                {t('sharing.inviteAccepted')}
+                              </IonBadge>
+                            </IonLabel>
+                          </IonItem>
+                        ))}
+                      </IonList>
+                    </>
+                  )}
+
                   {receivedInvitations.length > 0 && (
                     <>
                       <h2>{t('sharing.receivedInvites')}</h2>
@@ -418,7 +459,7 @@ const UserSettings: React.FC = () => {
                     </>
                   )}
 
-                  {receivedInvitations.length === 0 && sentInvitations.length === 0 && (
+                  {receivedInvitations.length === 0 && sentInvitations.length === 0 && friends.length === 0 && (
                     <IonText color="medium">
                       <p>{t('sharing.noInvites')}</p>
                     </IonText>
