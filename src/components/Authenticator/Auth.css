@@ -6,46 +6,57 @@ ion-grid {
     overflow: hidden;
 }
 
-/* Floating fruits animation */
+/* Floating fruits container */
 .floating-fruits {
     position: fixed;
     width: 100%;
     height: 100%;
     top: 0;
     left: 0;
-    pointer-events: none;
+    z-index: 1;
 }
 
+/* Fruit base styles */
 .fruit {
     position: absolute;
     width: 40px;
     height: 40px;
     opacity: 0.6;
     filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
+    will-change: transform;
+    z-index: 1;
 }
 
-.fruit-1 {
+/* Original fruit animations */
+.fruit-1:not(.dragging) {
     animation: float1 15s ease-in-out infinite;
 }
 
-.fruit-2 {
+.fruit-2:not(.dragging) {
     animation: float2 18s ease-in-out infinite;
     animation-delay: -5s;
 }
 
-.fruit-3 {
+.fruit-3:not(.dragging) {
     animation: float3 20s ease-in-out infinite;
     animation-delay: -8s;
 }
 
-.fruit-4 {
+.fruit-4:not(.dragging) {
     animation: float4 17s ease-in-out infinite;
     animation-delay: -12s;
 }
 
-.fruit-5 {
+.fruit-5:not(.dragging) {
     animation: float5 19s ease-in-out infinite;
     animation-delay: -15s;
+}
+
+/* Dragging styles */
+.fruit.dragging {
+    animation: none !important;
+    opacity: 0.8;
+    z-index: 1000;
 }
 
 @keyframes float1 {
@@ -144,7 +155,7 @@ ion-card {
         inset 0 0 0 1px rgba(255, 255, 255, 0.1) !important;
     margin: 16px;
     position: relative;
-    z-index: 1;
+    z-index: 2;
     overflow: hidden;
 }
 
