@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect } from 'react';
 import {
   IonCard,
   IonCardContent,
@@ -14,11 +14,11 @@ import {
   IonSpinner,
   IonText,
 } from '@ionic/react';
-import { addProduct } from '../services/InventoryService';
 import { useLanguage } from '../contexts/LanguageContext';
-import { searchPredefinedProducts, PredefinedProduct } from '../services/PredefinedProductsService';
 import { getAcceptedShareUsers } from '../services/SharedProductsService';
+import { submitProductForm } from '../services/ProductFormService';
 import { auth } from '../firebaseConfig';
+import { useProductForm } from '../hooks/useProductForm';
 import DateSelector from '../components/Products/AddProduct/DateSelector';
 import QuantitySelector from '../components/Products/AddProduct/QuantitySelector';
 import ProductSuggestions from '../components/Products/AddProduct/ProductSuggestions';
@@ -47,47 +47,32 @@ interface AddProductFormProps {
 }
 
 const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const formRef = useRef<HTMLFormElement>(null);
-  
-  // Product data states
-  const [name, setName] = useState('');
-  const [expiryDate, setExpiryDate] = useState('');
-  const [quantity, setQuantity] = useState('1');
-  const [category, setCategory] = useState('');
-  const [location, setLocation] = useState('fridge');
-  const [notes, setNotes] = useState('');
-  const [selectedSharedUsers, setSelectedSharedUsers] = useState<string[]>([]);
+  const [isDatePickerOpen, setIsDatePickerOpen] = React.useState(false);
+  const [error, setError] = React.useState('');
+  const [success, setSuccess] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [sharedUsers, setSharedUsers] = React.useState<{ userId: string; email: string }[]>([]);
 
-  // UI states
-  const [suggestions, setSuggestions] = useState<PredefinedProduct[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [validationError, setValidationError] = useState('');
-  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<string>('');
-  const [isCustomQuantity, setIsCustomQuantity] = useState(false);
-  const [sharedUsers, setSharedUsers] = useState<{ userId: string; email: string }[]>([]);
-
-  // Input value refs for handling blur events
-  const inputValues = useRef({
-    name: '',
-    quantity: '1',
-    notes: '',
-  });
-
-  useEffect(() => {
-    if (name.trim().length > 0) {
-      const results = searchPredefinedProducts(name, language);
-      setSuggestions(results);
-      setShowSuggestions(results.length > 0);
-    } else {
-      setSuggestions([]);
-      setShowSuggestions(false);
-    }
-  }, [name, language]);
+  const {
+    formState,
+    suggestions,
+    showSuggestions,
+    isCustomQuantity,
+    validationError,
+    selectedDate,
+    inputValues,
+    setFormValue,
+    handleSuggestionClick,
+    handleQuantityChange,
+    handleInputChange,
+    resetForm,
+    validation,
+    setShowSuggestions,
+    setSelectedDate,
+    setValidationError
+  } = useProductForm();
 
   useEffect(() => {
     const loadSharedUsers = async () => {
@@ -98,52 +83,6 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
     };
     loadSharedUsers();
   }, []);
-
-  const handleSuggestionClick = (suggestion: PredefinedProduct) => {
-    setName(suggestion.name);
-    inputValues.current.name = suggestion.name;
-    setCategory(suggestion.category);
-    setShowSuggestions(false);
-  };
-
-  const resetForm = () => {
-    setName('');
-    setExpiryDate('');
-    setSelectedDate('');
-    setQuantity('1');
-    setCategory('');
-    setLocation('fridge');
-    setNotes('');
-    setValidationError('');
-    setIsCustomQuantity(false);
-    setSuggestions([]);
-    setShowSuggestions(false);
-    setSelectedSharedUsers([]);
-    inputValues.current = {
-      name: '',
-      quantity: '1',
-      notes: '',
-    };
-  };
-
-  const validateForm = (): boolean => {
-    const currentName = inputValues.current.name || name;
-    const currentQuantity = inputValues.current.quantity || quantity;
-
-    if (!currentName.trim()) {
-      setValidationError(t('validation.nameRequired'));
-      return false;
-    }
-    if (!expiryDate) {
-      setValidationError(t('validation.expiryRequired'));
-      return false;
-    }
-    if (!currentQuantity || Number(currentQuantity) < 1) {
-      setValidationError(t('validation.quantityRequired'));
-      return false;
-    }
-    return true;
-  };
 
   const handleDateChange = (value: string | string[] | null | undefined) => {
     if (value) {
@@ -158,7 +97,7 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
       if (!isNaN(date.getTime())) {
         const formattedDate = date.toISOString().split('T')[0];
         setSelectedDate(dateStr);
-        setExpiryDate(formattedDate);
+        setFormValue('expiryDate', formattedDate);
       }
     }
   };
@@ -168,28 +107,24 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
     setError('');
     setValidationError('');
 
-    setName(inputValues.current.name || name);
-    setQuantity(inputValues.current.quantity || quantity);
-    setNotes(inputValues.current.notes || notes);
-
-    if (!validateForm()) {
+    const validationResult = validation.validateForm();
+    if (!validationResult.isValid) {
+      setValidationError(validationResult.error || '');
       return;
     }
 
     setIsLoading(true);
 
     try {
-      const productData = {
-        name: (inputValues.current.name || name).trim(),
-        expiryDate,
-        quantity: Number(inputValues.current.quantity || quantity),
-        location,
-        notes: (inputValues.current.notes || notes).trim(),
-        ...(category ? { category } : {}),
-        sharedWith: selectedSharedUsers
-      };
-
-      await addProduct(productData);
+      await submitProductForm({
+        name: inputValues.current.name || formState.name,
+        expiryDate: formState.expiryDate,
+        quantity: Number(inputValues.current.quantity || formState.quantity),
+        location: formState.location,
+        notes: (inputValues.current.notes || formState.notes),
+        category: formState.category,
+        sharedWith: formState.selectedSharedUsers
+      });
       
       if (onProductAdded) {
         onProductAdded();
@@ -203,33 +138,6 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
       setError(t('errors.productAdd'));
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleQuantityChange = (value: string) => {
-    if (value === 'custom') {
-      setIsCustomQuantity(true);
-      setQuantity('');
-      inputValues.current.quantity = '';
-    } else {
-      setIsCustomQuantity(false);
-      setQuantity(value);
-      inputValues.current.quantity = value;
-    }
-  };
-
-  const handleInputChange = (field: keyof typeof inputValues.current, value: string) => {
-    inputValues.current[field] = value;
-    switch (field) {
-      case 'name':
-        setName(value);
-        break;
-      case 'quantity':
-        setQuantity(value);
-        break;
-      case 'notes':
-        setNotes(value);
-        break;
     }
   };
 
@@ -249,7 +157,7 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
           )}
 
           <ProductSuggestions
-            name={name}
+            name={formState.name}
             showSuggestions={showSuggestions}
             suggestions={suggestions}
             onNameChange={value => handleInputChange('name', value)}
@@ -267,19 +175,19 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
           />
 
           <DateSelector
-            expiryDate={expiryDate}
+            expiryDate={formState.expiryDate}
             selectedDate={selectedDate}
             isOpen={isDatePickerOpen}
             onOpen={() => setIsDatePickerOpen(true)}
             onCancel={() => {
-              setSelectedDate(expiryDate);
+              setSelectedDate(formState.expiryDate);
               setIsDatePickerOpen(false);
             }}
             onConfirm={() => {
-              if (!selectedDate && !expiryDate) {
+              if (!selectedDate && !formState.expiryDate) {
                 const today = new Date();
                 const formattedDate = today.toISOString().split('T')[0];
-                setExpiryDate(formattedDate);
+                setFormValue('expiryDate', formattedDate);
               }
               setIsDatePickerOpen(false);
             }}
@@ -289,9 +197,9 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
           <IonItem>
             <IonLabel position="stacked">{t('products.location')}</IonLabel>
             <IonSelect
-              value={location}
+              value={formState.location}
               placeholder={t('products.selectLocation')}
-              onIonChange={e => setLocation(e.detail.value)}
+              onIonChange={e => setFormValue('location', e.detail.value)}
             >
               {LOCATIONS.map(loc => (
                 <IonSelectOption key={loc} value={loc}>
@@ -302,7 +210,7 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
           </IonItem>
 
           <QuantitySelector
-            quantity={quantity}
+            quantity={formState.quantity}
             isCustomQuantity={isCustomQuantity}
             onQuantityChange={handleQuantityChange}
             onCustomQuantityChange={value => handleInputChange('quantity', value)}
@@ -313,9 +221,9 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
               {t('products.category')} ({t('common.optional')})
             </IonLabel>
             <IonSelect
-              value={category}
+              value={formState.category}
               placeholder={t('products.selectCategory')}
-              onIonChange={e => setCategory(e.detail.value)}
+              onIonChange={e => setFormValue('category', e.detail.value)}
             >
               {CATEGORIES.map(cat => (
                 <IonSelectOption key={cat} value={cat}>
@@ -331,9 +239,9 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
                 {t('products.sharedWith')} ({t('common.optional')})
               </IonLabel>
               <IonSelect
-                value={selectedSharedUsers}
+                value={formState.selectedSharedUsers}
                 placeholder={t('products.selectSharedWith')}
-                onIonChange={e => setSelectedSharedUsers(e.detail.value)}
+                onIonChange={e => setFormValue('selectedSharedUsers', e.detail.value)}
                 multiple={true}
               >
                 {sharedUsers.map(user => (
@@ -350,7 +258,7 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
               {t('products.notes')} ({t('common.optional')})
             </IonLabel>
             <IonTextarea
-              value={notes}
+              value={formState.notes}
               placeholder={t('products.enterNotes')}
               onIonInput={e => handleInputChange('notes', e.detail.value || '')}
               onIonBlur={() => {

@@ -1,27 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import {
-  IonList,
-  IonSpinner,
-  IonText,
-  IonAlert,
-  IonToast,
   IonCard,
   IonCardContent,
   IonCardHeader,
   IonCardTitle,
+  IonAlert,
+  IonToast,
   IonRefresher,
   IonRefresherContent,
   RefresherEventDetail,
-  IonButton,
 } from '@ionic/react';
-import { deleteProduct, getProducts, Product } from '../../services/InventoryService';
-import { getSharedProducts, getAcceptedShareUsers } from '../../services/SharedProductsService';
-import { useLanguage } from '../../contexts/LanguageContext';
 import { useHistory } from 'react-router-dom';
-import { auth } from '../../firebaseConfig';
-import ProductListItem from './ProductListItem';
-import ProductListFilters from './ProductListFilters';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { useProductList, SortOption, SortDirection, ViewMode } from '../../hooks/useProductList';
 import ProductListHeader from './ProductListHeader';
+import ProductListFilters from './ProductListFilters';
+import ProductListContent from './ProductListContent';
 import './ProductList.css';
 
 interface ProductListProps {
@@ -29,114 +23,51 @@ interface ProductListProps {
   onOpenSettingsToShare?: () => void;
 }
 
-type SortOption = 'name' | 'expiryDate';
-type SortDirection = 'asc' | 'desc';
-type ViewMode = 'personal' | 'shared';
-
-interface ExtendedProduct extends Product {
-  sharedBy?: string;
-  isOwner?: boolean;
-}
-
 const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded, onOpenSettingsToShare }) => {
-  const [products, setProducts] = useState<ExtendedProduct[]>([]);
-  const [sharedProducts, setSharedProducts] = useState<ExtendedProduct[]>([]);
-  const [filteredProducts, setFilteredProducts] = useState<ExtendedProduct[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [loadingShared, setLoadingShared] = useState(false);
-  const [error, setError] = useState('');
-  const [productToDelete, setProductToDelete] = useState<string | null>(null);
   const [searchText, setSearchText] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('expiryDate');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [viewMode, setViewMode] = useState<ViewMode>('personal');
+  const [productToDelete, setProductToDelete] = useState<string | null>(null);
   const [showToast, setShowToast] = useState(false);
-  const [hasFriends, setHasFriends] = useState(false);
+  
   const { t } = useLanguage();
   const history = useHistory();
 
+  const {
+    filteredProducts,
+    loading,
+    loadingShared,
+    error,
+    hasFriends,
+    loadProducts,
+    loadSharedProducts,
+    handleDelete,
+    filterAndSortProducts,
+    checkFriends,
+    sharedProducts
+  } = useProductList(onRefreshNeeded);
+
+  // Initial load
   useEffect(() => {
     loadProducts();
     checkFriends();
+    // Initialize filters
+    filterAndSortProducts({ viewMode, searchText, sortBy, sortDirection });
   }, []);
 
+  // Handle view mode changes
   useEffect(() => {
     if (viewMode === 'shared') {
       loadSharedProducts();
     }
+    filterAndSortProducts({ viewMode, searchText, sortBy, sortDirection });
   }, [viewMode]);
 
+  // Handle filter changes
   useEffect(() => {
-    filterAndSortProducts();
-  }, [products, sharedProducts, searchText, sortBy, sortDirection, viewMode]);
-
-  const checkFriends = async () => {
-    if (!auth.currentUser) return;
-    const friends = await getAcceptedShareUsers(auth.currentUser);
-    setHasFriends(friends.length > 0);
-  };
-
-  const loadProducts = async () => {
-    if (!auth.currentUser) return;
-
-    setLoading(true);
-    try {
-      const personalProducts = await getProducts();
-      setProducts(personalProducts);
-      if (onRefreshNeeded) {
-        onRefreshNeeded();
-      }
-    } catch (error) {
-      console.error('Error loading products:', error);
-      setError(t('errors.productLoad'));
-      setShowToast(true);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadSharedProducts = async () => {
-    if (!auth.currentUser) return;
-
-    setLoadingShared(true);
-    try {
-      const shared = await getSharedProducts(auth.currentUser);
-      setSharedProducts(shared);
-    } catch (error) {
-      console.error('Error loading shared products:', error);
-      setError(t('errors.productLoad'));
-      setShowToast(true);
-    } finally {
-      setLoadingShared(false);
-    }
-  };
-
-  const filterAndSortProducts = () => {
-    let result = viewMode === 'personal' ? [...products] : [...sharedProducts];
-
-    if (searchText) {
-      const searchLower = searchText.toLowerCase().trim();
-      result = result.filter(product =>
-        product.name.toLowerCase().includes(searchLower)
-      );
-    }
-
-    result.sort((a, b) => {
-      if (sortBy === 'name') {
-        return sortDirection === 'asc'
-          ? a.name.localeCompare(b.name)
-          : b.name.localeCompare(a.name);
-      } else {
-        const dateA = new Date(a.expiryDate).getTime();
-        const dateB = new Date(b.expiryDate).getTime();
-        return sortDirection === 'asc'
-          ? dateA - dateB
-          : dateB - dateA;
-      }
-    });
-
-    setFilteredProducts(result);
-  };
+    filterAndSortProducts({ viewMode, searchText, sortBy, sortDirection });
+  }, [searchText, sortBy, sortDirection]);
 
   const handleRefresh = async (event: CustomEvent<RefresherEventDetail>) => {
     try {
@@ -146,18 +77,19 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded, onOpenSettin
         await loadSharedProducts();
         await checkFriends();
       }
+      // Re-apply filters after refresh
+      filterAndSortProducts({ viewMode, searchText, sortBy, sortDirection });
     } finally {
       event.detail.complete();
     }
   };
 
-  const handleDelete = async (productId: string) => {
+  const handleDeleteConfirm = async (productId: string) => {
     try {
-      await deleteProduct(productId);
-      await loadProducts();
+      await handleDelete(productId);
+      // Re-apply filters after deletion
+      filterAndSortProducts({ viewMode, searchText, sortBy, sortDirection });
     } catch (error) {
-      console.error('Error deleting product:', error);
-      setError(t('errors.productDelete'));
       setShowToast(true);
     }
     setProductToDelete(null);
@@ -165,64 +97,6 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded, onOpenSettin
 
   const handleEdit = (productId: string) => {
     history.push(`/edit-product/${productId}`);
-  };
-
-  const navigateToFriends = () => {
-    if (onOpenSettingsToShare) {
-      onOpenSettingsToShare();
-    }
-  };
-
-  const renderContent = () => {
-    if (loading || (loadingShared && viewMode === 'shared')) {
-      return (
-        <div className="loading-spinner">
-          <IonSpinner />
-        </div>
-      );
-    }
-
-    if (filteredProducts.length === 0) {
-      return (
-        <div className="empty-state">
-          <IonText color="medium">
-            <p>
-              {searchText 
-                ? t('products.noSearchResults')
-                : viewMode === 'shared'
-                  ? hasFriends 
-                    ? t('sharing.noSharedProducts')
-                    : t('sharing.noFriendsYet')
-                  : t('products.noProducts')
-              }
-            </p>
-            {!searchText && viewMode === 'personal' && <p>{t('products.addFirst')}</p>}
-            {!searchText && viewMode === 'shared' && !hasFriends && (
-              <>
-                <p>{t('sharing.inviteFriends')}</p>
-                <IonButton onClick={navigateToFriends} fill="outline" size="small">
-                  {t('sharing.friendsSection')}
-                </IonButton>
-              </>
-            )}
-          </IonText>
-        </div>
-      );
-    }
-
-    return (
-      <IonList>
-        {filteredProducts.map(product => (
-          <ProductListItem
-            key={product.id}
-            product={product}
-            viewMode={viewMode}
-            onEdit={handleEdit}
-            onDelete={setProductToDelete}
-          />
-        ))}
-      </IonList>
-    );
   };
 
   return (
@@ -251,7 +125,17 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded, onOpenSettin
             onSortDirectionChange={() => setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')}
           />
 
-          {renderContent()}
+          <ProductListContent
+            loading={loading}
+            loadingShared={loadingShared}
+            viewMode={viewMode}
+            filteredProducts={filteredProducts}
+            searchText={searchText}
+            hasFriends={hasFriends}
+            onEdit={handleEdit}
+            onDelete={setProductToDelete}
+            navigateToFriends={() => onOpenSettingsToShare?.()}
+          />
         </IonCardContent>
       </IonCard>
 
@@ -270,7 +154,7 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded, onOpenSettin
             text: t('common.delete'),
             handler: () => {
               if (productToDelete) {
-                handleDelete(productToDelete);
+                handleDeleteConfirm(productToDelete);
               }
             }
           }
@@ -279,10 +163,10 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded, onOpenSettin
 
       <IonToast
         isOpen={showToast}
-        onDidDismiss={() => setShowToast(false)}
         message={error}
         duration={3000}
         color="danger"
+        onDidDismiss={() => setShowToast(false)}
       />
     </>
   );

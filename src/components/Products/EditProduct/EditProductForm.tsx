@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import {
   IonCard,
   IonCardContent,
@@ -15,11 +15,12 @@ import {
   IonSpinner,
   IonText,
 } from '@ionic/react';
-import { updateProduct } from '../../../services/InventoryService';
 import { useLanguage } from '../../../contexts/LanguageContext';
+import { useEditProductForm } from '../../../hooks/useEditProductForm';
+import { submitProductEdit } from '../../../services/EditProductService';
+import { CATEGORIES, LOCATIONS, ProductCategory, ProductLocation } from '../../../constants/productConstants';
 import DateSelector from '../AddProduct/DateSelector';
 import QuantitySelector from '../AddProduct/QuantitySelector';
-import { CATEGORIES, LOCATIONS, ProductCategory, ProductLocation } from '../../../constants/productConstants';
 import './EditProductForm.css';
 
 interface EditProductFormProps {
@@ -45,50 +46,24 @@ const EditProductForm: React.FC<EditProductFormProps> = ({
 }) => {
   const { t } = useLanguage();
   const formRef = useRef<HTMLFormElement>(null);
-  
-  // Form state
-  const [name, setName] = useState(initialData.name);
-  const [expiryDate, setExpiryDate] = useState(initialData.expiryDate);
-  const [quantity, setQuantity] = useState(initialData.quantity.toString());
-  const [category, setCategory] = useState<ProductCategory | ''>(initialData.category || '');
-  const [location, setLocation] = useState<ProductLocation>(initialData.location);
-  const [notes, setNotes] = useState(initialData.notes || '');
-  const [selectedSharedUsers, setSelectedSharedUsers] = useState<string[]>(initialData.sharedWith || []);
-  
-  // UI state
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [validationError, setValidationError] = useState('');
-  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<string>(initialData.expiryDate);
-  const [isCustomQuantity, setIsCustomQuantity] = useState(false);
+  const [isDatePickerOpen, setIsDatePickerOpen] = React.useState(false);
+  const [error, setError] = React.useState('');
+  const [success, setSuccess] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(false);
 
-  // Input value refs
-  const inputValues = useRef({
-    name: initialData.name,
-    quantity: initialData.quantity.toString(),
-    notes: initialData.notes || '',
-  });
-
-  const validateForm = (): boolean => {
-    const currentName = inputValues.current.name || name;
-    const currentQuantity = inputValues.current.quantity || quantity;
-
-    if (!currentName.trim()) {
-      setValidationError(t('validation.nameRequired'));
-      return false;
-    }
-    if (!expiryDate) {
-      setValidationError(t('validation.expiryRequired'));
-      return false;
-    }
-    if (!currentQuantity || Number(currentQuantity) < 1) {
-      setValidationError(t('validation.quantityRequired'));
-      return false;
-    }
-    return true;
-  };
+  const {
+    formState,
+    isCustomQuantity,
+    validationError,
+    selectedDate,
+    inputValues,
+    setFormValue,
+    handleQuantityChange,
+    handleInputChange,
+    validation,
+    setSelectedDate,
+    setValidationError
+  } = useEditProductForm(initialData);
 
   const handleDateChange = (value: string | string[] | null | undefined) => {
     if (value) {
@@ -103,35 +78,8 @@ const EditProductForm: React.FC<EditProductFormProps> = ({
       if (!isNaN(date.getTime())) {
         const formattedDate = date.toISOString().split('T')[0];
         setSelectedDate(dateStr);
-        setExpiryDate(formattedDate);
+        setFormValue('expiryDate', formattedDate);
       }
-    }
-  };
-
-  const handleInputChange = (field: keyof typeof inputValues.current, value: string) => {
-    inputValues.current[field] = value;
-    switch (field) {
-      case 'name':
-        setName(value);
-        break;
-      case 'quantity':
-        setQuantity(value);
-        break;
-      case 'notes':
-        setNotes(value);
-        break;
-    }
-  };
-
-  const handleQuantityChange = (value: string) => {
-    if (value === 'custom') {
-      setIsCustomQuantity(true);
-      setQuantity('');
-      inputValues.current.quantity = '';
-    } else {
-      setIsCustomQuantity(false);
-      setQuantity(value);
-      inputValues.current.quantity = value;
     }
   };
 
@@ -140,28 +88,25 @@ const EditProductForm: React.FC<EditProductFormProps> = ({
     setError('');
     setValidationError('');
 
-    setName(inputValues.current.name || name);
-    setQuantity(inputValues.current.quantity || quantity);
-    setNotes(inputValues.current.notes || notes);
-
-    if (!validateForm()) {
+    const validationResult = validation.validateForm();
+    if (!validationResult.isValid) {
+      setValidationError(validationResult.error || '');
       return;
     }
 
     setIsLoading(true);
 
     try {
-      const productData = {
-        name: (inputValues.current.name || name).trim(),
-        expiryDate,
-        quantity: Number(inputValues.current.quantity || quantity),
-        location,
-        notes: (inputValues.current.notes || notes).trim(),
-        ...(category ? { category } : {}),
-        sharedWith: selectedSharedUsers
-      };
-
-      await updateProduct(productId, productData);
+      await submitProductEdit(productId, {
+        name: inputValues.current.name || formState.name,
+        expiryDate: formState.expiryDate,
+        quantity: Number(inputValues.current.quantity || formState.quantity),
+        location: formState.location,
+        notes: (inputValues.current.notes || formState.notes),
+        category: formState.category || undefined,
+        sharedWith: formState.selectedSharedUsers
+      });
+      
       setSuccess(true);
       onSuccess();
     } catch (error) {
@@ -190,26 +135,26 @@ const EditProductForm: React.FC<EditProductFormProps> = ({
           <IonItem>
             <IonLabel position="stacked">{t('products.name')}</IonLabel>
             <IonInput
-              value={name}
+              value={formState.name}
               placeholder={t('products.enterName')}
               onIonInput={e => handleInputChange('name', e.detail.value || '')}
             />
           </IonItem>
 
           <DateSelector
-            expiryDate={expiryDate}
+            expiryDate={formState.expiryDate}
             selectedDate={selectedDate}
             isOpen={isDatePickerOpen}
             onOpen={() => setIsDatePickerOpen(true)}
             onCancel={() => {
-              setSelectedDate(expiryDate);
+              setSelectedDate(formState.expiryDate);
               setIsDatePickerOpen(false);
             }}
             onConfirm={() => {
-              if (!selectedDate && !expiryDate) {
+              if (!selectedDate && !formState.expiryDate) {
                 const today = new Date();
                 const formattedDate = today.toISOString().split('T')[0];
-                setExpiryDate(formattedDate);
+                setFormValue('expiryDate', formattedDate);
               }
               setIsDatePickerOpen(false);
             }}
@@ -219,9 +164,9 @@ const EditProductForm: React.FC<EditProductFormProps> = ({
           <IonItem>
             <IonLabel position="stacked">{t('products.location')}</IonLabel>
             <IonSelect
-              value={location}
+              value={formState.location}
               placeholder={t('products.selectLocation')}
-              onIonChange={e => setLocation(e.detail.value)}
+              onIonChange={e => setFormValue('location', e.detail.value)}
             >
               {LOCATIONS.map((loc: ProductLocation) => (
                 <IonSelectOption key={loc} value={loc}>
@@ -232,7 +177,7 @@ const EditProductForm: React.FC<EditProductFormProps> = ({
           </IonItem>
 
           <QuantitySelector
-            quantity={quantity}
+            quantity={formState.quantity}
             isCustomQuantity={isCustomQuantity}
             onQuantityChange={handleQuantityChange}
             onCustomQuantityChange={value => handleInputChange('quantity', value)}
@@ -243,9 +188,9 @@ const EditProductForm: React.FC<EditProductFormProps> = ({
               {t('products.category')} ({t('common.optional')})
             </IonLabel>
             <IonSelect
-              value={category}
+              value={formState.category}
               placeholder={t('products.selectCategory')}
-              onIonChange={e => setCategory(e.detail.value)}
+              onIonChange={e => setFormValue('category', e.detail.value)}
             >
               {CATEGORIES.map((cat: ProductCategory) => (
                 <IonSelectOption key={cat} value={cat}>
@@ -261,9 +206,9 @@ const EditProductForm: React.FC<EditProductFormProps> = ({
                 {t('products.sharedWith')} ({t('common.optional')})
               </IonLabel>
               <IonSelect
-                value={selectedSharedUsers}
+                value={formState.selectedSharedUsers}
                 placeholder={t('products.selectSharedWith')}
-                onIonChange={e => setSelectedSharedUsers(e.detail.value)}
+                onIonChange={e => setFormValue('selectedSharedUsers', e.detail.value)}
                 multiple={true}
               >
                 {sharedUsers.map(user => (
@@ -280,7 +225,7 @@ const EditProductForm: React.FC<EditProductFormProps> = ({
               {t('products.notes')} ({t('common.optional')})
             </IonLabel>
             <IonTextarea
-              value={notes}
+              value={formState.notes}
               placeholder={t('products.enterNotes')}
               onIonInput={e => handleInputChange('notes', e.detail.value || '')}
             />

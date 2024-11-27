@@ -58,6 +58,7 @@ const AppContent: React.FC = () => {
   const [refreshKey, setRefreshKey] = useState(0);
   const [isHeaderElevated, setIsHeaderElevated] = useState(false);
   const [openSettingsToShare, setOpenSettingsToShare] = useState(false);
+  const [authKey, setAuthKey] = useState(0); // New state for auth-based remounting
 
   // Set Firebase language based on current language context
   useEffect(() => {
@@ -70,6 +71,8 @@ const AppContent: React.FC = () => {
       if (user) {
         try {
           await scheduleExpiryNotifications();
+          // Increment authKey to force remount of ProductList
+          setAuthKey(prev => prev + 1);
         } catch (error) {
           // Only show notification errors on native platforms
           if (Capacitor.isNativePlatform()) {
@@ -153,7 +156,7 @@ const AppContent: React.FC = () => {
                   <IonCol>
                     <AddProductForm onProductAdded={handleProductChange} />
                     <ProductList 
-                      key={refreshKey} 
+                      key={`${authKey}-${refreshKey}`} 
                       onOpenSettingsToShare={handleOpenSettingsToShare}
                     />
                   </IonCol>
