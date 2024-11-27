@@ -27,27 +27,27 @@ ion-grid {
     z-index: 1;
 }
 
-/* Original fruit animations */
-.fruit-1:not(.dragging) {
+/* Original fruit animations - only apply if not dragged */
+.fruit-1:not(.dragged):not(.dragging) {
     animation: float1 15s ease-in-out infinite;
 }
 
-.fruit-2:not(.dragging) {
+.fruit-2:not(.dragged):not(.dragging) {
     animation: float2 18s ease-in-out infinite;
     animation-delay: -5s;
 }
 
-.fruit-3:not(.dragging) {
+.fruit-3:not(.dragged):not(.dragging) {
     animation: float3 20s ease-in-out infinite;
     animation-delay: -8s;
 }
 
-.fruit-4:not(.dragging) {
+.fruit-4:not(.dragged):not(.dragging) {
     animation: float4 17s ease-in-out infinite;
     animation-delay: -12s;
 }
 
-.fruit-5:not(.dragging) {
+.fruit-5:not(.dragged):not(.dragging) {
     animation: float5 19s ease-in-out infinite;
     animation-delay: -15s;
 }
@@ -57,6 +57,11 @@ ion-grid {
     animation: none !important;
     opacity: 0.8;
     z-index: 1000;
+}
+
+/* Dragged styles - permanently disable animations */
+.fruit.dragged {
+    animation: none !important;
 }
 
 @keyframes float1 {
