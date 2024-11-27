@@ -19,6 +19,11 @@ import LanguageSwitch from '../common/LanguageSwitch';
 import AuthForm from './AuthForm';
 import ResetPasswordModal from './ResetPasswordModal';
 import { initialRequirements } from './authUtils';
+import banana from '../../assets/images/optimized/banana.png';
+import fresa from '../../assets/images/optimized/FRESA.png';
+import grana from '../../assets/images/optimized/grana.png';
+import naranja from '../../assets/images/optimized/naranja.png';
+import pina from '../../assets/images/optimized/pina.png';
 import './Auth.css';
 
 const Auth: React.FC = () => {
@@ -55,6 +60,13 @@ const Auth: React.FC = () => {
 
     return (
         <IonGrid>
+            <div className="floating-fruits">
+                <img src={banana} alt="" className="fruit fruit-1" />
+                <img src={fresa} alt="" className="fruit fruit-2" />
+                <img src={grana} alt="" className="fruit fruit-3" />
+                <img src={naranja} alt="" className="fruit fruit-4" />
+                <img src={pina} alt="" className="fruit fruit-5" />
+            </div>
             <IonRow>
                 <IonCol size="12" sizeMd="6" offsetMd="3">
                     <IonCard>
