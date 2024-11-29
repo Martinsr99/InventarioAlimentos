@@ -1,29 +1,21 @@
-import { updateProduct } from './InventoryService';
+import { db } from '../firebaseConfig';
+import { doc, updateDoc } from 'firebase/firestore';
 import { ProductCategory, ProductLocation } from '../constants/productConstants';
 
-interface EditProductData {
+interface UpdateProductData {
   name: string;
   expiryDate: string;
   quantity: number;
   location: ProductLocation;
   notes: string;
-  category?: ProductCategory;
+  category: ProductCategory | '';
   sharedWith: string[];
 }
 
-export const submitProductEdit = async (productId: string, formData: EditProductData): Promise<void> => {
-  try {
-    await updateProduct(productId, {
-      name: formData.name.trim(),
-      expiryDate: formData.expiryDate,
-      quantity: Number(formData.quantity),
-      location: formData.location,
-      notes: formData.notes.trim(),
-      ...(formData.category ? { category: formData.category } : {}),
-      sharedWith: formData.sharedWith
-    });
-  } catch (error) {
-    console.error('Error updating product:', error);
-    throw error;
-  }
+export const updateProduct = async (productId: string, data: UpdateProductData): Promise<void> => {
+  const productRef = doc(db, 'products', productId);
+  await updateDoc(productRef, {
+    ...data,
+    updatedAt: new Date().toISOString()
+  });
 };

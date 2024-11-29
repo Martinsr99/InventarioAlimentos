@@ -5,10 +5,13 @@ import {
   getReceivedInvitations,
   getSentInvitations,
   respondToInvitation,
-  deleteInvitation,
+  deleteInvitation
+} from '../services/InvitationService';
+import {
   getAcceptedShareUsers,
-  ShareInvitation
-} from '../services/SharedProductsService';
+  deleteFriend
+} from '../services/FriendService';
+import { ShareInvitation } from '../services/types';
 
 export const useSharing = (user: User | null, t: (key: string) => string) => {
   const [inviteEmail, setInviteEmail] = useState('');
@@ -20,6 +23,7 @@ export const useSharing = (user: User | null, t: (key: string) => string) => {
   const [error, setError] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [invitationToDelete, setInvitationToDelete] = useState<string>('');
+  const [friendToDelete, setFriendToDelete] = useState<string>('');
 
   useEffect(() => {
     loadSharingData();
@@ -70,7 +74,7 @@ export const useSharing = (user: User | null, t: (key: string) => string) => {
       setIsEmailValid(false);
       setError(t('sharing.inviteSent'));
     } catch (error: any) {
-      setError(error.message === 'Invitation already sent to this user' 
+      setError(error.message === 'invitation_exists' 
         ? t('sharing.alreadyInvited') 
         : t('errors.invitationSend'));
     } finally {
@@ -83,10 +87,16 @@ export const useSharing = (user: User | null, t: (key: string) => string) => {
 
     try {
       setIsLoading(true);
+      // Optimistically update the UI
+      setReceivedInvitations(prev => prev.filter(inv => inv.id !== invitationId));
+      
       await respondToInvitation(user, invitationId, response);
+      // Only reload data after the operation is complete
       await loadSharingData();
       setError(null);
     } catch (error) {
+      // If there's an error, reload the data to ensure UI is in sync
+      await loadSharingData();
       setError(t('errors.invitationResponse'));
     } finally {
       setIsLoading(false);
@@ -110,8 +120,32 @@ export const useSharing = (user: User | null, t: (key: string) => string) => {
     }
   };
 
+  const handleDeleteFriend = async () => {
+    if (!user || !friendToDelete) return;
+
+    try {
+      setIsLoading(true);
+      await deleteFriend(user, friendToDelete);
+      await loadSharingData();
+      setError(t('sharing.deleteSuccess'));
+    } catch (error) {
+      setError(t('errors.invitationDelete'));
+    } finally {
+      setIsLoading(false);
+      setShowDeleteConfirm(false);
+      setFriendToDelete('');
+    }
+  };
+
   const confirmDeleteInvitation = (invitationId: string) => {
     setInvitationToDelete(invitationId);
+    setFriendToDelete('');
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDeleteFriend = (userId: string) => {
+    setFriendToDelete(userId);
+    setInvitationToDelete('');
     setShowDeleteConfirm(true);
   };
 
@@ -125,13 +159,17 @@ export const useSharing = (user: User | null, t: (key: string) => string) => {
     error,
     showDeleteConfirm,
     invitationToDelete,
+    friendToDelete,
     handleEmailChange,
     handleSendInvite,
     handleInvitationResponse,
     handleDeleteInvitation,
+    handleDeleteFriend,
     confirmDeleteInvitation,
+    confirmDeleteFriend,
     setShowDeleteConfirm,
     setInvitationToDelete,
+    setFriendToDelete,
     setError
   };
 };

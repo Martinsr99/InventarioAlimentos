@@ -4,9 +4,6 @@ import {
   IonCardContent,
   IonCardHeader,
   IonCardTitle,
-  IonGrid,
-  IonRow,
-  IonCol,
   IonImg
 } from '@ionic/react';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -33,54 +30,34 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
   return (
     <IonCard className="profile-card">
       <IonCardHeader>
-        <IonCardTitle>{t('profile.picture')}</IonCardTitle>
+        <IonCardTitle className="settings-section-title">{t('profile.picture')}</IonCardTitle>
       </IonCardHeader>
       <IonCardContent>
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div style={{ 
-            width: '100px',
-            height: '100px',
-            margin: '0 auto 2rem',
-            borderRadius: '50%',
-            border: '2px solid var(--ion-color-primary)',
-            overflow: 'hidden',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}>
+        <div className="current-profile-container">
+          <div className="current-profile-picture">
             <IonImg 
               src={profilePicture} 
-              alt="Profile"
-              style={{ 
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover'
-              }} 
+              alt="Current profile"
+              className="profile-image"
             />
           </div>
         </div>
-        <IonGrid>
-          <IonRow>
-            {profilePictures.map((pic) => (
-              <IonCol size="4" key={pic}>
-                <div 
-                  onClick={() => onProfilePictureChange(pic)}
-                  className={`profile-picture-option ${profilePicture === pic ? 'selected' : ''}`}
-                >
-                  <IonImg 
-                    src={pic} 
-                    alt="Profile option"
-                    style={{ 
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover'
-                    }}
-                  />
-                </div>
-              </IonCol>
-            ))}
-          </IonRow>
-        </IonGrid>
+        <div className="profile-pictures-grid">
+          {profilePictures.map((pic) => (
+            <button 
+              key={pic}
+              onClick={() => onProfilePictureChange(pic)}
+              className={`profile-picture-option ${profilePicture === pic ? 'selected' : ''}`}
+              aria-label={`Select profile picture ${pic.split('/').pop()?.split('.')[0]}`}
+            >
+              <IonImg 
+                src={pic} 
+                alt="Profile option"
+                className="profile-image"
+              />
+            </button>
+          ))}
+        </div>
       </IonCardContent>
     </IonCard>
   );

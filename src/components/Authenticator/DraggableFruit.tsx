@@ -6,9 +6,15 @@ interface DraggableFruitProps {
     src: string;
     className: string;
     initialDelay?: number;
+    disableInteraction?: boolean;
 }
 
-const DraggableFruit: React.FC<DraggableFruitProps> = ({ src, className, initialDelay = 0 }) => {
+const DraggableFruit: React.FC<DraggableFruitProps> = ({ 
+    src, 
+    className, 
+    initialDelay = 0,
+    disableInteraction = false 
+}) => {
     const [isDragging, setIsDragging] = useState(false);
     const [hasBeenDragged, setHasBeenDragged] = useState(false);
     const positionRef = useRef({ x: 0, y: 0 });
@@ -154,6 +160,8 @@ const DraggableFruit: React.FC<DraggableFruitProps> = ({ src, className, initial
         first,
         event
     }) => {
+        if (disableInteraction) return;
+        
         if (first) {
             setHasBeenDragged(true);
             isMovingRef.current = false;
@@ -197,8 +205,8 @@ const DraggableFruit: React.FC<DraggableFruitProps> = ({ src, className, initial
             style={{
                 transform,
                 touchAction: 'none',
-                cursor: isDragging ? 'grabbing' : 'grab',
-                pointerEvents: 'auto',
+                cursor: disableInteraction ? 'default' : (isDragging ? 'grabbing' : 'grab'),
+                pointerEvents: disableInteraction ? 'none' : 'auto',
                 userSelect: 'none',
                 willChange: 'transform'
             }}

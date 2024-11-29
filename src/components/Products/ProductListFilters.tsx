@@ -14,13 +14,14 @@ import {
   arrowDown,
 } from 'ionicons/icons';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { SortOption, SortDirection } from '../../hooks/useProductList';
 
 interface ProductListFiltersProps {
   searchText: string;
   onSearchChange: (value: string) => void;
-  sortBy: 'name' | 'expiryDate';
-  onSortByChange: (value: 'name' | 'expiryDate') => void;
-  sortDirection: 'asc' | 'desc';
+  sortBy: SortOption;
+  onSortByChange: (value: SortOption) => void;
+  sortDirection: SortDirection;
   onSortDirectionChange: () => void;
 }
 
@@ -47,7 +48,7 @@ const ProductListFilters: React.FC<ProductListFiltersProps> = ({
       <div className="sort-controls">
         <IonSegment 
           value={sortBy} 
-          onIonChange={e => onSortByChange(e.detail.value as 'name' | 'expiryDate')}
+          onIonChange={e => onSortByChange(e.detail.value as SortOption)}
           className="sort-segment"
         >
           <IonSegmentButton value="name" className="sort-segment-button">

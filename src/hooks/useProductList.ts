@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Product, getProducts, deleteProduct } from '../services/InventoryService';
-import { getSharedProducts, getAcceptedShareUsers } from '../services/SharedProductsService';
+import { getSharedProducts } from '../services/SharedProductsService';
+import { getAcceptedShareUsers } from '../services/FriendService';
 import { auth } from '../firebaseConfig';
-import { onAuthStateChanged } from 'firebase/auth';
+import { getProducts, deleteProduct } from '../services/InventoryService';
+import { Product } from '../services/InventoryService';
 
-export type SortOption = 'name' | 'expiryDate';
+export type SortOption = 'expiryDate' | 'name' | 'quantity';
 export type SortDirection = 'asc' | 'desc';
 export type ViewMode = 'personal' | 'shared';
 
@@ -13,79 +14,30 @@ export interface ExtendedProduct extends Product {
   isOwner?: boolean;
 }
 
-interface UseProductListReturn {
-  products: ExtendedProduct[];
-  sharedProducts: ExtendedProduct[];
-  filteredProducts: ExtendedProduct[];
-  loading: boolean;
-  loadingShared: boolean;
-  error: string;
-  hasFriends: boolean;
-  loadProducts: () => Promise<void>;
-  loadSharedProducts: () => Promise<void>;
-  handleDelete: (productId: string) => Promise<void>;
-  filterAndSortProducts: (params: {
-    viewMode: ViewMode;
-    searchText: string;
-    sortBy: SortOption;
-    sortDirection: SortDirection;
-  }) => void;
-  checkFriends: () => Promise<void>;
+interface FilterOptions {
+  viewMode: ViewMode;
+  searchText: string;
+  sortBy: SortOption;
+  sortDirection: SortDirection;
 }
 
-export const useProductList = (onRefreshNeeded?: () => void): UseProductListReturn => {
-  const [products, setProducts] = useState<ExtendedProduct[]>([]);
+export const useProductList = (onRefreshNeeded?: () => void) => {
+  const [products, setProducts] = useState<Product[]>([]);
   const [sharedProducts, setSharedProducts] = useState<ExtendedProduct[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<ExtendedProduct[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [loadingShared, setLoadingShared] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const [hasFriends, setHasFriends] = useState(false);
-  const [currentFilters, setCurrentFilters] = useState<{
-    viewMode: ViewMode;
-    searchText: string;
-    sortBy: SortOption;
-    sortDirection: SortDirection;
-  } | null>(null);
-
-  // Monitor auth state changes
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        loadProducts();
-        checkFriends();
-      } else {
-        // Clear products when user logs out
-        setProducts([]);
-        setSharedProducts([]);
-        setFilteredProducts([]);
-        setHasFriends(false);
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  // Apply filters whenever products or shared products change
-  useEffect(() => {
-    if (currentFilters) {
-      applyFilters(currentFilters);
-    }
-  }, [products, sharedProducts]);
-
-  const checkFriends = async () => {
-    if (!auth.currentUser) return;
-    const friends = await getAcceptedShareUsers(auth.currentUser);
-    setHasFriends(friends.length > 0);
-  };
 
   const loadProducts = async () => {
     if (!auth.currentUser) return;
 
-    setLoading(true);
     try {
-      const personalProducts = await getProducts();
-      setProducts(personalProducts);
+      setLoading(true);
+      setError(null);
+      const userProducts = await getProducts();
+      setProducts(userProducts);
       if (onRefreshNeeded) {
         onRefreshNeeded();
       }
@@ -100,8 +52,8 @@ export const useProductList = (onRefreshNeeded?: () => void): UseProductListRetu
   const loadSharedProducts = async () => {
     if (!auth.currentUser) return;
 
-    setLoadingShared(true);
     try {
+      setLoadingShared(true);
       const shared = await getSharedProducts(auth.currentUser);
       setSharedProducts(shared);
     } catch (error) {
@@ -112,46 +64,15 @@ export const useProductList = (onRefreshNeeded?: () => void): UseProductListRetu
     }
   };
 
-  const applyFilters = (filters: {
-    viewMode: ViewMode;
-    searchText: string;
-    sortBy: SortOption;
-    sortDirection: SortDirection;
-  }) => {
-    let result = filters.viewMode === 'personal' ? [...products] : [...sharedProducts];
+  const checkFriends = async () => {
+    if (!auth.currentUser) return;
 
-    if (filters.searchText) {
-      const searchLower = filters.searchText.toLowerCase().trim();
-      result = result.filter(product =>
-        product.name.toLowerCase().includes(searchLower)
-      );
+    try {
+      const acceptedUsers = await getAcceptedShareUsers(auth.currentUser);
+      setHasFriends(acceptedUsers.length > 0);
+    } catch (error) {
+      console.error('Error checking friends:', error);
     }
-
-    result.sort((a, b) => {
-      if (filters.sortBy === 'name') {
-        return filters.sortDirection === 'asc'
-          ? a.name.localeCompare(b.name)
-          : b.name.localeCompare(a.name);
-      } else {
-        const dateA = new Date(a.expiryDate).getTime();
-        const dateB = new Date(b.expiryDate).getTime();
-        return filters.sortDirection === 'asc'
-          ? dateA - dateB
-          : dateB - dateA;
-      }
-    });
-
-    setFilteredProducts(result);
-  };
-
-  const filterAndSortProducts = (filters: {
-    viewMode: ViewMode;
-    searchText: string;
-    sortBy: SortOption;
-    sortDirection: SortDirection;
-  }) => {
-    setCurrentFilters(filters);
-    applyFilters(filters);
   };
 
   const handleDelete = async (productId: string) => {
@@ -160,9 +81,42 @@ export const useProductList = (onRefreshNeeded?: () => void): UseProductListRetu
       await loadProducts();
     } catch (error) {
       console.error('Error deleting product:', error);
-      setError('Error deleting product');
       throw error;
     }
+  };
+
+  const filterAndSortProducts = (options: FilterOptions) => {
+    const { viewMode, searchText, sortBy, sortDirection } = options;
+    let filtered = viewMode === 'personal' 
+      ? products.map(p => ({ ...p, isOwner: true })) 
+      : sharedProducts;
+
+    // Apply search filter
+    if (searchText) {
+      const searchLower = searchText.toLowerCase();
+      filtered = filtered.filter(product =>
+        product.name.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      let comparison = 0;
+      switch (sortBy) {
+        case 'name':
+          comparison = a.name.localeCompare(b.name);
+          break;
+        case 'quantity':
+          comparison = a.quantity - b.quantity;
+          break;
+        case 'expiryDate':
+          comparison = new Date(a.expiryDate).getTime() - new Date(b.expiryDate).getTime();
+          break;
+      }
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+
+    setFilteredProducts(filtered);
   };
 
   return {

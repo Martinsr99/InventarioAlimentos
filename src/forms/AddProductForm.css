@@ -1,5 +1,6 @@
 .product-name-container {
   position: relative;
+  margin-bottom: 1rem;
 }
 
 .suggestions-list {
@@ -8,10 +9,10 @@
   width: 100%;
   max-height: 200px;
   overflow-y: auto;
-  background: var(--ion-background-color);
-  border: 1px solid var(--ion-color-medium);
+  background: var(--ion-card-background);
+  border: 1px solid rgba(44, 44, 44, 0.5);
   border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--ion-shadow-md);
   margin-top: 4px;
 }
 
@@ -19,16 +20,19 @@
   --padding-start: 16px;
   --padding-end: 16px;
   --min-height: 44px;
+  --background: var(--ion-card-background);
+  --color: var(--ion-text-color);
   cursor: pointer;
 }
 
-.suggestion-item:hover {
-  --background: var(--ion-color-light);
+:root.dark-theme .suggestion-item:hover {
+  --background: var(--ion-color-step-100);
 }
 
 .date-picker-modal {
   --width: 100%;
   --height: 100%;
+  --background: var(--ion-background-color);
 }
 
 .date-picker-modal::part(content) {
@@ -38,20 +42,238 @@
   left: 0;
   right: 0;
   bottom: 0;
+  background: var(--ion-background-color);
 }
 
 .custom-datetime {
   margin: 20px auto;
   width: 100%;
   max-width: 350px;
+  background: var(--ion-card-background);
+  border-radius: 8px;
+  padding: 16px;
+  color: var(--ion-text-color);
+  border: 1px solid rgba(44, 44, 44, 0.5);
 }
 
-/* Asegurarse de que el contenedor de sugerencias esté sobre otros elementos */
-.product-name-container ion-item {
-  z-index: 1001;
+/* Form section styles */
+.form-section {
+  margin-bottom: 1.5rem;
+  padding: 0 1rem;
+  background: var(--ion-card-background);
+  border-radius: 12px;
+  box-shadow: var(--ion-shadow-md);
+  border: 1px solid rgba(44, 44, 44, 0.5);
 }
 
-/* Estilo para el input cuando hay sugerencias activas */
-.product-name-container ion-item.has-suggestions {
+/* Input container styles */
+.product-name-container ion-item,
+ion-item {
+  --background: var(--ion-card-background);
+  --color: var(--ion-text-color);
+  --border-color: rgba(44, 44, 44, 0.5);
+  --border-width: 1px;
+  --border-style: solid;
+  --border-radius: 8px;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --inner-padding-end: 12px;
+  margin-bottom: 0.75rem;
+}
+
+/* Active input styles */
+.product-name-container ion-item.has-suggestions,
+ion-item.item-has-focus {
   --border-color: var(--ion-color-primary);
+  --background: var(--ion-color-step-50);
+}
+
+/* Form inputs general styles */
+ion-input, 
+ion-select, 
+ion-datetime,
+ion-textarea {
+  --color: var(--ion-text-color);
+  --placeholder-color: var(--ion-color-medium);
+  color: var(--ion-text-color);
+  --padding-start: 8px;
+  --padding-end: 8px;
+  --padding-top: 8px;
+  --padding-bottom: 8px;
+}
+
+/* Labels */
+ion-label,
+.item-label, 
+.input-label, 
+.select-label {
+  color: var(--ion-text-color);
+  font-weight: 500;
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
+}
+
+/* Add Product title */
+.add-product-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--ion-text-color);
+  margin: 1.5rem 1rem;
+}
+
+/* Native inputs */
+:root.dark-theme ion-input input,
+:root.dark-theme ion-textarea textarea,
+:root.dark-theme ion-select select {
+  color: var(--ion-text-color);
+}
+
+/* Select interface styles */
+.select-interface-option {
+  color: var(--ion-text-color);
+  background: var(--ion-card-background);
+}
+
+:root.dark-theme .select-interface-option {
+  --background: var(--ion-card-background);
+  color: var(--ion-text-color);
+}
+
+/* Alert styles for select dropdowns */
+:root.dark-theme ion-alert.select-alert {
+  --background: var(--ion-card-background);
+  color: var(--ion-text-color);
+}
+
+:root.dark-theme ion-alert.select-alert .alert-wrapper {
+  background: var(--ion-card-background);
+}
+
+:root.dark-theme ion-alert.select-alert .alert-radio-label {
+  color: var(--ion-text-color);
+}
+
+/* Hover and focus effects */
+:root.dark-theme ion-item:hover {
+  --background: var(--ion-color-step-50);
+}
+
+:root.dark-theme ion-item.item-has-focus {
+  --background: var(--ion-color-step-50);
+  --border-color: var(--ion-color-primary);
+}
+
+/* Additional dark theme enhancements */
+:root.dark-theme .form-section {
+  background: var(--ion-card-background);
+  border: 1px solid rgba(44, 44, 44, 0.5);
+}
+
+:root.dark-theme ion-datetime {
+  background: var(--ion-card-background);
+  color: var(--ion-text-color);
+}
+
+:root.dark-theme ion-select::part(icon) {
+  color: var(--ion-text-color);
+}
+
+:root.dark-theme ion-select::part(text) {
+  color: var(--ion-text-color);
+}
+
+:root.dark-theme ion-input::part(native),
+:root.dark-theme ion-textarea::part(native) {
+  color: var(--ion-text-color);
+}
+
+/* Modal styles */
+:root.dark-theme ion-modal {
+  --background: var(--ion-background-color);
+  --ion-background-color: var(--ion-background-color);
+}
+
+:root.dark-theme ion-modal ion-content {
+  --background: var(--ion-background-color);
+}
+
+/* Button styles */
+:root.dark-theme ion-button {
+  --color: var(--ion-text-color);
+}
+
+:root.dark-theme ion-button.button-clear {
+  --color: var(--ion-text-color);
+}
+
+/* Action buttons */
+.action-button-save {
+  --background: var(--ion-color-success);
+}
+
+.action-button-cancel {
+  --background: var(--ion-color-medium);
+}
+
+/* Placeholder text */
+:root.dark-theme input::placeholder,
+:root.dark-theme textarea::placeholder {
+  color: var(--ion-color-medium) !important;
+  opacity: 1;
+}
+
+/* Scrollbar styles for dark theme */
+:root.dark-theme ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+:root.dark-theme ::-webkit-scrollbar-track {
+  background: var(--ion-background-color);
+  border-radius: 4px;
+}
+
+:root.dark-theme ::-webkit-scrollbar-thumb {
+  background: var(--ion-color-step-200);
+  border-radius: 4px;
+}
+
+:root.dark-theme ::-webkit-scrollbar-thumb:hover {
+  background: var(--ion-color-step-300);
+}
+
+/* Form validation states */
+.validation-error {
+  color: var(--ion-color-danger);
+  font-size: 0.85rem;
+  margin-top: 4px;
+  margin-left: 12px;
+}
+
+.input-valid {
+  --border-color: var(--ion-color-success) !important;
+}
+
+.input-invalid {
+  --border-color: var(--ion-color-danger) !important;
+}
+
+/* Date picker customization */
+ion-datetime {
+  --background: var(--ion-card-background);
+  --ion-color-base: var(--ion-color-primary);
+  border-radius: 8px;
+  padding: 8px;
+}
+
+/* Custom select styles */
+ion-select::part(placeholder),
+ion-select::part(text) {
+  color: var(--ion-text-color);
+  opacity: 1;
+}
+
+ion-select::part(icon) {
+  color: var(--ion-color-medium);
+  opacity: 1;
 }

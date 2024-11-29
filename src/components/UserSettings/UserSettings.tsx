@@ -32,6 +32,9 @@ interface UserSettingsProps {
 
 const UserSettings: React.FC<UserSettingsProps> = ({ openToShare = false, onClose }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isHeaderHidden, setIsHeaderHidden] = useState(false);
+  const [isHeaderElevated, setIsHeaderElevated] = useState(false);
+  const [lastScrollTop, setLastScrollTop] = useState(0);
   const { t } = useLanguage();
   const user = auth.currentUser;
   const sharingCardRef = useRef<HTMLDivElement>(null);
@@ -56,13 +59,17 @@ const UserSettings: React.FC<UserSettingsProps> = ({ openToShare = false, onClos
     error: sharingError,
     showDeleteConfirm,
     invitationToDelete,
+    friendToDelete,
     handleEmailChange,
     handleSendInvite,
     handleInvitationResponse,
     handleDeleteInvitation,
+    handleDeleteFriend,
     confirmDeleteInvitation,
+    confirmDeleteFriend,
     setShowDeleteConfirm,
     setInvitationToDelete,
+    setFriendToDelete,
     setError: setSharingError
   } = useSharing(user, t);
 
@@ -92,6 +99,20 @@ const UserSettings: React.FC<UserSettingsProps> = ({ openToShare = false, onClos
     }
   };
 
+  const handleScroll = (e: CustomEvent) => {
+    const scrollTop = (e.detail as any).scrollTop;
+    const isScrollingDown = scrollTop > lastScrollTop;
+    
+    if (isScrollingDown && scrollTop > 20) {
+      setIsHeaderHidden(true);
+    } else if (!isScrollingDown) {
+      setIsHeaderHidden(false);
+    }
+
+    setIsHeaderElevated(scrollTop > 0);
+    setLastScrollTop(scrollTop);
+  };
+
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -114,7 +135,7 @@ const UserSettings: React.FC<UserSettingsProps> = ({ openToShare = false, onClos
 
       <IonModal isOpen={isOpen} onDidDismiss={handleClose}>
         <IonHeader>
-          <IonToolbar className="app-header">
+          <IonToolbar className={`app-header ${isHeaderElevated ? 'header-elevation' : ''} ${isHeaderHidden ? 'header-hidden' : ''}`}>
             <IonButtons slot="start">
               <IonButton onClick={handleClose} className="back-button">
                 <IonIcon icon={chevronBackOutline} />
@@ -124,13 +145,17 @@ const UserSettings: React.FC<UserSettingsProps> = ({ openToShare = false, onClos
           </IonToolbar>
         </IonHeader>
         
-        <IonContent ref={contentRef}>
+        <IonContent 
+          ref={contentRef}
+          scrollEvents={true}
+          onIonScroll={handleScroll}
+        >
           {isLoading ? (
             <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}>
               <IonSpinner />
             </div>
           ) : (
-            <>
+            <div style={{ paddingTop: '40px' }}>
               <ProfileSection
                 profilePicture={profilePicture}
                 onProfilePictureChange={handleProfilePictureChange}
@@ -151,11 +176,12 @@ const UserSettings: React.FC<UserSettingsProps> = ({ openToShare = false, onClos
                   onSendInvite={handleSendInvite}
                   onInvitationResponse={handleInvitationResponse}
                   onDeleteInvite={confirmDeleteInvitation}
+                  onDeleteFriend={confirmDeleteFriend}
                 />
               </div>
 
               <LogoutSection onLogout={handleLogout} />
-            </>
+            </div>
           )}
         </IonContent>
       </IonModal>
@@ -165,9 +191,10 @@ const UserSettings: React.FC<UserSettingsProps> = ({ openToShare = false, onClos
         onDidDismiss={() => {
           setShowDeleteConfirm(false);
           setInvitationToDelete('');
+          setFriendToDelete('');
         }}
-        header={t('sharing.deleteConfirm')}
-        message={t('sharing.deleteConfirmMessage')}
+        header={friendToDelete ? t('sharing.deleteConfirm') : t('sharing.deleteConfirm')}
+        message={friendToDelete ? t('sharing.deleteConfirmMessage') : t('sharing.deleteConfirmMessage')}
         buttons={[
           {
             text: t('common.cancel'),
@@ -175,12 +202,19 @@ const UserSettings: React.FC<UserSettingsProps> = ({ openToShare = false, onClos
             handler: () => {
               setShowDeleteConfirm(false);
               setInvitationToDelete('');
+              setFriendToDelete('');
             }
           },
           {
             text: t('common.delete'),
             role: 'destructive',
-            handler: handleDeleteInvitation
+            handler: () => {
+              if (friendToDelete) {
+                handleDeleteFriend();
+              } else {
+                handleDeleteInvitation();
+              }
+            }
           }
         ]}
       />

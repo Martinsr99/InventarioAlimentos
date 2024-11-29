@@ -1,9 +1,18 @@
 .date-picker-modal {
   --height: 400px;
+  --background: var(--ion-background-color);
+}
+
+.date-picker-modal::part(content) {
+  background: var(--ion-background-color);
 }
 
 .custom-datetime {
   margin: 20px;
+  background: var(--ion-item-background);
+  border-radius: var(--ion-border-radius);
+  padding: 16px;
+  color: var(--ion-text-color) !important;
 }
 
 .loading-spinner {
@@ -12,8 +21,112 @@
   align-items: center;
   height: 100%;
   margin: 20px 0;
+  color: var(--ion-text-color) !important;
 }
 
 .ion-margin-top {
   margin-top: 20px;
+}
+
+/* Form inputs */
+ion-input, ion-select, ion-datetime {
+  --color: var(--ion-text-color) !important;
+  --placeholder-color: var(--ion-color-step-600) !important;
+  color: var(--ion-text-color) !important;
+}
+
+ion-label {
+  color: var(--ion-text-color) !important;
+  opacity: 1 !important;
+}
+
+.dark-theme ion-input,
+.dark-theme ion-select,
+.dark-theme ion-datetime {
+  --background: var(--ion-item-background);
+  --color: var(--ion-text-color) !important;
+  --placeholder-opacity: 0.7;
+}
+
+/* Form items */
+ion-item {
+  --background: var(--ion-item-background);
+  --color: var(--ion-text-color) !important;
+  --border-color: var(--ion-border-color);
+  --highlight-color: var(--ion-color-primary);
+}
+
+.dark-theme ion-item {
+  --background: var(--ion-item-background);
+  --border-color: var(--ion-border-color);
+}
+
+/* Focus states */
+.dark-theme ion-item.item-has-focus {
+  --background: var(--ion-color-step-100);
+  --border-color: var(--ion-color-primary);
+}
+
+/* Additional text styles */
+.item-label, 
+.input-label, 
+.select-label,
+.select-text,
+.select-placeholder,
+ion-select::part(text),
+ion-select::part(placeholder) {
+  color: var(--ion-text-color) !important;
+  opacity: 1 !important;
+}
+
+/* Native inputs within ion-input */
+.dark-theme ion-input input,
+.dark-theme ion-input textarea,
+.dark-theme ion-select select {
+  color: var(--ion-text-color) !important;
+}
+
+/* Card styles */
+ion-card {
+  background: var(--ion-card-background);
+  color: var(--ion-text-color) !important;
+}
+
+.dark-theme ion-card {
+  --background: var(--ion-card-background);
+  border: 1px solid var(--ion-border-color);
+}
+
+/* Select interface styles */
+.select-interface-option {
+  color: var(--ion-text-color) !important;
+}
+
+.dark-theme .select-interface-option {
+  --background: var(--ion-item-background);
+  color: var(--ion-text-color) !important;
+}
+
+/* Alert styles for select dropdowns */
+.dark-theme ion-alert.select-alert {
+  --background: var(--ion-item-background) !important;
+  color: var(--ion-text-color) !important;
+}
+
+.dark-theme ion-alert.select-alert .alert-wrapper {
+  background: var(--ion-item-background) !important;
+}
+
+.dark-theme ion-alert.select-alert .alert-radio-label {
+  color: var(--ion-text-color) !important;
+}
+
+/* Datetime picker styles */
+ion-datetime {
+  --background: var(--ion-item-background) !important;
+  color: var(--ion-text-color) !important;
+}
+
+.datetime-text {
+  color: var(--ion-text-color) !important;
 }

@@ -1,6 +1,6 @@
 .settings-button {
-  --color: var(--ion-color-primary-contrast);
-  --background-hover: rgba(255, 255, 255, 0.1);
+  --color: var(--ion-text-color);
+  --background-hover: var(--ion-color-step-100);
   --border-radius: var(--ion-border-radius);
   font-weight: 500;
   height: 2.5rem;
@@ -17,8 +17,8 @@
 }
 
 .back-button {
-  --color: var(--ion-color-primary-contrast);
-  --background-hover: rgba(255, 255, 255, 0.1);
+  --color: var(--ion-text-color);
+  --background-hover: var(--ion-color-step-100);
   --border-radius: var(--ion-border-radius);
   font-weight: 500;
   height: 2.5rem;
@@ -34,104 +34,170 @@
   font-size: 1.5rem;
 }
 
+/* Profile Card Styles */
+.profile-card {
+  background: var(--ion-card-background);
+  margin: 1rem;
+  border-radius: var(--ion-border-radius);
+  border: 1px solid rgba(44, 44, 44, 0.5);
+}
+
+.profile-card ion-card-header {
+  padding: 1rem 1rem 0.5rem;
+}
+
 .profile-card ion-card-content {
-  padding-top: 1.5rem;
+  padding: 0.75rem;
+}
+
+.settings-section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--ion-text-color);
+  margin: 0;
+}
+
+/* Current Profile Picture */
+.current-profile-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.current-profile-picture {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  border: 2px solid var(--ion-color-primary);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ion-color-step-50);
+}
+
+.current-profile-picture .profile-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+/* Profile Pictures Grid */
+.profile-pictures-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+  padding: 0.5rem;
+  background: var(--ion-card-background);
+  border-radius: var(--ion-border-radius);
+  max-width: 350px;
+  margin: 0 auto;
 }
 
 .profile-picture-option {
-  width: 60px;
-  height: 60px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   overflow: hidden;
   cursor: pointer;
   border: 2px solid transparent;
   transition: all 0.2s ease;
-  margin: 0 auto;
+  background: var(--ion-color-step-50);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.profile-picture-option .profile-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
 .profile-picture-option:hover {
   transform: scale(1.05);
+  border-color: var(--ion-color-primary);
 }
 
 .profile-picture-option.selected {
   border-color: var(--ion-color-primary);
+  background: var(--ion-color-primary-tint);
 }
 
-/* New styles for invitation section */
-ion-card ion-item {
-  --padding-start: 1rem;
-  --inner-padding-end: 1rem;
-  --background: transparent;
-  margin-bottom: 0.5rem;
-}
-
-ion-card ion-input {
-  --padding-start: 0.5rem;
-  --background: var(--ion-color-light);
+/* Settings sections */
+.settings-section {
+  background: var(--ion-card-background);
+  margin: 1rem;
+  padding: 0;
   border-radius: var(--ion-border-radius);
-  margin-right: 0.5rem;
+  border: 1px solid rgba(44, 44, 44, 0.5);
 }
 
-ion-card ion-button[slot="end"] {
-  --padding-start: 1rem;
-  --padding-end: 1rem;
-  margin: 0;
-  height: 2.5rem;
-}
-
-ion-card h2 {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--ion-color-dark);
-  margin: 1.5rem 0 1rem;
-  padding: 0 1rem;
-}
-
-ion-card ion-badge {
-  font-size: 0.8rem;
-  padding: 0.3rem 0.6rem;
-  border-radius: 1rem;
-  margin-top: 0.5rem;
-}
-
-/* Invitation list items */
-ion-list ion-item {
-  --background: var(--ion-color-light);
-  --border-radius: var(--ion-border-radius);
-  margin: 0.5rem 0;
-}
-
-ion-list ion-item h2 {
-  font-size: 0.95rem;
-  font-weight: 500;
-  margin: 0;
+/* Language section */
+.language-toggle {
   padding: 0;
 }
 
-ion-list ion-item p {
-  font-size: 0.85rem;
-  color: var(--ion-color-medium);
+.language-item {
+  --background: var(--ion-card-background);
+  --border-color: transparent;
+  --border-radius: var(--ion-border-radius);
+  --padding-start: 1rem;
+  --padding-end: 1rem;
+  --min-height: 3.5rem;
+  --inner-padding-end: 0.5rem;
 }
 
-/* Response buttons */
-ion-list ion-item ion-button {
-  --padding-start: 0.75rem;
-  --padding-end: 0.75rem;
-  height: 2rem;
-  font-size: 0.9rem;
-  margin-left: 0.5rem;
+.language-icon {
+  color: var(--ion-color-primary);
+  font-size: 1.25rem;
+  margin-right: 1rem;
+}
+
+.language-label {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--ion-text-color);
+}
+
+.language-switch {
+  --background: var(--ion-color-step-200);
+  --background-checked: var(--ion-color-primary);
+  --handle-background: var(--ion-color-light);
+  --handle-background-checked: var(--ion-color-light);
+  --handle-width: 1.5rem;
+  --handle-height: 1.5rem;
+  --handle-spacing: 3px;
+  padding-right: 0;
+}
+
+.toggle-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ion-text-color);
+}
+
+/* Logout section */
+.logout-section {
+  margin-top: 2rem;
+  background: transparent;
+  border: none;
 }
 
 .logout-container {
-  padding: 1rem;
-  margin-top: 1rem;
+  padding: 0 1rem;
 }
 
 .logout-button-settings {
-  --border-radius: var(--ion-border-radius);
   --background: var(--ion-color-danger);
   --background-hover: var(--ion-color-danger-shade);
   --color: var(--ion-color-danger-contrast);
+  --border-radius: var(--ion-border-radius);
+  --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   font-weight: 600;
   font-size: 1rem;
   height: 3rem;
@@ -139,69 +205,74 @@ ion-list ion-item ion-button {
   transition: all 0.2s ease;
 }
 
-.logout-button-settings ion-icon {
+.logout-button-settings:hover {
+  --background: var(--ion-color-danger-shade);
+  --box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+.logout-icon {
   font-size: 1.25rem;
   margin-right: 0.5rem;
 }
 
-ion-modal ion-content {
-  --padding-top: 1rem;
-  --padding-bottom: 1rem;
+.logout-text {
+  font-weight: 600;
+  letter-spacing: 0.5px;
 }
 
-ion-modal ion-card {
-  margin: 1rem;
-  border-radius: var(--ion-border-radius);
-  box-shadow: var(--ion-shadow-md);
+/* Form elements */
+ion-item {
+  --background: var(--ion-card-background);
+  --color: var(--ion-text-color);
+  --border-color: rgba(44, 44, 44, 0.5);
+  --border-radius: var(--ion-border-radius);
+  margin-bottom: 0.5rem;
 }
 
-ion-modal ion-item {
-  --padding-start: 0;
+ion-input {
+  --background: var(--ion-card-background);
+  --color: var(--ion-text-color);
+  --placeholder-color: var(--ion-color-medium);
 }
 
-ion-modal ion-icon[slot="start"] {
-  margin-right: 1rem;
-  color: var(--ion-color-primary);
-}
-
-ion-modal ion-toggle {
-  padding-right: 0;
-}
-
+/* Responsive adjustments */
 @media (max-width: 576px) {
+  .profile-pictures-grid {
+    gap: 0.75rem;
+    padding: 0.25rem;
+    max-width: 300px;
+  }
+
+  .profile-picture-option {
+    width: 45px;
+    height: 45px;
+  }
+
+  .current-profile-picture {
+    width: 80px;
+    height: 80px;
+  }
+
   .settings-button,
   .back-button {
     height: 2.25rem;
   }
 
-  .settings-button ion-icon {
-    font-size: 1.1rem;
-  }
-
-  .back-button ion-icon {
-    font-size: 1.3rem;
-  }
-
-  .back-button {
-    margin: 0 0.25rem;
-  }
-
-  ion-modal ion-card {
+  .settings-section {
     margin: 0.75rem;
   }
 
-  ion-card ion-button[slot="end"] {
-    font-size: 0.9rem;
-    height: 2.25rem;
+  .language-item {
+    --min-height: 3rem;
   }
 
-  ion-list ion-item ion-button {
-    font-size: 0.8rem;
-    height: 1.8rem;
+  .language-icon {
+    font-size: 1.1rem;
   }
 
-  .logout-container {
-    padding: 0.75rem;
+  .language-label {
+    font-size: 0.95rem;
   }
 
   .logout-button-settings {
@@ -209,7 +280,7 @@ ion-modal ion-toggle {
     font-size: 0.95rem;
   }
 
-  .logout-button-settings ion-icon {
+  .logout-icon {
     font-size: 1.1rem;
   }
 }

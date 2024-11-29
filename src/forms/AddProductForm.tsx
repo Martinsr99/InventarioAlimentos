@@ -15,7 +15,7 @@ import {
   IonText,
 } from '@ionic/react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { getAcceptedShareUsers } from '../services/SharedProductsService';
+import { getAcceptedShareUsers } from '../services/FriendService';
 import { submitProductForm } from '../services/ProductFormService';
 import { auth } from '../firebaseConfig';
 import { useProductForm } from '../hooks/useProductForm';

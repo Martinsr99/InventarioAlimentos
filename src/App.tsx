@@ -57,10 +57,11 @@ const AppContent: React.FC = () => {
   const [error, setError] = useState<string>('');
   const [refreshKey, setRefreshKey] = useState(0);
   const [isHeaderElevated, setIsHeaderElevated] = useState(false);
+  const [isHeaderHidden, setIsHeaderHidden] = useState(false);
+  const [lastScrollTop, setLastScrollTop] = useState(0);
   const [openSettingsToShare, setOpenSettingsToShare] = useState(false);
-  const [authKey, setAuthKey] = useState(0); // New state for auth-based remounting
+  const [authKey, setAuthKey] = useState(0);
 
-  // Set Firebase language based on current language context
   useEffect(() => {
     auth.languageCode = language;
   }, [language]);
@@ -71,10 +72,8 @@ const AppContent: React.FC = () => {
       if (user) {
         try {
           await scheduleExpiryNotifications();
-          // Increment authKey to force remount of ProductList
           setAuthKey(prev => prev + 1);
         } catch (error) {
-          // Only show notification errors on native platforms
           if (Capacitor.isNativePlatform()) {
             console.error('Error scheduling notifications:', error);
             setError(t('errors.notificationSetup'));
@@ -89,7 +88,16 @@ const AppContent: React.FC = () => {
 
   const handleScroll = (e: CustomEvent) => {
     const scrollTop = (e.detail as any).scrollTop;
+    const isScrollingDown = scrollTop > lastScrollTop;
+    
+    if (isScrollingDown && scrollTop > 20) {
+      setIsHeaderHidden(true);
+    } else if (!isScrollingDown) {
+      setIsHeaderHidden(false);
+    }
+
     setIsHeaderElevated(scrollTop > 0);
+    setLastScrollTop(scrollTop);
   };
 
   const handleProductChange = useCallback(() => {
@@ -106,9 +114,9 @@ const AppContent: React.FC = () => {
 
   if (isLoading) {
     return (
-      <IonApp>
+      <IonApp className="dark-theme">
         <IonPage>
-          <IonContent className="ion-padding">
+          <IonContent>
             <div style={{ 
               display: 'flex', 
               justifyContent: 'center', 
@@ -125,7 +133,7 @@ const AppContent: React.FC = () => {
 
   if (!isAuthenticated) {
     return (
-      <IonApp>
+      <IonApp className="dark-theme">
         <IonPage>
           <IonContent>
             <Auth />
@@ -136,12 +144,12 @@ const AppContent: React.FC = () => {
   }
 
   return (
-    <IonApp>
+    <IonApp className="dark-theme">
       <IonRouterOutlet>
         <Route exact path="/">
           <IonPage>
             <IonHeader>
-              <IonToolbar className={`app-header ${isHeaderElevated ? 'header-elevation' : ''}`}>
+              <IonToolbar className={`app-header ${isHeaderElevated ? 'header-elevation' : ''} ${isHeaderHidden ? 'header-hidden' : ''}`}>
                 <IonButtons slot="end" className="header-buttons">
                   <UserSettings 
                     openToShare={openSettingsToShare} 
@@ -150,26 +158,29 @@ const AppContent: React.FC = () => {
                 </IonButtons>
               </IonToolbar>
             </IonHeader>
-            <IonContent scrollEvents={true} onIonScroll={handleScroll}>
-              <IonGrid>
-                <IonRow>
-                  <IonCol>
-                    <AddProductForm onProductAdded={handleProductChange} />
-                    <ProductList 
-                      key={`${authKey}-${refreshKey}`} 
-                      onOpenSettingsToShare={handleOpenSettingsToShare}
-                    />
-                  </IonCol>
-                </IonRow>
-              </IonGrid>
+            <IonContent 
+              scrollY={true}
+              scrollEvents={true}
+              onIonScroll={handleScroll}
+            >
+              <div style={{ paddingTop: '40px' }}>
+                <AddProductForm onProductAdded={handleProductChange} />
+                <ProductList 
+                  key={`${authKey}-${refreshKey}`} 
+                  onOpenSettingsToShare={handleOpenSettingsToShare}
+                />
+              </div>
             </IonContent>
           </IonPage>
         </Route>
         <Route 
           exact 
           path="/edit-product/:id" 
-          render={(props) => (
-            <EditProduct {...props} onProductUpdated={handleProductChange} />
+          render={({ match }) => (
+            <EditProduct 
+              productId={match.params.id} 
+              onSaved={handleProductChange} 
+            />
           )}
         />
         <Route>

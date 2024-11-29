@@ -11,10 +11,11 @@ import {
   peopleOutline,
 } from 'ionicons/icons';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { ViewMode } from '../../hooks/useProductList';
 
 interface ProductListHeaderProps {
-  viewMode: 'personal' | 'shared';
-  onViewModeChange: (mode: 'personal' | 'shared') => void;
+  viewMode: ViewMode;
+  onViewModeChange: (mode: ViewMode) => void;
   sharedProductsCount: number;
 }
 
@@ -28,7 +29,7 @@ const ProductListHeader: React.FC<ProductListHeaderProps> = ({
   return (
     <IonSegment 
       value={viewMode}
-      onIonChange={e => onViewModeChange(e.detail.value as 'personal' | 'shared')}
+      onIonChange={e => onViewModeChange(e.detail.value as ViewMode)}
       className="view-mode-segment"
     >
       <IonSegmentButton value="personal">

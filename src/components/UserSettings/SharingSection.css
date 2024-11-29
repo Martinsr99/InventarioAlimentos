@@ -1,0 +1,161 @@
+.invite-input-container {
+  --padding-start: 8px;
+  --padding-end: 8px;
+  --inner-padding-end: 0;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  --background: rgba(255, 255, 255, 0.05);
+  --border-style: none;
+}
+
+.invite-input-container ion-input {
+  --padding-start: 8px;
+}
+
+.invite-button {
+  width: 100%;
+  margin: 8px 0 24px 0;
+  height: 36px;
+  --border-radius: 8px;
+}
+
+.friends-section {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.friends-section ion-list {
+  background: transparent;
+  padding: 0;
+}
+
+.friends-section-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  color: var(--ion-color-medium);
+}
+
+.friends-section-header ion-icon {
+  margin-right: 8px;
+  font-size: 20px;
+}
+
+.friends-section-header h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.friend-item {
+  --background: rgba(255, 255, 255, 0.03);
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --padding-top: 12px;
+  --padding-bottom: 12px;
+  --border-radius: 8px;
+  --border-style: none;
+  --inner-border-width: 0;
+  --border-width: 0;
+  margin-bottom: 8px;
+}
+
+.friend-item:last-child {
+  margin-bottom: 0;
+}
+
+.friend-item ion-label {
+  margin: 0;
+}
+
+.friend-item ion-label h2 {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 4px;
+  color: var(--ion-color-light);
+}
+
+.friend-status {
+  --background: transparent;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  margin-left: 0;
+  display: inline-flex;
+  align-items: center;
+}
+
+.friend-status.pending {
+  background: rgba(var(--ion-color-warning-rgb), 0.15);
+  color: var(--ion-color-warning);
+}
+
+.friend-status.accepted {
+  background: rgba(var(--ion-color-success-rgb), 0.15);
+  color: var(--ion-color-success);
+}
+
+.friend-status.rejected {
+  background: rgba(var(--ion-color-danger-rgb), 0.15);
+  color: var(--ion-color-danger);
+}
+
+.friend-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.friend-actions ion-button {
+  --padding-start: 12px;
+  --padding-end: 12px;
+  height: 32px;
+  font-size: 12px;
+  margin: 0;
+}
+
+.friend-actions ion-button.delete-button {
+  --padding-start: 8px;
+  --padding-end: 8px;
+}
+
+.no-friends-text {
+  text-align: center;
+  color: var(--ion-color-medium);
+  padding: 16px;
+  font-size: 14px;
+}
+
+.email-validation-icon {
+  margin-right: 8px;
+}
+
+.valid-email {
+  --background: rgba(var(--ion-color-success-rgb), 0.1);
+}
+
+.invalid-email {
+  --background: rgba(var(--ion-color-danger-rgb), 0.1);
+}
+
+ion-card {
+  --background: transparent;
+  box-shadow: none;
+  margin: 0;
+}
+
+ion-card-header {
+  padding: 16px;
+}
+
+ion-card-content {
+  padding: 0 16px 16px 16px;
+}
+
+ion-avatar {
+  --border-radius: 8px;
+  width: 40px;
+  height: 40px;
+}

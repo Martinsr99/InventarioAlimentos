@@ -1,84 +1,106 @@
 import { useState } from 'react';
+import { User, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
-import { updateUserSettings } from '../services/UserSettingsService';
-import { initializeUserSharing } from '../services/SharedProductsService';
-import { validateEmail, getFirebaseErrorMessage } from '../components/Authenticator/authUtils';
 import { useLanguage } from '../contexts/LanguageContext';
+import { initializeUserSharing } from '../services/FriendService';
 
-interface UseAuthReturn {
-  isRegistering: boolean;
-  isLoading: boolean;
-  showForgotPasswordModal: boolean;
-  email: string;
-  setIsRegistering: (value: boolean) => void;
-  setShowForgotPasswordModal: (value: boolean) => void;
-  setEmail: (value: string) => void;
-  handleAuth: (email: string, password: string) => Promise<{
-    success: boolean;
-    error?: { title: string; message: string };
-  }>;
-}
+export const useAuth = () => {
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const { t } = useLanguage();
 
-export const useAuth = (): UseAuthReturn => {
-  const { t, language, setLanguage } = useLanguage();
-  const [isRegistering, setIsRegistering] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [showForgotPasswordModal, setShowForgotPasswordModal] = useState<boolean>(false);
-  const [email, setEmail] = useState<string>('');
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 
-  const handleAuth = async (email: string, password: string) => {
+  const validatePassword = (password: string): boolean => {
+    return password.length >= 8 &&
+      /[A-Z]/.test(password) &&
+      /[a-z]/.test(password) &&
+      /[0-9]/.test(password);
+  };
+
+  const handleLogin = async (email: string, password: string): Promise<User | null> => {
     if (!validateEmail(email)) {
-      return {
-        success: false,
-        error: {
-          title: t('auth.errors.invalidEmail'),
-          message: t('auth.errors.pleaseEnterValidEmail')
-        }
-      };
+      setError(t('auth.errors.pleaseEnterValidEmail'));
+      return null;
     }
 
-    setIsLoading(true);
     try {
-      if (isRegistering) {
-        const currentLanguage = language;
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        
-        localStorage.setItem('language', currentLanguage);
-        setLanguage(currentLanguage);
-        
-        await Promise.all([
-          updateUserSettings(userCredential.user, { 
-            language: currentLanguage,
-            profilePicture: '/images/profile/apple.png'
-          }),
-          initializeUserSharing(userCredential.user)
-        ]);
-        
-        auth.languageCode = currentLanguage;
-      } else {
-        await signInWithEmailAndPassword(auth, email, password);
-      }
-      return { success: true };
+      setIsLoading(true);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      setError(null);
+      return userCredential.user;
     } catch (error: any) {
-      const errorInfo = getFirebaseErrorMessage(error, t);
-      return {
-        success: false,
-        error: errorInfo
-      };
+      console.error('Login error:', error);
+      switch (error.code) {
+        case 'auth/user-disabled':
+          setError(t('auth.errors.accountDisabledMessage'));
+          break;
+        case 'auth/user-not-found':
+          setError(t('auth.errors.accountNotFoundMessage'));
+          break;
+        case 'auth/wrong-password':
+          setError(t('auth.errors.incorrectPasswordMessage'));
+          break;
+        case 'auth/too-many-requests':
+          setError(t('auth.errors.tooManyAttemptsMessage'));
+          break;
+        default:
+          setError(t('auth.errors.invalidCredentialsMessage'));
+      }
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRegister = async (email: string, password: string): Promise<User | null> => {
+    if (!validateEmail(email)) {
+      setError(t('auth.errors.pleaseEnterValidEmail'));
+      return null;
+    }
+
+    if (!validatePassword(password)) {
+      setError(t('auth.errors.meetAllRequirements'));
+      return null;
+    }
+
+    try {
+      setIsLoading(true);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      await initializeUserSharing(userCredential.user);
+      setError(null);
+      return userCredential.user;
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      switch (error.code) {
+        case 'auth/email-already-in-use':
+          setError(t('auth.errors.emailInUseMessage'));
+          break;
+        case 'auth/operation-not-allowed':
+          setError(t('auth.errors.operationNotAllowedMessage'));
+          break;
+        case 'auth/weak-password':
+          setError(t('auth.errors.weakPasswordMessage'));
+          break;
+        default:
+          setError(t('auth.errors.invalidCredentialsMessage'));
+      }
+      return null;
     } finally {
       setIsLoading(false);
     }
   };
 
   return {
-    isRegistering,
+    error,
     isLoading,
-    showForgotPasswordModal,
-    email,
-    setIsRegistering,
-    setShowForgotPasswordModal,
-    setEmail,
-    handleAuth
+    handleLogin,
+    handleRegister,
+    validateEmail,
+    validatePassword,
+    setError
   };
 };

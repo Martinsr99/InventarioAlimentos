@@ -1,12 +1,14 @@
 .product-list-card {
   margin: 16px;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--ion-shadow-md);
+  background: var(--ion-card-background);
+  border: 1px solid rgba(44, 44, 44, 0.5);
 }
 
 .product-list-card ion-card-header {
-  background: var(--ion-color-primary);
-  color: var(--ion-color-primary-contrast);
+  background: var(--ion-color-step-50);
+  color: var(--ion-text-color);
   border-radius: 12px 12px 0 0;
   padding: 16px;
 }
@@ -14,6 +16,7 @@
 .product-list-card ion-card-title {
   font-size: 1.4rem;
   font-weight: 600;
+  color: var(--ion-text-color) !important;
 }
 
 .product-list-card ion-item {
@@ -21,30 +24,36 @@
   --padding-end: 16px;
   --padding-top: 12px;
   --padding-bottom: 12px;
-  --border-color: var(--ion-color-light-shade);
+  --border-color: rgba(44, 44, 44, 0.5);
+  --background: var(--ion-card-background);
+  --color: var(--ion-text-color) !important;
   transition: background-color 0.2s ease;
 }
 
-.product-list-card ion-item:hover {
-  --background: var(--ion-color-light);
+:root.dark-theme .product-list-card ion-item {
+  --background: var(--ion-card-background);
+}
+
+:root.dark-theme .product-list-card ion-item:hover {
+  --background: var(--ion-color-step-100);
 }
 
 .product-list-card ion-label h2 {
   font-size: 1.1rem;
   font-weight: 500;
   margin-bottom: 8px;
-  color: var(--ion-text-color);
+  color: var(--ion-text-color) !important;
 }
 
 .product-list-card ion-label p {
   margin: 4px 0;
-  color: var(--ion-color-medium);
+  color: var(--ion-color-medium) !important;
   font-size: 0.9rem;
 }
 
 .product-list-card .category-tag {
   display: inline-block;
-  background: var(--ion-color-primary-tint);
+  background: var(--ion-color-primary);
   color: var(--ion-color-primary-contrast);
   padding: 4px 8px;
   border-radius: 4px;
@@ -56,25 +65,29 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  color: var(--ion-text-color) !important;
 }
 
 .product-list-card ion-button {
   margin: 0 4px;
   --padding-start: 8px;
   --padding-end: 8px;
+  --color: var(--ion-text-color);
 }
 
 .product-list-card ion-button ion-icon {
   font-size: 1.2rem;
+  color: var(--ion-text-color);
 }
 
 .empty-state {
   text-align: center;
   padding: 32px 16px;
+  color: var(--ion-text-color);
 }
 
 .empty-state p {
-  color: var(--ion-color-medium);
+  color: var(--ion-color-medium) !important;
   margin: 8px 0;
 }
 
@@ -83,6 +96,7 @@
   justify-content: center;
   align-items: center;
   min-height: 200px;
+  color: var(--ion-text-color);
 }
 
 .error-message {
@@ -91,20 +105,23 @@
   padding: 16px;
 }
 
-/* New styles for filters and sorting */
+/* Filters and sorting */
 .filters-container {
-  margin-bottom: 16px;
-  background: var(--ion-color-light);
-  border-radius: 8px;
-  padding: 12px;
+  margin: 16px;
+  background: var(--ion-card-background);
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid rgba(44, 44, 44, 0.5);
+  box-shadow: var(--ion-shadow-md);
 }
 
 .product-searchbar {
   padding: 0;
-  --background: var(--ion-background-color);
+  --background: var(--ion-color-step-50);
   --border-radius: 8px;
   --box-shadow: none;
   --placeholder-color: var(--ion-color-medium);
+  --color: var(--ion-text-color);
   margin-bottom: 12px;
 }
 
@@ -118,14 +135,15 @@
 .sort-segment {
   flex-grow: 1;
   min-width: 0;
-  background: var(--ion-background-color);
+  background: var(--ion-color-step-50);
   border-radius: 8px;
-  --background: var(--ion-background-color);
+  --background: var(--ion-color-step-50);
 }
 
 .sort-segment-button {
   --background-checked: var(--ion-color-primary);
-  --color-checked: var(--ion-color-primary-contrast);
+  --color: var(--ion-text-color);
+  --color-checked: var(--ion-text-color);
   --indicator-color: transparent;
   --border-radius: 6px;
   --margin-top: 2px;
@@ -146,52 +164,126 @@
   --padding-start: 12px;
   --padding-end: 12px;
   --border-radius: 8px;
-  --background: var(--ion-background-color);
-  --color: var(--ion-color-primary);
+  --background: var(--ion-color-step-50);
+  --color: var(--ion-text-color);
   --box-shadow: none;
   --border-width: 1px;
   --border-style: solid;
-  --border-color: var(--ion-color-light-shade);
+  --border-color: rgba(44, 44, 44, 0.5);
 }
 
 .sort-direction-button ion-icon {
   font-size: 1.2rem;
-}
-
-/* Dark mode adjustments */
-.dark-theme .product-list-card {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.dark-theme .product-list-card ion-item:hover {
-  --background: rgba(var(--ion-color-light-rgb), 0.1);
-}
-
-.dark-theme .filters-container {
-  background: rgba(var(--ion-color-light-rgb), 0.1);
-}
-
-.dark-theme .product-searchbar,
-.dark-theme .sort-segment,
-.dark-theme .sort-direction-button {
-  --background: rgba(var(--ion-color-light-rgb), 0.1);
-}
-
-.dark-theme .sort-direction-button {
-  --border-color: rgba(var(--ion-color-light-rgb), 0.2);
+  color: var(--ion-text-color);
 }
 
 /* Shared product styles */
 .owned-shared-product {
-  --background: rgba(var(--ion-color-primary-rgb), 0.05);
-  border-left: 4px solid var(--ion-color-primary);
+  --background: rgba(var(--ion-color-secondary-rgb), 0.15);
+  border-left: 4px solid var(--ion-color-secondary);
 }
 
 .shared-product {
-  --background: rgba(var(--ion-color-medium-rgb), 0.05);
+  --background: rgba(var(--ion-color-medium-rgb), 0.15);
 }
 
 .shared-by-chip.owner {
-  --background: var(--ion-color-primary);
-  --color: var(--ion-color-primary-contrast);
+  --background: var(--ion-color-secondary);
+  --color: var(--ion-text-color);
+}
+
+/* Additional text visibility improvements */
+:root.dark-theme ion-searchbar {
+  --placeholder-color: var(--ion-color-medium) !important;
+  --color: var(--ion-text-color) !important;
+  --icon-color: var(--ion-text-color) !important;
+}
+
+:root.dark-theme ion-segment-button {
+  --color: var(--ion-text-color) !important;
+}
+
+:root.dark-theme ion-searchbar input {
+  color: var(--ion-text-color) !important;
+}
+
+:root.dark-theme ion-segment-button {
+  color: var(--ion-text-color) !important;
+}
+
+/* Enhanced visibility for item details */
+:root.dark-theme .product-list-card ion-label h2 {
+  color: var(--ion-text-color) !important;
+}
+
+:root.dark-theme .product-list-card ion-label p {
+  color: var(--ion-color-medium) !important;
+}
+
+:root.dark-theme .expiry-text {
+  color: var(--ion-text-color) !important;
+}
+
+/* Enhanced contrast for interactive elements */
+:root.dark-theme ion-button.button-clear {
+  --color: var(--ion-text-color);
+}
+
+:root.dark-theme ion-item-divider {
+  --background: var(--ion-color-step-100);
+  --color: var(--ion-text-color);
+}
+
+/* Improved visibility for action buttons */
+:root.dark-theme .product-list-card ion-button {
+  --color: var(--ion-text-color);
+}
+
+:root.dark-theme .product-list-card ion-button ion-icon {
+  color: var(--ion-text-color);
+}
+
+/* Scrollbar customization */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--ion-background-color);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--ion-color-step-200);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ion-color-step-300);
+}
+
+/* Estado de los productos */
+.product-status-fresh {
+  color: var(--ion-color-success);
+}
+
+.product-status-warning {
+  color: var(--ion-color-warning);
+}
+
+.product-status-expired {
+  color: var(--ion-color-danger);
+}
+
+/* Botones de acción */
+.action-button-save {
+  --background: var(--ion-color-success);
+}
+
+.action-button-edit {
+  --background: var(--ion-color-tertiary);
+}
+
+.action-button-delete {
+  --background: var(--ion-color-danger);
 }

@@ -18,6 +18,12 @@ import { arrowBack } from 'ionicons/icons';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { auth } from '../../firebaseConfig';
 import { sendPasswordResetEmail } from 'firebase/auth';
+import DraggableFruit from './DraggableFruit';
+import banana from '../../assets/images/optimized/banana.png';
+import fresa from '../../assets/images/optimized/FRESA.png';
+import grana from '../../assets/images/optimized/grana.png';
+import naranja from '../../assets/images/optimized/naranja.png';
+import pina from '../../assets/images/optimized/pina.png';
 
 interface ResetPasswordModalProps {
     isOpen: boolean;
@@ -100,49 +106,58 @@ const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
             className="auth-modal"
         >
             <IonPage className="ion-page">
-                <IonHeader>
-                    <IonToolbar color="primary">
-                        <IonButtons slot="start">
-                            <IonButton 
-                                onClick={onDismiss}
-                                className="custom-back-button"
-                            >
-                                <IonIcon 
-                                    icon={arrowBack} 
-                                    slot="icon-only"
-                                    style={{ fontSize: '24px' }}
+                <IonContent fullscreen>
+                    <div className="floating-fruits">
+                        <DraggableFruit src={banana} className="fruit-1" initialDelay={0} />
+                        <DraggableFruit src={fresa} className="fruit-2" initialDelay={5000} />
+                        <DraggableFruit src={grana} className="fruit-3" initialDelay={8000} />
+                        <DraggableFruit src={naranja} className="fruit-4" initialDelay={12000} />
+                        <DraggableFruit src={pina} className="fruit-5" initialDelay={15000} />
+                    </div>
+                    <IonHeader>
+                        <IonToolbar>
+                            <IonButtons slot="start">
+                                <IonButton 
+                                    onClick={onDismiss}
+                                    className="custom-back-button"
+                                >
+                                    <IonIcon 
+                                        icon={arrowBack} 
+                                        slot="icon-only"
+                                        style={{ fontSize: '24px' }}
+                                    />
+                                </IonButton>
+                            </IonButtons>
+                            <IonTitle>{t('auth.resetPassword')}</IonTitle>
+                        </IonToolbar>
+                    </IonHeader>
+                    <div className="ion-padding">
+                        <form onSubmit={handlePasswordReset} className="auth-form">
+                            <IonItem lines="full">
+                                <IonLabel position="stacked">{t('auth.email')}</IonLabel>
+                                <IonInput
+                                    type="email"
+                                    value={resetEmail}
+                                    placeholder={t('auth.enterEmail')}
+                                    onIonChange={e => setResetEmail(e.detail.value!)}
+                                    required
+                                    className="ion-padding-top"
                                 />
+                            </IonItem>
+                            <IonButton
+                                expand="block"
+                                type="submit"
+                                className="ion-margin-top"
+                                disabled={isLoading}
+                            >
+                                {isLoading ? (
+                                    <IonSpinner name="crescent" />
+                                ) : (
+                                    t('auth.sendResetLink')
+                                )}
                             </IonButton>
-                        </IonButtons>
-                        <IonTitle>{t('auth.resetPassword')}</IonTitle>
-                    </IonToolbar>
-                </IonHeader>
-                <IonContent>
-                    <form onSubmit={handlePasswordReset} className="ion-padding">
-                        <IonItem lines="full">
-                            <IonLabel position="stacked">{t('auth.email')}</IonLabel>
-                            <IonInput
-                                type="email"
-                                value={resetEmail}
-                                placeholder={t('auth.enterEmail')}
-                                onIonChange={e => setResetEmail(e.detail.value!)}
-                                required
-                                className="ion-padding-top"
-                            />
-                        </IonItem>
-                        <IonButton
-                            expand="block"
-                            type="submit"
-                            className="ion-margin-top"
-                            disabled={isLoading}
-                        >
-                            {isLoading ? (
-                                <IonSpinner name="crescent" />
-                            ) : (
-                                t('auth.sendResetLink')
-                            )}
-                        </IonButton>
-                    </form>
+                        </form>
+                    </div>
                 </IonContent>
             </IonPage>
         </IonModal>
