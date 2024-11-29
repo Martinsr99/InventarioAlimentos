@@ -1,10 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   IonItem,
   IonLabel,
-  IonSelect,
-  IonSelectOption,
   IonInput,
+  IonActionSheet,
 } from '@ionic/react';
 import { useLanguage } from '../../../contexts/LanguageContext';
 
@@ -24,33 +23,51 @@ const QuantitySelector: React.FC<QuantitySelectorProps> = ({
   onCustomQuantityChange,
 }) => {
   const { t } = useLanguage();
+  const [showActionSheet, setShowActionSheet] = useState(false);
 
   return (
-    <IonItem>
-      <IonLabel position="stacked">{t('products.quantity')}</IonLabel>
-      {!isCustomQuantity ? (
-        <IonSelect
-          value={quantity}
-          placeholder={t('products.selectQuantity')}
-          onIonChange={e => onQuantityChange(e.detail.value)}
-        >
-          {QUANTITIES.map(q => (
-            <IonSelectOption key={q} value={q}>
-              {q}
-            </IonSelectOption>
-          ))}
-          <IonSelectOption value="custom">{t('common.custom')}</IonSelectOption>
-        </IonSelect>
-      ) : (
-        <IonInput
-          type="number"
-          value={quantity}
-          placeholder={t('products.enterQuantity')}
-          onIonInput={e => onCustomQuantityChange(e.detail.value || '1')}
-          min="1"
-        />
-      )}
-    </IonItem>
+    <>
+      <IonItem onClick={() => !isCustomQuantity && setShowActionSheet(true)} button={!isCustomQuantity}>
+        <IonLabel position="stacked">{t('products.quantity')}</IonLabel>
+        {!isCustomQuantity ? (
+          <IonLabel>{quantity || t('products.selectQuantity')}</IonLabel>
+        ) : (
+          <IonInput
+            type="number"
+            value={quantity}
+            placeholder={t('products.enterQuantity')}
+            onIonInput={e => onCustomQuantityChange(e.detail.value || '1')}
+            min="1"
+          />
+        )}
+      </IonItem>
+
+      <IonActionSheet
+        isOpen={showActionSheet}
+        onDidDismiss={() => setShowActionSheet(false)}
+        cssClass="product-action-sheet"
+        header={t('products.selectQuantity')}
+        buttons={[
+          ...QUANTITIES.map(q => ({
+            text: q,
+            cssClass: quantity === q ? 'selected-user' : '',
+            handler: () => {
+              onQuantityChange(q);
+            }
+          })),
+          {
+            text: t('common.custom'),
+            handler: () => {
+              onQuantityChange('custom');
+            }
+          },
+          {
+            text: t('common.cancel'),
+            role: 'cancel'
+          }
+        ]}
+      />
+    </>
   );
 };
 

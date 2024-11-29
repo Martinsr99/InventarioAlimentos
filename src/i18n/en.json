@@ -144,6 +144,7 @@
   "common.no": "No",
   "common.optional": "optional",
   "common.custom": "Custom",
+  "common.done": "Done",
   
   "profile.picture": "Profile Picture",
   "profile.selectPicture": "Select Profile Picture",
@@ -173,5 +174,7 @@
   "sharing.inviteFriends": "Invite friends to share products",
   "sharing.friends": "Friends",
   "sharing.noFriends": "No friends yet",
-  "sharing.friendsSection": "Your Friends"
+  "sharing.friendsSection": "Your Friends",
+  "sharing.selectUsers": "Select Users",
+  "sharing.selectedUsers": "{{count}} users selected"
 }

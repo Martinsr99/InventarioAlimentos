@@ -1,8 +1,56 @@
+/* Action Sheet Styles */
+.product-action-sheet {
+  --background: var(--ion-background-color) !important;
+  --backdrop-opacity: 0.6 !important;
+}
+
+.product-action-sheet .action-sheet-group {
+  background: var(--ion-background-color) !important;
+}
+
+.product-action-sheet .action-sheet-button {
+  background: var(--ion-background-color) !important;
+  color: var(--ion-text-color) !important;
+  border-bottom: 1px solid var(--ion-color-step-150) !important;
+}
+
+.product-action-sheet .action-sheet-button.action-sheet-selected {
+  color: var(--ion-color-primary) !important;
+  font-weight: bold !important;
+}
+
+.product-action-sheet .action-sheet-button:hover {
+  background: var(--ion-color-step-100) !important;
+}
+
+.product-action-sheet .action-sheet-button[role="cancel"] {
+  color: var(--ion-color-primary) !important;
+  font-weight: bold !important;
+}
+
+.product-action-sheet .action-sheet-title {
+  color: var(--ion-text-color) !important;
+  background: var(--ion-background-color) !important;
+  border-bottom: 1px solid var(--ion-color-step-150) !important;
+}
+
+/* Form section styles */
+.form-section {
+  margin-bottom: 1.5rem;
+  padding: 0 1rem;
+  background: var(--ion-card-background);
+  border-radius: 12px;
+  box-shadow: var(--ion-shadow-md);
+  border: 1px solid rgba(44, 44, 44, 0.5);
+}
+
+/* Input container styles */
 .product-name-container {
   position: relative;
   margin-bottom: 1rem;
 }
 
+/* Suggestions list */
 .suggestions-list {
   position: absolute;
   z-index: 1000;
@@ -25,49 +73,7 @@
   cursor: pointer;
 }
 
-:root.dark-theme .suggestion-item:hover {
-  --background: var(--ion-color-step-100);
-}
-
-.date-picker-modal {
-  --width: 100%;
-  --height: 100%;
-  --background: var(--ion-background-color);
-}
-
-.date-picker-modal::part(content) {
-  margin: auto;
-  position: relative;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--ion-background-color);
-}
-
-.custom-datetime {
-  margin: 20px auto;
-  width: 100%;
-  max-width: 350px;
-  background: var(--ion-card-background);
-  border-radius: 8px;
-  padding: 16px;
-  color: var(--ion-text-color);
-  border: 1px solid rgba(44, 44, 44, 0.5);
-}
-
-/* Form section styles */
-.form-section {
-  margin-bottom: 1.5rem;
-  padding: 0 1rem;
-  background: var(--ion-card-background);
-  border-radius: 12px;
-  box-shadow: var(--ion-shadow-md);
-  border: 1px solid rgba(44, 44, 44, 0.5);
-}
-
-/* Input container styles */
-.product-name-container ion-item,
+/* Item styles */
 ion-item {
   --background: var(--ion-card-background);
   --color: var(--ion-text-color);
@@ -81,168 +87,64 @@ ion-item {
   margin-bottom: 0.75rem;
 }
 
-/* Active input styles */
-.product-name-container ion-item.has-suggestions,
-ion-item.item-has-focus {
-  --border-color: var(--ion-color-primary);
-  --background: var(--ion-color-step-50);
+/* Labels */
+ion-label {
+  color: var(--ion-text-color) !important;
+  opacity: 1 !important;
 }
 
-/* Form inputs general styles */
-ion-input, 
-ion-select, 
-ion-datetime,
+ion-label[position="stacked"] {
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+/* Input fields */
+ion-input,
 ion-textarea {
+  --background: var(--ion-card-background);
   --color: var(--ion-text-color);
   --placeholder-color: var(--ion-color-medium);
-  color: var(--ion-text-color);
-  --padding-start: 8px;
-  --padding-end: 8px;
-  --padding-top: 8px;
-  --padding-bottom: 8px;
+  margin-top: 4px;
 }
 
-/* Labels */
-ion-label,
-.item-label, 
-.input-label, 
-.select-label {
-  color: var(--ion-text-color);
-  font-weight: 500;
-  font-size: 0.95rem;
-  margin-bottom: 0.25rem;
-}
-
-/* Add Product title */
-.add-product-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--ion-text-color);
-  margin: 1.5rem 1rem;
-}
-
-/* Native inputs */
-:root.dark-theme ion-input input,
-:root.dark-theme ion-textarea textarea,
-:root.dark-theme ion-select select {
-  color: var(--ion-text-color);
-}
-
-/* Select interface styles */
-.select-interface-option {
-  color: var(--ion-text-color);
-  background: var(--ion-card-background);
-}
-
-:root.dark-theme .select-interface-option {
-  --background: var(--ion-card-background);
-  color: var(--ion-text-color);
-}
-
-/* Alert styles for select dropdowns */
-:root.dark-theme ion-alert.select-alert {
-  --background: var(--ion-card-background);
-  color: var(--ion-text-color);
-}
-
-:root.dark-theme ion-alert.select-alert .alert-wrapper {
-  background: var(--ion-card-background);
-}
-
-:root.dark-theme ion-alert.select-alert .alert-radio-label {
-  color: var(--ion-text-color);
-}
-
-/* Hover and focus effects */
-:root.dark-theme ion-item:hover {
-  --background: var(--ion-color-step-50);
-}
-
-:root.dark-theme ion-item.item-has-focus {
-  --background: var(--ion-color-step-50);
-  --border-color: var(--ion-color-primary);
-}
-
-/* Additional dark theme enhancements */
-:root.dark-theme .form-section {
-  background: var(--ion-card-background);
-  border: 1px solid rgba(44, 44, 44, 0.5);
-}
-
-:root.dark-theme ion-datetime {
-  background: var(--ion-card-background);
-  color: var(--ion-text-color);
-}
-
-:root.dark-theme ion-select::part(icon) {
-  color: var(--ion-text-color);
-}
-
-:root.dark-theme ion-select::part(text) {
-  color: var(--ion-text-color);
-}
-
-:root.dark-theme ion-input::part(native),
-:root.dark-theme ion-textarea::part(native) {
-  color: var(--ion-text-color);
-}
-
-/* Modal styles */
-:root.dark-theme ion-modal {
-  --background: var(--ion-background-color);
-  --ion-background-color: var(--ion-background-color);
-}
-
-:root.dark-theme ion-modal ion-content {
-  --background: var(--ion-background-color);
+/* Date picker styles */
+.date-picker-modal {
+  --height: auto;
+  --width: 90%;
+  max-width: 400px;
 }
 
 /* Button styles */
-:root.dark-theme ion-button {
-  --color: var(--ion-text-color);
+ion-button {
+  margin-top: 16px;
 }
 
-:root.dark-theme ion-button.button-clear {
-  --color: var(--ion-text-color);
+/* Dark theme specific styles */
+:root.dark-theme {
+  /* Action Sheet */
+  --ion-action-sheet-background: var(--ion-background-color);
+  --ion-action-sheet-button-background: var(--ion-background-color);
+  --ion-action-sheet-button-color: var(--ion-text-color);
+
+  /* Selected state in action sheet */
+  .action-sheet-button.action-sheet-selected {
+    color: var(--ion-color-primary-contrast);
+    background: var(--ion-color-primary);
+  }
+
+  /* Hover state in action sheet */
+  .action-sheet-button:hover:not(.action-sheet-selected):not(.action-sheet-cancel) {
+    background: var(--ion-color-step-100);
+  }
+
+  /* Cancel button in action sheet */
+  .action-sheet-button.action-sheet-cancel {
+    background: var(--ion-color-step-100);
+    font-weight: 600;
+  }
 }
 
-/* Action buttons */
-.action-button-save {
-  --background: var(--ion-color-success);
-}
-
-.action-button-cancel {
-  --background: var(--ion-color-medium);
-}
-
-/* Placeholder text */
-:root.dark-theme input::placeholder,
-:root.dark-theme textarea::placeholder {
-  color: var(--ion-color-medium) !important;
-  opacity: 1;
-}
-
-/* Scrollbar styles for dark theme */
-:root.dark-theme ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-:root.dark-theme ::-webkit-scrollbar-track {
-  background: var(--ion-background-color);
-  border-radius: 4px;
-}
-
-:root.dark-theme ::-webkit-scrollbar-thumb {
-  background: var(--ion-color-step-200);
-  border-radius: 4px;
-}
-
-:root.dark-theme ::-webkit-scrollbar-thumb:hover {
-  background: var(--ion-color-step-300);
-}
-
-/* Form validation states */
+/* Validation states */
 .validation-error {
   color: var(--ion-color-danger);
   font-size: 0.85rem;
@@ -250,30 +152,48 @@ ion-label,
   margin-left: 12px;
 }
 
-.input-valid {
-  --border-color: var(--ion-color-success) !important;
+/* Loading state */
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100px;
 }
 
-.input-invalid {
-  --border-color: var(--ion-color-danger) !important;
+/* Clickable items */
+ion-item[button] {
+  cursor: pointer;
 }
 
-/* Date picker customization */
-ion-datetime {
-  --background: var(--ion-card-background);
-  --ion-color-base: var(--ion-color-primary);
-  border-radius: 8px;
-  padding: 8px;
+ion-item[button]:hover {
+  --background: var(--ion-color-step-50);
 }
 
-/* Custom select styles */
-ion-select::part(placeholder),
-ion-select::part(text) {
-  color: var(--ion-text-color);
-  opacity: 1;
+/* Action Sheet Backdrop */
+ion-action-sheet.product-action-sheet::part(backdrop) {
+  background: rgba(0, 0, 0, 0.6) !important;
 }
 
-ion-select::part(icon) {
-  color: var(--ion-color-medium);
-  opacity: 1;
+/* Action Sheet Content */
+ion-action-sheet.product-action-sheet::part(content) {
+  background: var(--ion-background-color) !important;
+  border-top-left-radius: 12px !important;
+  border-top-right-radius: 12px !important;
+}
+
+/* Action Sheet Button Container */
+ion-action-sheet.product-action-sheet .action-sheet-group:not(.action-sheet-group-cancel) {
+  background: var(--ion-background-color) !important;
+}
+
+/* Action Sheet Cancel Button Container */
+ion-action-sheet.product-action-sheet .action-sheet-group.action-sheet-group-cancel {
+  background: var(--ion-background-color) !important;
+  margin-top: 8px !important;
+}
+
+/* Action Sheet Selected Item */
+ion-action-sheet.product-action-sheet .selected-user {
+  color: var(--ion-color-primary) !important;
+  font-weight: bold !important;
 }

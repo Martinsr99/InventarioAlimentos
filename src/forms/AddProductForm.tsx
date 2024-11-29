@@ -7,8 +7,6 @@ import {
   IonItem,
   IonLabel,
   IonButton,
-  IonSelect,
-  IonSelectOption,
   IonTextarea,
   IonToast,
   IonSpinner,
@@ -21,26 +19,11 @@ import { auth } from '../firebaseConfig';
 import { useProductForm } from '../hooks/useProductForm';
 import DateSelector from '../components/Products/AddProduct/DateSelector';
 import QuantitySelector from '../components/Products/AddProduct/QuantitySelector';
+import LocationSelector from '../components/Products/AddProduct/LocationSelector';
+import CategorySelector from '../components/Products/AddProduct/CategorySelector';
+import SharedUsersSelector from '../components/Products/AddProduct/SharedUsersSelector';
 import ProductSuggestions from '../components/Products/AddProduct/ProductSuggestions';
 import './AddProductForm.css';
-
-const CATEGORIES = [
-  'dairy',
-  'meat',
-  'vegetables',
-  'fruits',
-  'grains',
-  'beverages',
-  'snacks',
-  'other'
-] as const;
-
-const LOCATIONS = [
-  'fridge',
-  'freezer',
-  'pantry',
-  'other'
-] as const;
 
 interface AddProductFormProps {
   onProductAdded?: () => void;
@@ -194,20 +177,10 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
             onDateChange={handleDateChange}
           />
 
-          <IonItem>
-            <IonLabel position="stacked">{t('products.location')}</IonLabel>
-            <IonSelect
-              value={formState.location}
-              placeholder={t('products.selectLocation')}
-              onIonChange={e => setFormValue('location', e.detail.value)}
-            >
-              {LOCATIONS.map(loc => (
-                <IonSelectOption key={loc} value={loc}>
-                  {t(`locations.${loc}`)}
-                </IonSelectOption>
-              ))}
-            </IonSelect>
-          </IonItem>
+          <LocationSelector
+            location={formState.location}
+            onLocationChange={value => setFormValue('location', value)}
+          />
 
           <QuantitySelector
             quantity={formState.quantity}
@@ -216,41 +189,17 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
             onCustomQuantityChange={value => handleInputChange('quantity', value)}
           />
 
-          <IonItem>
-            <IonLabel position="stacked">
-              {t('products.category')} ({t('common.optional')})
-            </IonLabel>
-            <IonSelect
-              value={formState.category}
-              placeholder={t('products.selectCategory')}
-              onIonChange={e => setFormValue('category', e.detail.value)}
-            >
-              {CATEGORIES.map(cat => (
-                <IonSelectOption key={cat} value={cat}>
-                  {t(`categories.${cat}`)}
-                </IonSelectOption>
-              ))}
-            </IonSelect>
-          </IonItem>
+          <CategorySelector
+            category={formState.category}
+            onCategoryChange={value => setFormValue('category', value)}
+          />
 
           {sharedUsers.length > 0 && (
-            <IonItem>
-              <IonLabel position="stacked">
-                {t('products.sharedWith')} ({t('common.optional')})
-              </IonLabel>
-              <IonSelect
-                value={formState.selectedSharedUsers}
-                placeholder={t('products.selectSharedWith')}
-                onIonChange={e => setFormValue('selectedSharedUsers', e.detail.value)}
-                multiple={true}
-              >
-                {sharedUsers.map(user => (
-                  <IonSelectOption key={user.userId} value={user.userId}>
-                    {user.email}
-                  </IonSelectOption>
-                ))}
-              </IonSelect>
-            </IonItem>
+            <SharedUsersSelector
+              users={sharedUsers}
+              selectedUsers={formState.selectedSharedUsers}
+              onUsersChange={value => setFormValue('selectedSharedUsers', value)}
+            />
           )}
 
           <IonItem>
