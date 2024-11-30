@@ -16,6 +16,7 @@ import { useProductList, SortOption, SortDirection, ViewMode } from '../../hooks
 import ProductListHeader from './ProductListHeader';
 import ProductListFilters from './ProductListFilters';
 import ProductListContent from './ProductListContent';
+import { auth } from '../../firebaseConfig';
 import './ProductList.css';
 
 interface ProductListProps {
@@ -48,13 +49,15 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded, onOpenSettin
     sharedProducts
   } = useProductList(onRefreshNeeded);
 
-  // Initial load
+  // Initial load - now depends on auth.currentUser
   useEffect(() => {
-    loadProducts();
-    checkFriends();
-    // Initialize filters
-    filterAndSortProducts({ viewMode, searchText, sortBy, sortDirection });
-  }, []);
+    if (auth.currentUser) {
+      loadProducts();
+      checkFriends();
+      // Initialize filters
+      filterAndSortProducts({ viewMode, searchText, sortBy, sortDirection });
+    }
+  }, [auth.currentUser]); // Add auth.currentUser as dependency
 
   // Handle view mode changes
   useEffect(() => {
@@ -163,7 +166,7 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded, onOpenSettin
 
       <IonToast
         isOpen={showToast}
-        message={error}
+        message={error || ''}
         duration={3000}
         color="danger"
         onDidDismiss={() => setShowToast(false)}

@@ -4,9 +4,20 @@ import { auth } from '../firebaseConfig';
 import { useLanguage } from '../contexts/LanguageContext';
 import { initializeUserSharing } from '../services/FriendService';
 
+interface AuthResult {
+  success: boolean;
+  error?: {
+    title: string;
+    message: string;
+  };
+}
+
 export const useAuth = () => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
+  const [email, setEmail] = useState('');
   const { t } = useLanguage();
 
   const validateEmail = (email: string): boolean => {
@@ -94,13 +105,48 @@ export const useAuth = () => {
     }
   };
 
+  const handleAuth = async (email: string, password: string): Promise<AuthResult> => {
+    try {
+      const user = isRegistering 
+        ? await handleRegister(email, password)
+        : await handleLogin(email, password);
+
+      if (user) {
+        return { success: true };
+      } else {
+        return {
+          success: false,
+          error: {
+            title: t('auth.errors.authError'),
+            message: error || t('auth.errors.invalidCredentialsMessage')
+          }
+        };
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: {
+          title: t('auth.errors.authError'),
+          message: t('auth.errors.invalidCredentialsMessage')
+        }
+      };
+    }
+  };
+
   return {
     error,
     isLoading,
+    isRegistering,
+    showForgotPasswordModal,
+    email,
+    handleAuth,
     handleLogin,
     handleRegister,
     validateEmail,
     validatePassword,
-    setError
+    setError,
+    setIsRegistering,
+    setShowForgotPasswordModal,
+    setEmail
   };
 };

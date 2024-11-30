@@ -29,6 +29,12 @@ export const useProductList = (onRefreshNeeded?: () => void) => {
   const [loadingShared, setLoadingShared] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasFriends, setHasFriends] = useState(false);
+  const [currentFilterOptions, setCurrentFilterOptions] = useState<FilterOptions>({
+    viewMode: 'personal',
+    searchText: '',
+    sortBy: 'expiryDate',
+    sortDirection: 'asc'
+  });
 
   const loadProducts = async () => {
     if (!auth.currentUser) return;
@@ -86,6 +92,7 @@ export const useProductList = (onRefreshNeeded?: () => void) => {
   };
 
   const filterAndSortProducts = (options: FilterOptions) => {
+    setCurrentFilterOptions(options);
     const { viewMode, searchText, sortBy, sortDirection } = options;
     let filtered = viewMode === 'personal' 
       ? products.map(p => ({ ...p, isOwner: true })) 
@@ -118,6 +125,19 @@ export const useProductList = (onRefreshNeeded?: () => void) => {
 
     setFilteredProducts(filtered);
   };
+
+  // Cargar productos cuando el usuario está autenticado
+  useEffect(() => {
+    if (auth.currentUser) {
+      loadProducts();
+      checkFriends();
+    }
+  }, [auth.currentUser]);
+
+  // Actualizar filteredProducts cuando cambian los productos o los productos compartidos
+  useEffect(() => {
+    filterAndSortProducts(currentFilterOptions);
+  }, [products, sharedProducts, currentFilterOptions.viewMode]);
 
   return {
     products,

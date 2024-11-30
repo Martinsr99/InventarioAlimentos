@@ -23,8 +23,7 @@ export const getProducts = async (): Promise<Product[]> => {
   try {
     const q = query(
       collection(db, 'products'),
-      where('userId', '==', auth.currentUser.uid),
-      where('sharedWith', '==', []) // Solo productos no compartidos
+      where('userId', '==', auth.currentUser.uid)
     );
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => ({
