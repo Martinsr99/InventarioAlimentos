@@ -4,6 +4,7 @@ import {
   IonSpinner,
   IonText,
   IonButton,
+  IonItem,
 } from '@ionic/react';
 import { ExtendedProduct, ViewMode } from '../../hooks/useProductList';
 import ProductListItem from './ProductListItem';
@@ -71,8 +72,8 @@ const ProductListContent: React.FC<ProductListContentProps> = ({
   }
 
   return (
-    <IonList>
-      {filteredProducts.map(product => (
+    <div className="product-list-content">
+      {filteredProducts.map((product, index) => (
         <ProductListItem
           key={product.id}
           product={product}
@@ -81,7 +82,7 @@ const ProductListContent: React.FC<ProductListContentProps> = ({
           onDelete={onDelete}
         />
       ))}
-    </IonList>
+    </div>
   );
 };
 

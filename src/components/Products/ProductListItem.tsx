@@ -60,84 +60,65 @@ const ProductListItem: React.FC<ProductListItemProps> = ({
   const isSharedProduct = viewMode === 'shared';
   const isOwnedShared = isSharedProduct && product.isOwner;
 
+  const getExpiryStatusClass = () => {
+    if (isExpired) return 'product-status-expired';
+    if (isNearExpiry) return 'product-status-warning';
+    return 'product-status-fresh';
+  };
+
   return (
     <IonItem 
-      className={isOwnedShared ? 'owned-shared-product' : isSharedProduct ? 'shared-product' : ''}
-      lines="full"
+      className={`${isOwnedShared ? 'owned-shared-product' : isSharedProduct ? 'shared-product' : ''}`}
     >
       <IonLabel className="ion-text-wrap">
-        <h2 style={{ 
-          color: 'var(--ion-text-color)',
-          fontWeight: '500'
-        }}>
-          {product.name}
-        </h2>
+        <h2>{product.name}</h2>
+        
         {product.category && (
           <div className="category-tag">
             {t(`categories.${product.category.toLowerCase()}`)}
           </div>
         )}
+        
         <div className="expiry-text">
           <IonIcon 
             icon={calendar} 
-            color={isExpired ? 'danger' : isNearExpiry ? 'warning' : 'medium'}
-            style={{ fontSize: '1.1rem' }}
+            className={getExpiryStatusClass()}
           />
           <IonText 
-            color={isExpired ? 'danger' : isNearExpiry ? 'warning' : 'medium'}
-            style={{ 
-              marginLeft: '4px',
-              fontSize: '0.9rem'
-            }}
+            className={getExpiryStatusClass()}
           >
             {expiryText}
           </IonText>
         </div>
+        
         {product.notes && product.notes.trim() !== '' && (
-          <p style={{ 
-            color: 'var(--ion-color-step-600)',
-            margin: '4px 0',
-            fontSize: '0.9rem'
-          }}>
-            {product.notes}
-          </p>
+          <p>{product.notes}</p>
         )}
+        
         {isSharedProduct && product.sharedBy && (
-          <IonChip 
-            className={`shared-by-chip ${isOwnedShared ? 'owner' : ''}`}
-            style={{
-              margin: '8px 0 0 0',
-              '--background': isOwnedShared ? 'var(--ion-color-primary)' : 'var(--ion-item-background)',
-              '--color': isOwnedShared ? 'var(--ion-color-primary-contrast)' : 'var(--ion-text-color)'
-            }}
-          >
+          <IonChip className={`shared-by-chip ${isOwnedShared ? 'owner' : ''}`}>
             <IonIcon icon={personCircleOutline} />
             <IonLabel>{product.sharedBy}</IonLabel>
           </IonChip>
         )}
       </IonLabel>
+
       {(viewMode === 'personal' || isOwnedShared) && (
-        <>
+        <div className="ion-no-padding ion-no-margin">
           <IonButton 
             fill="clear" 
-            slot="end"
             onClick={() => onEdit(product.id)}
-            style={{
-              '--color': 'var(--ion-text-color)',
-              opacity: '0.8'
-            }}
           >
             <IonIcon icon={create} slot="icon-only" />
           </IonButton>
           <IonButton 
             fill="clear" 
-            slot="end"
             onClick={() => onDelete(product.id)}
             color="danger"
           >
             <IonIcon icon={trash} slot="icon-only" />
           </IonButton>
-        </>
+        </div>
       )}
     </IonItem>
   );
