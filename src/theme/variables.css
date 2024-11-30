@@ -279,3 +279,51 @@ ion-item-divider {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--ion-color-step-300);
 }
+
+/* DateTime Picker Dark Theme Override */
+ion-datetime,
+ion-datetime *,
+ion-picker,
+ion-picker * {
+  background-color: var(--ion-background-color) !important;
+  color: var(--ion-text-color) !important;
+}
+
+ion-datetime::part(wheel),
+ion-datetime::part(wheel-item),
+ion-picker::part(wheel),
+ion-picker::part(wheel-item) {
+  background-color: var(--ion-background-color) !important;
+  color: var(--ion-text-color) !important;
+}
+
+.datetime-grid,
+.picker-wrapper,
+.picker-above-highlight,
+.picker-below-highlight {
+  background-color: var(--ion-background-color) !important;
+}
+
+.picker-opt {
+  color: var(--ion-text-color) !important;
+}
+
+.picker-opt.picker-opt-selected {
+  color: var(--ion-color-primary) !important;
+}
+
+/* Force dark theme on modal content */
+ion-modal::part(content) {
+  background: var(--ion-background-color) !important;
+}
+
+/* Force dark theme on datetime components */
+ion-datetime.datetime-prefer-wheel::part(wheel-item) {
+  color: var(--ion-text-color) !important;
+  background: var(--ion-background-color) !important;
+}
+
+ion-datetime.datetime-prefer-wheel::part(active-wheel-item) {
+  color: var(--ion-color-primary) !important;
+  background: var(--ion-background-color) !important;
+}
