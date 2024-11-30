@@ -3,7 +3,6 @@ import {
   IonItem,
   IonLabel,
   IonInput,
-  IonList,
 } from '@ionic/react';
 import { PredefinedProduct } from '../../../services/PredefinedProductsService';
 import { useLanguage } from '../../../contexts/LanguageContext';
@@ -43,18 +42,17 @@ const ProductSuggestions: React.FC<ProductSuggestionsProps> = ({
       </IonItem>
       
       {showSuggestions && suggestions.length > 0 && (
-        <IonList className="suggestions-list">
+        <div className="suggestions-list">
           {suggestions.map((suggestion, index) => (
-            <IonItem
+            <div
               key={index}
-              button
-              onClick={() => onSuggestionClick(suggestion)}
               className="suggestion-item"
+              onClick={() => onSuggestionClick(suggestion)}
             >
-              <IonLabel>{suggestion.name}</IonLabel>
-            </IonItem>
+              {suggestion.name}
+            </div>
           ))}
-        </IonList>
+        </div>
       )}
     </div>
   );
