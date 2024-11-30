@@ -176,5 +176,7 @@
   "sharing.noFriends": "No friends yet",
   "sharing.friendsSection": "Your Friends",
   "sharing.selectUsers": "Select Users",
-  "sharing.selectedUsers": "{{count}} users selected"
+  "sharing.selectedUsers": "{{count}} users selected",
+  "sharing.sortByStatus": "Status",
+  "sharing.sortByEmail": "Email"
 }

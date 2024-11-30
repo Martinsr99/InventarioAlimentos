@@ -1,4 +1,4 @@
- import React from 'react';
+import React from 'react';
 import {
   IonCard,
   IonCardContent,
@@ -22,10 +22,12 @@ import {
   peopleOutline,
   checkmarkCircleOutline,
   closeCircleOutline,
-  trashOutline
+  trashOutline,
+  arrowUp
 } from 'ionicons/icons';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { ShareInvitation } from '../../services/types';
+import { SortOption, SortDirection } from '../../hooks/useSharing';
 import './SharingSection.css';
 
 interface SharingSectionProps {
@@ -34,11 +36,15 @@ interface SharingSectionProps {
   receivedInvitations: ShareInvitation[];
   sentInvitations: ShareInvitation[];
   friends: { userId: string; email: string }[];
+  sortBy: SortOption;
+  sortDirection: SortDirection;
   onEmailChange: (event: CustomEvent) => void;
   onSendInvite: () => Promise<void>;
   onInvitationResponse: (invitationId: string, response: 'accepted' | 'rejected') => Promise<void>;
   onDeleteInvite: (invitationId: string) => void;
   onDeleteFriend: (userId: string) => void;
+  onSortByChange: (sortBy: SortOption) => void;
+  onSortDirectionChange: () => void;
 }
 
 export const SharingSection: React.FC<SharingSectionProps> = ({
@@ -47,11 +53,15 @@ export const SharingSection: React.FC<SharingSectionProps> = ({
   receivedInvitations,
   sentInvitations,
   friends,
+  sortBy,
+  sortDirection,
   onEmailChange,
   onSendInvite,
   onInvitationResponse,
   onDeleteInvite,
-  onDeleteFriend
+  onDeleteFriend,
+  onSortByChange,
+  onSortDirectionChange
 }) => {
   const { t } = useLanguage();
 
@@ -96,6 +106,40 @@ export const SharingSection: React.FC<SharingSectionProps> = ({
           <div className="friends-section-header">
             <IonIcon icon={peopleOutline} />
             <h2>{t('sharing.friendsSection')}</h2>
+            <div className="friends-sort-controls">
+              <button 
+                className="sort-button"
+                onClick={() => onSortByChange('status')}
+              >
+                {t('sharing.sortByStatus')}
+                {sortBy === 'status' && (
+                  <IonIcon 
+                    icon={arrowUp} 
+                    className={sortDirection === 'desc' ? 'desc' : ''}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSortDirectionChange();
+                    }}
+                  />
+                )}
+              </button>
+              <button 
+                className="sort-button"
+                onClick={() => onSortByChange('email')}
+              >
+                {t('sharing.sortByEmail')}
+                {sortBy === 'email' && (
+                  <IonIcon 
+                    icon={arrowUp} 
+                    className={sortDirection === 'desc' ? 'desc' : ''}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSortDirectionChange();
+                    }}
+                  />
+                )}
+              </button>
+            </div>
           </div>
           
           {hasContent ? (

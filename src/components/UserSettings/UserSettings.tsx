@@ -60,6 +60,8 @@ const UserSettings: React.FC<UserSettingsProps> = ({ openToShare = false, onClos
     showDeleteConfirm,
     invitationToDelete,
     friendToDelete,
+    sortBy,
+    sortDirection,
     handleEmailChange,
     handleSendInvite,
     handleInvitationResponse,
@@ -70,7 +72,9 @@ const UserSettings: React.FC<UserSettingsProps> = ({ openToShare = false, onClos
     setShowDeleteConfirm,
     setInvitationToDelete,
     setFriendToDelete,
-    setError: setSharingError
+    setError: setSharingError,
+    setSortBy,
+    toggleSortDirection
   } = useSharing(user, t);
 
   const isLoading = settingsLoading || sharingLoading;
@@ -172,11 +176,15 @@ const UserSettings: React.FC<UserSettingsProps> = ({ openToShare = false, onClos
                   receivedInvitations={receivedInvitations}
                   sentInvitations={sentInvitations}
                   friends={friends}
+                  sortBy={sortBy}
+                  sortDirection={sortDirection}
                   onEmailChange={handleEmailChange}
                   onSendInvite={handleSendInvite}
                   onInvitationResponse={handleInvitationResponse}
                   onDeleteInvite={confirmDeleteInvitation}
                   onDeleteFriend={confirmDeleteFriend}
+                  onSortByChange={setSortBy}
+                  onSortDirectionChange={toggleSortDirection}
                 />
               </div>
 

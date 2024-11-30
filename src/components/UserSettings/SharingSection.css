@@ -49,6 +49,40 @@
   font-weight: 500;
 }
 
+.friends-sort-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.sort-button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  color: var(--ion-color-medium);
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.sort-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.sort-button ion-icon {
+  font-size: 16px;
+  transition: transform 0.2s;
+}
+
+.sort-button ion-icon.desc {
+  transform: rotate(180deg);
+}
+
 .friend-item {
   --background: rgba(255, 255, 255, 0.03);
   --padding-start: 12px;

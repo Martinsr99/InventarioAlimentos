@@ -13,6 +13,9 @@ import {
 } from '../services/FriendService';
 import { ShareInvitation } from '../services/types';
 
+export type SortOption = 'status' | 'email';
+export type SortDirection = 'asc' | 'desc';
+
 export const useSharing = (user: User | null, t: (key: string) => string) => {
   const [inviteEmail, setInviteEmail] = useState('');
   const [isEmailValid, setIsEmailValid] = useState(false);
@@ -24,10 +27,29 @@ export const useSharing = (user: User | null, t: (key: string) => string) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [invitationToDelete, setInvitationToDelete] = useState<string>('');
   const [friendToDelete, setFriendToDelete] = useState<string>('');
+  const [sortBy, setSortBy] = useState<SortOption>('status');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
   useEffect(() => {
     loadSharingData();
   }, [user]);
+
+  const sortItems = (items: any[]) => {
+    return [...items].sort((a, b) => {
+      let aValue = sortBy === 'email' 
+        ? (a.email || a.fromUserEmail || a.toUserEmail || '')
+        : (a.status || 'accepted');
+      let bValue = sortBy === 'email'
+        ? (b.email || b.fromUserEmail || b.toUserEmail || '')
+        : (b.status || 'accepted');
+
+      if (sortDirection === 'desc') {
+        [aValue, bValue] = [bValue, aValue];
+      }
+
+      return aValue.localeCompare(bValue);
+    });
+  };
 
   const loadSharingData = async () => {
     if (!user) return;
@@ -41,9 +63,9 @@ export const useSharing = (user: User | null, t: (key: string) => string) => {
       ]);
 
       const pendingInvitations = received.filter(inv => inv.status === 'pending');
-      setReceivedInvitations(pendingInvitations);
-      setSentInvitations(sent);
-      setFriends(acceptedUsers);
+      setReceivedInvitations(sortItems(pendingInvitations));
+      setSentInvitations(sortItems(sent));
+      setFriends(sortItems(acceptedUsers));
       setError(null);
     } catch (error) {
       setError(t('errors.sharingLoad'));
@@ -51,6 +73,12 @@ export const useSharing = (user: User | null, t: (key: string) => string) => {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    setReceivedInvitations(sortItems(receivedInvitations));
+    setSentInvitations(sortItems(sentInvitations));
+    setFriends(sortItems(friends));
+  }, [sortBy, sortDirection]);
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -88,7 +116,7 @@ export const useSharing = (user: User | null, t: (key: string) => string) => {
     try {
       setIsLoading(true);
       // Optimistically update the UI
-      setReceivedInvitations(prev => prev.filter(inv => inv.id !== invitationId));
+      setReceivedInvitations(prev => sortItems(prev.filter(inv => inv.id !== invitationId)));
       
       await respondToInvitation(user, invitationId, response);
       // Only reload data after the operation is complete
@@ -149,6 +177,10 @@ export const useSharing = (user: User | null, t: (key: string) => string) => {
     setShowDeleteConfirm(true);
   };
 
+  const toggleSortDirection = () => {
+    setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+  };
+
   return {
     inviteEmail,
     isEmailValid,
@@ -160,6 +192,8 @@ export const useSharing = (user: User | null, t: (key: string) => string) => {
     showDeleteConfirm,
     invitationToDelete,
     friendToDelete,
+    sortBy,
+    sortDirection,
     handleEmailChange,
     handleSendInvite,
     handleInvitationResponse,
@@ -170,6 +204,8 @@ export const useSharing = (user: User | null, t: (key: string) => string) => {
     setShowDeleteConfirm,
     setInvitationToDelete,
     setFriendToDelete,
-    setError
+    setError,
+    setSortBy,
+    toggleSortDirection
   };
 };

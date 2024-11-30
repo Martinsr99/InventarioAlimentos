@@ -176,5 +176,7 @@
   "sharing.noFriends": "Aún no hay amigos",
   "sharing.friendsSection": "Tus Amigos",
   "sharing.selectUsers": "Seleccionar Usuarios",
-  "sharing.selectedUsers": "{{count}} usuarios seleccionados"
+  "sharing.selectedUsers": "{{count}} usuarios seleccionados",
+  "sharing.sortByStatus": "Estado",
+  "sharing.sortByEmail": "Correo"
 }
