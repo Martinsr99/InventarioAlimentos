@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   IonItem,
   IonLabel,
@@ -11,8 +11,16 @@ import {
   IonButton,
   IonTitle,
   IonDatetime,
+  IonIcon,
+  IonSpinner,
+  IonToast,
+  IonText,
+  IonCard,
+  IonCardContent,
 } from '@ionic/react';
+import { camera } from 'ionicons/icons';
 import { useLanguage } from '../../../contexts/LanguageContext';
+import { useDateDetection } from '../../../hooks/useDateDetection';
 import './DateSelector.css';
 
 interface DateSelectorProps {
@@ -35,6 +43,20 @@ const DateSelector: React.FC<DateSelectorProps> = ({
   onDateChange,
 }) => {
   const { t } = useLanguage();
+  const {
+    isProcessing,
+    detectedDate,
+    error,
+    startScanning,
+    stopScanning,
+    videoRef
+  } = useDateDetection();
+  const [isScannerOpen, setIsScannerOpen] = React.useState(false);
+  const [debugInfo, setDebugInfo] = useState<string[]>([]);
+
+  const addDebugInfo = (info: string) => {
+    setDebugInfo(prev => [info, ...prev.slice(0, 4)]);
+  };
 
   const formatDisplayDate = (dateString: string) => {
     if (!dateString) return '';
@@ -46,16 +68,64 @@ const DateSelector: React.FC<DateSelectorProps> = ({
     });
   };
 
+  const handleCameraClick = async () => {
+    setIsScannerOpen(true);
+    setDebugInfo([]);
+    addDebugInfo('Iniciando escáner...');
+    await startScanning();
+  };
+
+  const handleScannerClose = () => {
+    stopScanning();
+    setIsScannerOpen(false);
+    setDebugInfo([]);
+  };
+
+  useEffect(() => {
+    if (detectedDate) {
+      addDebugInfo(`Fecha detectada: ${detectedDate.toLocaleDateString()}`);
+      onDateChange(detectedDate.toISOString());
+      handleScannerClose();
+    }
+  }, [detectedDate, onDateChange]);
+
+  useEffect(() => {
+    if (isProcessing) {
+      addDebugInfo('Procesando imagen...');
+    }
+  }, [isProcessing]);
+
+  useEffect(() => {
+    if (error) {
+      addDebugInfo(`Error: ${error}`);
+    }
+  }, [error]);
+
   return (
     <>
-      <IonItem button onClick={onOpen} className="date-input" lines="none">
+      <IonItem className="date-input" lines="none">
         <IonLabel position="stacked">{t('products.expiryDate')}</IonLabel>
-        <IonInput
-          readonly
-          value={formatDisplayDate(expiryDate)}
-          placeholder={t('products.selectDate')}
-          className="date-display"
-        />
+        <div className="date-input-container">
+          <IonInput
+            readonly
+            value={formatDisplayDate(expiryDate)}
+            placeholder={t('products.selectDate')}
+            className="date-display"
+            onClick={onOpen}
+          />
+          <IonButton
+            fill="clear"
+            onClick={handleCameraClick}
+            disabled={isProcessing}
+            className="camera-button"
+          >
+            {isProcessing ? (
+              <IonSpinner name="crescent" />
+            ) : (
+              <IonIcon icon={camera} slot="icon-only" />
+            )}
+          </IonButton>
+        </div>
       </IonItem>
 
       <IonModal 
@@ -129,6 +199,56 @@ const DateSelector: React.FC<DateSelectorProps> = ({
           </div>
         </IonContent>
       </IonModal>
+
+      <IonModal
+        isOpen={isScannerOpen}
+        onDidDismiss={handleScannerClose}
+        className="scanner-modal"
+      >
+        <IonHeader>
+          <IonToolbar>
+            <IonTitle>{t('products.scanExpiryDate')}</IonTitle>
+            <IonButtons slot="end">
+              <IonButton onClick={handleScannerClose}>
+                {t('common.cancel')}
+              </IonButton>
+            </IonButtons>
+          </IonToolbar>
+        </IonHeader>
+        <IonContent>
+          <div className="scanner-container">
+            <video
+              ref={videoRef}
+              className="scanner-video"
+              playsInline
+              autoPlay
+              muted
+            />
+            <div className="scanner-overlay">
+              <div className="scanner-target"></div>
+            </div>
+            {/* Debug Info Card */}
+            <IonCard className="debug-card">
+              <IonCardContent>
+                <IonText color="medium">
+                  <h2>Estado del escáner:</h2>
+                  {debugInfo.map((info, index) => (
+                    <p key={index}>{info}</p>
+                  ))}
+                </IonText>
+              </IonCardContent>
+            </IonCard>
+          </div>
+        </IonContent>
+      </IonModal>
+
+      <IonToast
+        isOpen={!!error}
+        message={error || ''}
+        duration={3000}
+        position="bottom"
+        color="danger"
+      />
     </>
   );
 };

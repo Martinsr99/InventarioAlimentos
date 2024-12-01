@@ -1,194 +1,115 @@
-/* Global styles for datetime picker */
-:root {
-  --datetime-background: var(--ion-background-color);
-  --datetime-text-color: var(--ion-text-color);
+.date-input {
+  --padding-start: 0;
+  --inner-padding-end: 0;
 }
 
-/* Modal styles */
-.date-picker-modal {
-  --height: 380px;
-  --width: 300px;
-  --border-radius: 16px;
-  --background: var(--ion-background-color);
+.date-input-container {
+  display: flex;
+  align-items: center;
+  width: 100%;
 }
 
-/* Forzar transparencia en el contenido del modal */
-.date-picker-modal::part(content) {
-  border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-  background: transparent !important;
+.date-display {
+  flex: 1;
 }
 
-/* Header styles */
-.date-picker-modal ion-header {
-  background: var(--ion-background-color);
+.camera-button {
+  margin: 0;
 }
 
-.date-picker-modal ion-toolbar {
-  --background: var(--ion-background-color);
-  --color: var(--ion-text-color);
-  --min-height: 56px;
-  --padding-top: 8px;
-  --padding-bottom: 8px;
-  --padding-start: 8px;
-  --padding-end: 8px;
-  border-bottom: 1px solid var(--ion-color-step-150);
+.scanner-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #000;
 }
 
-.date-picker-modal ion-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--ion-text-color);
+.scanner-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-.modal-button {
-  --color: var(--ion-color-primary);
-  font-size: 1rem;
-  text-transform: none;
+.scanner-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.5);
 }
 
-/* Container styles */
+.scanner-target {
+  width: 80%;
+  height: 100px;
+  border: 2px solid #fff;
+  border-radius: 8px;
+  position: relative;
+}
+
+.scanner-target::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.debug-card {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  right: 20px;
+  margin: 0;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+}
+
+.debug-card ion-card-content {
+  padding: 10px;
+}
+
+.debug-card h2 {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.debug-card p {
+  margin: 4px 0;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.scanner-modal {
+  --height: 100%;
+  --width: 100%;
+}
+
 .datetime-container {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100%;
-  padding: 0;
-  background: var(--ion-background-color);
 }
 
-/* General: todos los elementos del IonDatetime en tema oscuro */
-.custom-datetime,
-.custom-datetime * {
-  background: transparent !important;
-  color: var(--ion-text-color) !important;
+.custom-datetime {
+  width: 100%;
+  max-width: 350px;
+  margin: auto;
+  border-radius: 8px;
+  padding: 16px;
 }
 
-/* Elementos seleccionados en las ruedas */
-.custom-datetime::part(active-wheel-item),
-.custom-datetime .wheel-item.picker-opt-selected {
-  background: transparent !important;
-  color: var(--ion-text-color) !important;
-  font-weight: 600 !important;
-}
-
-/* Fondo transparente para los highlights */
-.custom-datetime::part(wheel-item) {
-  background: transparent !important;
-  color: var(--ion-text-color) !important;
-}
-
-.custom-datetime::part(active-wheel-item) {
-  background: transparent !important;
-  color: var(--ion-text-color) !important;
-}
-
-/* Ruedas de selección (general) */
-.custom-datetime .datetime-wheel {
-  background: transparent !important;
-}
-
-/* Estilos globales para eliminar cualquier fondo */
-ion-datetime::part(wheel-item)::before,
-ion-datetime::part(wheel-item)::after,
-.custom-datetime .datetime-wheel::before,
-.custom-datetime .datetime-wheel::after {
-  display: none !important;
-}
-
-/* Input field styles */
-.date-input {
-  --background: transparent;
-  --border-color: var(--ion-color-step-150);
-  --border-width: 1px;
-  --border-style: solid;
-  --border-radius: 8px;
-  --padding-start: 16px;
-  --padding-end: 16px;
-  margin: 8px 0;
-}
-
-.date-input ion-label {
-  color: var(--ion-text-color);
+.modal-button {
+  font-size: 16px;
   font-weight: 500;
-  opacity: 0.9;
-  margin-bottom: 8px;
-}
-
-.date-input ion-input {
-  --color: var(--ion-text-color);
-  --placeholder-color: var(--ion-color-step-400);
-  --placeholder-opacity: 0.6;
-  font-size: 1rem;
-}
-
-/* Override Ionic's datetime styles */
-ion-datetime {
-  color: var(--ion-text-color) !important;
-  background: transparent !important;
-}
-
-/* Hide unnecessary elements */
-ion-datetime .datetime-header,
-ion-datetime .datetime-footer {
-  display: none !important;
-}
-
-/* Global styles for picker components */
-ion-picker-column,
-ion-picker-column-internal,
-.picker-wrapper,
-.picker-above-highlight,
-.picker-below-highlight {
-  background: transparent !important;
-}
-
-.picker-wrapper.sc-ion-picker-ios {
-  background: transparent !important;
-}
-
-.picker-above-highlight.sc-ion-picker-ios,
-.picker-below-highlight.sc-ion-picker-ios {
-  background: transparent !important;
-}
-
-.picker-opt {
-  color: var(--ion-text-color) !important;
-}
-
-.picker-opt.picker-opt-selected {
-  color: var(--ion-text-color) !important;
-  background: transparent !important;
-}
-
-/* Forzar tema oscuro en todos los elementos de datetime */
-ion-datetime,
-ion-datetime *,
-ion-picker,
-ion-picker * {
-  color: var(--ion-text-color) !important;
-  background: transparent !important;
-}
-
-/* Remove highlight backgrounds */
-:host .picker-highlight {
-  background: transparent !important;
-}
-
-/* Remove any additional backgrounds */
-ion-datetime::part(wheel-item)::before,
-ion-datetime::part(wheel-item)::after {
-  display: none !important;
-}
-
-/* Remove wheel highlights */
-ion-datetime .datetime-wheel::before,
-ion-datetime .datetime-wheel::after {
-  display: none !important;
-}
-
-/* Remove any remaining highlights */
-.datetime-wheel::before,
-.datetime-wheel::after {
-  display: none !important;
 }

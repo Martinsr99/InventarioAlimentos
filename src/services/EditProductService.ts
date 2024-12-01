@@ -7,12 +7,12 @@ interface UpdateProductData {
   expiryDate: string;
   quantity: number;
   location: ProductLocation;
-  notes: string;
-  category: ProductCategory | '';
-  sharedWith: string[];
+  notes?: string;
+  category?: ProductCategory;
+  sharedWith?: string[];
 }
 
-export const updateProduct = async (productId: string, data: UpdateProductData): Promise<void> => {
+export const submitProductEdit = async (productId: string, data: UpdateProductData): Promise<void> => {
   const productRef = doc(db, 'products', productId);
   await updateDoc(productRef, {
     ...data,

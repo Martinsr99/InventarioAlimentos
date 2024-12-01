@@ -68,3 +68,18 @@ android/captures/
 android/local.properties
 android/.gradle/
 android/gradle-wrapper.jar
+
+# Android specific files from commit
+android/capacitor.settings.gradle
+android/app/build.gradle
+android/app/capacitor.build.gradle
+android/app/src/main/AndroidManifest.xml
+android/build.gradle
+android/app/capacitor.build.gradle
+android/app/build.gradle
+android/capacitor.settings.gradle
+android/app/src/main/AndroidManifest.xml
+android/capacitor.settings.gradle
+android/app/build.gradle
+android/app/capacitor.build.gradle
+android/app/src/main/AndroidManifest.xml

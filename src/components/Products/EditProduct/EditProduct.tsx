@@ -9,15 +9,24 @@ import {
   IonSpinner,
   IonTextarea,
   IonToast,
-  IonText
+  IonText,
+  IonPage,
+  IonContent,
+  IonHeader,
+  IonToolbar,
+  IonButtons,
+  IonBackButton,
+  IonTitle
 } from '@ionic/react';
 import { getAcceptedShareUsers } from '../../../services/FriendService';
 import { useLanguage } from '../../../contexts/LanguageContext';
-import { auth } from '../../../firebaseConfig';
+import { auth, db } from '../../../firebaseConfig';
 import { useEditProductForm } from '../../../hooks/useEditProductForm';
+import { submitProductEdit } from '../../../services/EditProductService';
 import DateSelector from '../AddProduct/DateSelector';
 import QuantitySelector from '../AddProduct/QuantitySelector';
 import { saveOutline } from 'ionicons/icons';
+import { doc, getDoc } from 'firebase/firestore';
 import './EditProductForm.css';
 
 const CATEGORIES = [
@@ -45,24 +54,124 @@ interface EditProductProps {
 
 export const EditProduct: React.FC<EditProductProps> = ({ productId, onSaved }) => {
   const { t } = useLanguage();
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [productData, setProductData] = useState<any>(null);
+
+  useEffect(() => {
+    const loadProduct = async () => {
+      try {
+        const productRef = doc(db, 'products', productId);
+        const productSnap = await getDoc(productRef);
+        
+        if (productSnap.exists()) {
+          setProductData(productSnap.data());
+        } else {
+          setLoadError(t('errors.productNotFound'));
+        }
+      } catch (error) {
+        console.error('Error loading product:', error);
+        setLoadError(t('errors.productLoad'));
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadProduct();
+  }, [productId, t]);
+
+  if (isLoading) {
+    return (
+      <IonPage>
+        <IonContent>
+          <div className="loading-container">
+            <IonSpinner />
+          </div>
+        </IonContent>
+      </IonPage>
+    );
+  }
+
+  if (loadError || !productData) {
+    return (
+      <IonPage>
+        <IonContent>
+          <div className="error-container">
+            <IonText color="danger">{loadError}</IonText>
+          </div>
+        </IonContent>
+      </IonPage>
+    );
+  }
+
+  return (
+    <IonPage>
+      <IonHeader>
+        <IonToolbar>
+          <IonButtons slot="start">
+            <IonBackButton defaultHref="/" />
+          </IonButtons>
+          <IonTitle>{t('products.edit')}</IonTitle>
+        </IonToolbar>
+      </IonHeader>
+      <IonContent>
+        <EditProductForm
+          productId={productId}
+          initialData={{
+            name: productData.name,
+            expiryDate: productData.expiryDate,
+            quantity: productData.quantity,
+            category: productData.category,
+            location: productData.location,
+            notes: productData.notes,
+            sharedWith: productData.sharedWith
+          }}
+          onSaved={onSaved}
+        />
+      </IonContent>
+    </IonPage>
+  );
+};
+
+interface EditProductFormProps {
+  productId: string;
+  initialData: {
+    name: string;
+    expiryDate: string;
+    quantity: number;
+    category?: typeof CATEGORIES[number];
+    location: typeof LOCATIONS[number];
+    notes?: string;
+    sharedWith?: string[];
+  };
+  onSaved?: () => void;
+}
+
+const EditProductForm: React.FC<EditProductFormProps> = ({
+  productId,
+  initialData,
+  onSaved
+}) => {
+  const { t } = useLanguage();
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [sharedUsers, setSharedUsers] = useState<{ userId: string; email: string }[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+
   const {
     formState,
     isCustomQuantity,
     validationError,
     selectedDate,
     inputValues,
-    isLoading,
-    error,
-    success,
     setFormValue,
     handleQuantityChange,
     handleInputChange,
-    handleSubmit,
+    validation,
     setSelectedDate,
     setValidationError
-  } = useEditProductForm(productId, onSaved);
+  } = useEditProductForm(initialData);
 
   useEffect(() => {
     const loadSharedUsers = async () => {
@@ -92,13 +201,41 @@ export const EditProduct: React.FC<EditProductProps> = ({ productId, onSaved }) 
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="loading-container">
-        <IonSpinner />
-      </div>
-    );
-  }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitError(null);
+    setValidationError('');
+
+    const validationResult = validation.validateForm();
+    if (!validationResult.isValid) {
+      setValidationError(validationResult.error || '');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      await submitProductEdit(productId, {
+        name: inputValues.current.name || formState.name,
+        expiryDate: formState.expiryDate,
+        quantity: Number(inputValues.current.quantity || formState.quantity),
+        location: formState.location,
+        notes: inputValues.current.notes || formState.notes,
+        category: formState.category || undefined,
+        sharedWith: formState.selectedSharedUsers
+      });
+      
+      setSubmitSuccess(true);
+      if (onSaved) {
+        onSaved();
+      }
+    } catch (error) {
+      console.error('Error updating product:', error);
+      setSubmitError(t('errors.productUpdate'));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="edit-product-form">
@@ -204,21 +341,27 @@ export const EditProduct: React.FC<EditProductProps> = ({ productId, onSaved }) 
         expand="block"
         type="submit"
         className="ion-margin-top"
-        disabled={isLoading}
+        disabled={isSubmitting}
       >
-        <IonIcon icon={saveOutline} slot="start" />
-        {t('products.save')}
+        {isSubmitting ? (
+          <IonSpinner name="crescent" />
+        ) : (
+          <>
+            <IonIcon icon={saveOutline} slot="start" />
+            {t('products.save')}
+          </>
+        )}
       </IonButton>
 
       <IonToast
-        isOpen={!!error}
-        message={error || ''}
+        isOpen={!!submitError}
+        message={submitError || ''}
         duration={3000}
         color="danger"
       />
 
       <IonToast
-        isOpen={success}
+        isOpen={submitSuccess}
         message={t('products.updateSuccess')}
         duration={2000}
         color="success"

@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { ProductCategory, ProductLocation } from '../constants/productConstants';
-import { updateProduct } from '../services/EditProductService';
+import { submitProductEdit } from '../services/EditProductService';
 
 interface EditProductFormState {
   name: string;
@@ -27,29 +27,29 @@ interface InitialData {
   sharedWith?: string[];
 }
 
-export const useEditProductForm = (productId: string, onSaved?: () => void) => {
+export const useEditProductForm = (initialData: InitialData) => {
   const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [formState, setFormState] = useState<EditProductFormState>({
-    name: '',
-    expiryDate: '',
-    quantity: '1',
-    category: '',
-    location: 'fridge',
-    notes: '',
-    selectedSharedUsers: []
+    name: initialData.name,
+    expiryDate: initialData.expiryDate,
+    quantity: initialData.quantity.toString(),
+    category: initialData.category || '',
+    location: initialData.location,
+    notes: initialData.notes || '',
+    selectedSharedUsers: initialData.sharedWith || []
   });
 
   const [isCustomQuantity, setIsCustomQuantity] = useState(false);
   const [validationError, setValidationError] = useState('');
-  const [selectedDate, setSelectedDate] = useState<string>('');
+  const [selectedDate, setSelectedDate] = useState<string>(initialData.expiryDate);
 
   const inputValues = useRef({
-    name: '',
-    quantity: '1',
-    notes: '',
+    name: initialData.name,
+    quantity: initialData.quantity.toString(),
+    notes: initialData.notes || '',
   });
 
   const setFormValue = (field: keyof EditProductFormState, value: string | string[]) => {
@@ -91,42 +91,6 @@ export const useEditProductForm = (productId: string, onSaved?: () => void) => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setValidationError('');
-
-    const validationResult = validation.validateForm();
-    if (!validationResult.isValid) {
-      setValidationError(validationResult.error || '');
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      await updateProduct(productId, {
-        name: inputValues.current.name || formState.name,
-        expiryDate: formState.expiryDate,
-        quantity: Number(inputValues.current.quantity || formState.quantity),
-        location: formState.location,
-        notes: inputValues.current.notes || formState.notes,
-        category: formState.category,
-        sharedWith: formState.selectedSharedUsers
-      });
-
-      setSuccess(true);
-      if (onSaved) {
-        onSaved();
-      }
-    } catch (error) {
-      console.error('Error updating product:', error);
-      setError(t('errors.productUpdate'));
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return {
     formState,
     isCustomQuantity,
@@ -139,7 +103,6 @@ export const useEditProductForm = (productId: string, onSaved?: () => void) => {
     setFormValue,
     handleQuantityChange,
     handleInputChange,
-    handleSubmit,
     validation,
     setSelectedDate,
     setValidationError
