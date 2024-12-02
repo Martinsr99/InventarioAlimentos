@@ -17,6 +17,8 @@ import {
   IonText,
   IonCard,
   IonCardContent,
+  IonProgressBar,
+  IonImg,
 } from '@ionic/react';
 import { camera } from 'ionicons/icons';
 import { useLanguage } from '../../../contexts/LanguageContext';
@@ -49,14 +51,12 @@ const DateSelector: React.FC<DateSelectorProps> = ({
     error,
     startScanning,
     stopScanning,
-    videoRef
+    videoRef,
+    debugInfo,
+    currentFrame
   } = useDateDetection();
-  const [isScannerOpen, setIsScannerOpen] = React.useState(false);
-  const [debugInfo, setDebugInfo] = useState<string[]>([]);
-
-  const addDebugInfo = (info: string) => {
-    setDebugInfo(prev => [info, ...prev.slice(0, 4)]);
-  };
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(false);
 
   const formatDisplayDate = (dateString: string) => {
     if (!dateString) return '';
@@ -69,37 +69,36 @@ const DateSelector: React.FC<DateSelectorProps> = ({
   };
 
   const handleCameraClick = async () => {
-    setIsScannerOpen(true);
-    setDebugInfo([]);
-    addDebugInfo('Iniciando escáner...');
-    await startScanning();
+    try {
+      setIsInitializing(true);
+      setIsScannerOpen(true);
+      await startScanning();
+    } catch (err) {
+      console.error('Error al iniciar la cámara:', err);
+    } finally {
+      setIsInitializing(false);
+    }
   };
 
   const handleScannerClose = () => {
     stopScanning();
     setIsScannerOpen(false);
-    setDebugInfo([]);
   };
 
   useEffect(() => {
     if (detectedDate) {
-      addDebugInfo(`Fecha detectada: ${detectedDate.toLocaleDateString()}`);
       onDateChange(detectedDate.toISOString());
       handleScannerClose();
     }
   }, [detectedDate, onDateChange]);
 
   useEffect(() => {
-    if (isProcessing) {
-      addDebugInfo('Procesando imagen...');
-    }
-  }, [isProcessing]);
-
-  useEffect(() => {
-    if (error) {
-      addDebugInfo(`Error: ${error}`);
-    }
-  }, [error]);
+    return () => {
+      if (isScannerOpen) {
+        stopScanning();
+      }
+    };
+  }, [isScannerOpen]);
 
   return (
     <>
@@ -116,10 +115,10 @@ const DateSelector: React.FC<DateSelectorProps> = ({
           <IonButton
             fill="clear"
             onClick={handleCameraClick}
-            disabled={isProcessing}
+            disabled={isProcessing || isInitializing}
             className="camera-button"
           >
-            {isProcessing ? (
+            {isProcessing || isInitializing ? (
               <IonSpinner name="crescent" />
             ) : (
               <IonIcon icon={camera} slot="icon-only" />
@@ -204,6 +203,7 @@ const DateSelector: React.FC<DateSelectorProps> = ({
         isOpen={isScannerOpen}
         onDidDismiss={handleScannerClose}
         className="scanner-modal"
+        backdropDismiss={false}
       >
         <IonHeader>
           <IonToolbar>
@@ -217,6 +217,9 @@ const DateSelector: React.FC<DateSelectorProps> = ({
         </IonHeader>
         <IonContent>
           <div className="scanner-container">
+            {isProcessing && (
+              <IonProgressBar type="indeterminate" color="primary" className="scanner-progress" />
+            )}
             <video
               ref={videoRef}
               className="scanner-video"
@@ -227,11 +230,24 @@ const DateSelector: React.FC<DateSelectorProps> = ({
             <div className="scanner-overlay">
               <div className="scanner-target"></div>
             </div>
-            {/* Debug Info Card */}
+            {currentFrame && (
+              <div className="frame-preview">
+                <IonCard>
+                  <IonCardContent>
+                    <IonText color="medium">
+                      <h3>Frame actual:</h3>
+                    </IonText>
+                    <IonImg src={currentFrame} className="frame-image" />
+                  </IonCardContent>
+                </IonCard>
+              </div>
+            )}
             <IonCard className="debug-card">
               <IonCardContent>
                 <IonText color="medium">
                   <h2>Estado del escáner:</h2>
+                  {isInitializing && <p>Iniciando cámara...</p>}
+                  {isProcessing && <p>Procesando imagen...</p>}
                   {debugInfo.map((info, index) => (
                     <p key={index}>{info}</p>
                   ))}

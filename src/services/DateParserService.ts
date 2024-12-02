@@ -13,29 +13,75 @@ class DateParserService {
   }
 
   private normalizeYear(year: number): number {
-    // Si el año tiene 2 dígitos, asumimos que es 20XX
+    const currentYear = new Date().getFullYear();
+    const currentCentury = Math.floor(currentYear / 100) * 100;
+
+    // Si el año tiene 2 dígitos
     if (year < 100) {
-      return year + 2000;
+      // Si el año es mayor que los últimos dos dígitos del año actual + 10,
+      // asumimos que es del siglo anterior
+      const twoDigitYear = currentYear % 100;
+      if (year > twoDigitYear + 10) {
+        return (currentCentury - 100) + year;
+      }
+      // Si no, asumimos que es del siglo actual
+      return currentCentury + year;
     }
     return year;
   }
 
+  private cleanDateString(dateStr: string): string {
+    // Remover espacios y caracteres no deseados
+    return dateStr.trim()
+      .replace(/\s+/g, '') // Eliminar espacios
+      .replace(/[^0-9/.-]/g, '') // Solo mantener números y separadores
+      .replace(/[/.-]+/g, '/'); // Normalizar separadores a /
+  }
+
   private parseDate(dateStr: string): ParsedDate | null {
-    // Remover espacios en blanco
-    dateStr = dateStr.trim();
+    // Limpiar y normalizar la cadena
+    dateStr = this.cleanDateString(dateStr);
 
     // Diferentes patrones de fecha
     const patterns = [
-      // dd/mm/yyyy o dd-mm-yyyy
+      // dd/mm/yy
       {
-        regex: /^(\d{1,2})[-/.](\d{1,2})[-/.](\d{2,4})$/,
+        regex: /^(\d{1,2})\/(\d{1,2})\/(\d{2})$/,
         dayIndex: 1,
         monthIndex: 2,
         yearIndex: 3
       },
-      // yyyy/mm/dd o yyyy-mm-dd
+      // dd/mm/yyyy
       {
-        regex: /^(\d{2,4})[-/.](\d{1,2})[-/.](\d{1,2})$/,
+        regex: /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/,
+        dayIndex: 1,
+        monthIndex: 2,
+        yearIndex: 3
+      },
+      // yyyy/mm/dd
+      {
+        regex: /^(\d{4})\/(\d{1,2})\/(\d{1,2})$/,
+        dayIndex: 3,
+        monthIndex: 2,
+        yearIndex: 1
+      },
+      // yy/mm/dd
+      {
+        regex: /^(\d{2})\/(\d{1,2})\/(\d{1,2})$/,
+        dayIndex: 3,
+        monthIndex: 2,
+        yearIndex: 1
+      },
+      // ddmmyy (sin separadores)
+      {
+        regex: /^(\d{2})(\d{2})(\d{2})$/,
+        dayIndex: 1,
+        monthIndex: 2,
+        yearIndex: 3
+      },
+      // yymmdd (sin separadores)
+      {
+        regex: /^(\d{2})(\d{2})(\d{2})$/,
         dayIndex: 3,
         monthIndex: 2,
         yearIndex: 1
@@ -49,10 +95,19 @@ class DateParserService {
         const month = parseInt(match[pattern.monthIndex], 10);
         let year = parseInt(match[pattern.yearIndex], 10);
         
+        // Normalizar el año
         year = this.normalizeYear(year);
 
-        if (this.isValidDate(day, month, year)) {
-          return { day, month, year };
+        // Validar rangos básicos antes de crear la fecha
+        if (day >= 1 && day <= 31 &&
+            month >= 1 && month <= 12 &&
+            year >= 2000 && year <= 2100) {
+          
+          // Validar la fecha completa
+          if (this.isValidDate(day, month, year)) {
+            console.log(`Fecha válida encontrada: ${day}/${month}/${year}`);
+            return { day, month, year };
+          }
         }
       }
     }
@@ -61,20 +116,23 @@ class DateParserService {
   }
 
   parseDates(dateStrings: string[]): Date[] {
+    console.log('Intentando parsear fechas:', dateStrings);
     const validDates: Date[] = [];
 
     for (const dateStr of dateStrings) {
+      console.log('Procesando:', dateStr);
       const parsed = this.parseDate(dateStr);
       if (parsed) {
         const { year, month, day } = parsed;
-        validDates.push(new Date(year, month - 1, day));
+        const date = new Date(year, month - 1, day);
+        console.log('Fecha parseada:', this.formatDate(date));
+        validDates.push(date);
       }
     }
 
     return validDates;
   }
 
-  // Formatea una fecha al formato deseado (dd/mm/yyyy)
   formatDate(date: Date): string {
     const day = date.getDate().toString().padStart(2, '0');
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -82,19 +140,27 @@ class DateParserService {
     return `${day}/${month}/${year}`;
   }
 
-  // Obtiene la fecha más probable de caducidad
   getMostLikelyExpirationDate(dates: Date[]): Date | null {
     if (dates.length === 0) return null;
 
-    // Filtrar fechas pasadas
-    const now = new Date();
-    const futureDates = dates.filter(date => date > now);
+    console.log('Fechas candidatas:', dates.map(d => this.formatDate(d)));
 
-    if (futureDates.length === 0) return null;
+    // Filtrar fechas pasadas y muy lejanas
+    const now = new Date();
+    const maxDate = new Date();
+    maxDate.setFullYear(maxDate.getFullYear() + 5); // Máximo 5 años en el futuro
+
+    const validDates = dates.filter(date => 
+      date > now && date < maxDate
+    );
+
+    if (validDates.length === 0) return null;
 
     // Ordenar fechas y tomar la más cercana
-    futureDates.sort((a, b) => a.getTime() - b.getTime());
-    return futureDates[0];
+    validDates.sort((a, b) => a.getTime() - b.getTime());
+    const selectedDate = validDates[0];
+    console.log('Fecha seleccionada:', this.formatDate(selectedDate));
+    return selectedDate;
   }
 }
 
