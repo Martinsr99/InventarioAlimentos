@@ -11,37 +11,30 @@
 
 .date-display {
   flex: 1;
+  margin-right: 8px;
 }
 
-.camera-button {
-  margin: 0;
+.camera-controls {
+  display: flex;
+  align-items: center;
 }
 
-.scanner-modal {
-  --height: 100%;
-  --width: 100%;
+.camera-button,
+.flash-button {
+  --padding-start: 8px;
+  --padding-end: 8px;
 }
 
 .scanner-container {
   position: relative;
   width: 100%;
   height: 100%;
-  background: #000;
-  display: flex;
-  flex-direction: column;
-}
-
-.scanner-progress {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 10;
+  background-color: #000;
 }
 
 .scanner-video {
   width: 100%;
-  height: 50%;
+  height: 100%;
   object-fit: cover;
 }
 
@@ -49,8 +42,8 @@
   position: absolute;
   top: 0;
   left: 0;
-  right: 0;
-  height: 50%;
+  width: 100%;
+  height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -58,98 +51,46 @@
 }
 
 .scanner-target {
-  width: 80%;
-  height: 100px;
+  width: 60%;
+  height: 60px;
   border: 2px solid #fff;
-  border-radius: 8px;
-  position: relative;
-  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
 }
 
-.scanner-target::before {
-  content: '';
+.scanner-progress {
   position: absolute;
-  top: 50%;
+  top: 0;
   left: 0;
-  right: 0;
-  height: 2px;
-  background: rgba(255, 255, 255, 0.8);
-  animation: scan 2s linear infinite;
-}
-
-@keyframes scan {
-  0% {
-    transform: translateY(-25px);
-  }
-  50% {
-    transform: translateY(25px);
-  }
-  100% {
-    transform: translateY(-25px);
-  }
+  width: 100%;
+  z-index: 1;
 }
 
 .frame-preview {
-  position: relative;
-  width: 100%;
-  height: 30%;
-  padding: 10px;
-  background: #f4f4f4;
-}
-
-.frame-preview ion-card {
-  margin: 0;
-  height: 100%;
-}
-
-.frame-preview ion-card-content {
-  padding: 10px;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.frame-preview h3 {
-  margin: 0 0 8px 0;
-  font-size: 14px;
-  font-weight: bold;
+  position: absolute;
+  bottom: 120px;
+  left: 16px;
+  right: 16px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  padding: 8px;
 }
 
 .frame-image {
-  flex: 1;
   width: 100%;
-  height: calc(100% - 22px);
-  object-fit: contain;
-  border: 1px solid #ddd;
+  height: auto;
   border-radius: 4px;
-  background: #fff;
 }
 
 .debug-card {
-  position: relative;
-  width: 100%;
-  height: 20%;
-  margin: 0;
-  background: rgba(255, 255, 255, 0.95);
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  right: 16px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  max-height: 80px;
   overflow-y: auto;
-}
-
-.debug-card ion-card-content {
-  padding: 12px;
-}
-
-.debug-card h2 {
-  margin: 0 0 8px 0;
-  font-size: 16px;
-  font-weight: bold;
-  color: var(--ion-color-dark);
-}
-
-.debug-card p {
-  margin: 4px 0;
-  font-size: 14px;
-  line-height: 1.4;
-  color: var(--ion-color-medium);
 }
 
 .datetime-container {
@@ -161,40 +102,10 @@
 
 .custom-datetime {
   width: 100%;
-  max-width: 350px;
-  margin: auto;
-  border-radius: 8px;
-  padding: 16px;
+  max-width: 320px;
+  margin: 0 auto;
 }
 
 .modal-button {
-  font-size: 16px;
-  font-weight: 500;
-}
-
-/* Animaciones */
-.scanner-modal.ion-overlay-enter-animation {
-  animation: fadeIn 0.3s ease-out;
-}
-
-.scanner-modal.ion-overlay-leave-animation {
-  animation: fadeOut 0.2s ease-in;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes fadeOut {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
+  margin: 0;
 }

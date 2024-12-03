@@ -44,6 +44,20 @@ class DateParserService {
 
     // Diferentes patrones de fecha
     const patterns = [
+      // mm/yyyy
+      {
+        regex: /^(\d{1,2})\/(\d{4})$/,
+        dayIndex: null,
+        monthIndex: 1,
+        yearIndex: 2
+      },
+      // mm/yy
+      {
+        regex: /^(\d{1,2})\/(\d{2})$/,
+        dayIndex: null,
+        monthIndex: 1,
+        yearIndex: 2
+      },
       // dd/mm/yy
       {
         regex: /^(\d{1,2})\/(\d{1,2})\/(\d{2})$/,
@@ -65,13 +79,6 @@ class DateParserService {
         monthIndex: 2,
         yearIndex: 1
       },
-      // yy/mm/dd
-      {
-        regex: /^(\d{2})\/(\d{1,2})\/(\d{1,2})$/,
-        dayIndex: 3,
-        monthIndex: 2,
-        yearIndex: 1
-      },
       // ddmmyy (sin separadores)
       {
         regex: /^(\d{2})(\d{2})(\d{2})$/,
@@ -79,28 +86,28 @@ class DateParserService {
         monthIndex: 2,
         yearIndex: 3
       },
-      // yymmdd (sin separadores)
+      // mmyy (sin separadores)
       {
-        regex: /^(\d{2})(\d{2})(\d{2})$/,
-        dayIndex: 3,
-        monthIndex: 2,
-        yearIndex: 1
+        regex: /^(\d{2})(\d{2})$/,
+        dayIndex: null,
+        monthIndex: 1,
+        yearIndex: 2
       }
     ];
 
     for (const pattern of patterns) {
       const match = dateStr.match(pattern.regex);
       if (match) {
-        const day = parseInt(match[pattern.dayIndex], 10);
         const month = parseInt(match[pattern.monthIndex], 10);
         let year = parseInt(match[pattern.yearIndex], 10);
+        let day = pattern.dayIndex ? parseInt(match[pattern.dayIndex], 10) : 1;
         
         // Normalizar el año
         year = this.normalizeYear(year);
 
         // Validar rangos básicos antes de crear la fecha
-        if (day >= 1 && day <= 31 &&
-            month >= 1 && month <= 12 &&
+        if (month >= 1 && month <= 12 &&
+            day >= 1 && day <= 31 &&
             year >= 2000 && year <= 2100) {
           
           // Validar la fecha completa

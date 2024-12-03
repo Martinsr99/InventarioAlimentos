@@ -29,7 +29,8 @@ class ImagePreprocessingService {
 
         // Convertir a escala de grises y aumentar contraste
         this.toGrayscale(data);
-        this.increaseContrast(data, 2.0);
+        this.increaseContrast(data, 2.5); // Aumentado de 2.0 a 2.5
+        this.increaseBrightness(data, 30); // Nuevo: aumentar brillo
         this.denoise(data, canvas.width);
         this.sharpen(data, canvas.width);
         this.threshold(data);
@@ -68,6 +69,14 @@ class ImagePreprocessingService {
       data[i] = this.truncate(factor * (data[i] - 128) + 128);
       data[i + 1] = this.truncate(factor * (data[i + 1] - 128) + 128);
       data[i + 2] = this.truncate(factor * (data[i + 2] - 128) + 128);
+    }
+  }
+
+  private increaseBrightness(data: Uint8ClampedArray, brightness: number): void {
+    for (let i = 0; i < data.length; i += 4) {
+      data[i] = this.truncate(data[i] + brightness);
+      data[i + 1] = this.truncate(data[i + 1] + brightness);
+      data[i + 2] = this.truncate(data[i + 2] + brightness);
     }
   }
 
@@ -169,8 +178,8 @@ class ImagePreprocessingService {
     }
 
     // Aplicar umbral con histéresis
-    const lowThreshold = threshold * 0.8;
-    const highThreshold = threshold * 1.2;
+    const lowThreshold = threshold * 0.7; // Reducido de 0.8 a 0.7
+    const highThreshold = threshold * 1.3; // Aumentado de 1.2 a 1.3
 
     for (let i = 0; i < data.length; i += 4) {
       const v = data[i];

@@ -20,7 +20,7 @@ import {
   IonProgressBar,
   IonImg,
 } from '@ionic/react';
-import { camera } from 'ionicons/icons';
+import { camera, flash, flashOff } from 'ionicons/icons';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import { useDateDetection } from '../../../hooks/useDateDetection';
 import './DateSelector.css';
@@ -51,6 +51,8 @@ const DateSelector: React.FC<DateSelectorProps> = ({
     error,
     startScanning,
     stopScanning,
+    toggleFlash,
+    isFlashOn,
     videoRef,
     debugInfo,
     currentFrame
@@ -100,6 +102,82 @@ const DateSelector: React.FC<DateSelectorProps> = ({
     };
   }, [isScannerOpen]);
 
+  const captureFrame = async (video: HTMLVideoElement): Promise<string> => {
+    const canvas = document.createElement('canvas');
+    const videoAspectRatio = video.videoWidth / video.videoHeight;
+    const elementAspectRatio = video.clientWidth / video.clientHeight;
+    
+    let effectiveWidth = video.videoWidth;
+    let effectiveHeight = video.videoHeight;
+    
+    if (elementAspectRatio > videoAspectRatio) {
+      effectiveWidth = video.videoHeight * elementAspectRatio;
+    } else {
+      effectiveHeight = video.videoWidth / elementAspectRatio;
+    }
+    
+    const targetWidth = video.clientWidth * 0.6;
+    const targetHeight = 60;
+    
+    const scanAreaWidth = (targetWidth / video.clientWidth) * effectiveWidth;
+    const scanAreaHeight = (targetHeight / video.clientHeight) * effectiveHeight;
+    
+    const x = (video.videoWidth - scanAreaWidth) / 2;
+    const y = (video.videoHeight - scanAreaHeight) / 2;
+
+    canvas.width = scanAreaWidth;
+    canvas.height = scanAreaHeight * 2;
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      throw new Error('Could not get canvas context');
+    }
+
+    // Fondo negro para mejor contraste
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Configurar calidad
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+
+    // Capturar el área específica
+    ctx.drawImage(
+      video,
+      x, y, scanAreaWidth, scanAreaHeight,
+      0, 0, canvas.width, canvas.height
+    );
+
+    // Aplicar ajustes de imagen
+    ctx.filter = 'contrast(1.5) brightness(0.9) saturate(1.2)';
+    ctx.drawImage(canvas, 0, 0);
+
+    // Aplicar sharpening usando convolución
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const pixels = imageData.data;
+    const sharpenKernel = [
+      0, -1, 0,
+      -1, 5, -1,
+      0, -1, 0
+    ];
+    
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+    const tempCtx = tempCanvas.getContext('2d');
+    if (!tempCtx) {
+      throw new Error('Could not get temp canvas context');
+    }
+    
+    tempCtx.putImageData(imageData, 0, 0);
+    
+    // Aplicar el kernel de sharpening
+    ctx.filter = 'none';
+    ctx.drawImage(tempCanvas, 0, 0);
+    
+    return canvas.toDataURL('image/jpeg', 1.0);
+  };
+
   return (
     <>
       <IonItem className="date-input" lines="none">
@@ -112,18 +190,27 @@ const DateSelector: React.FC<DateSelectorProps> = ({
             className="date-display"
             onClick={onOpen}
           />
-          <IonButton
-            fill="clear"
-            onClick={handleCameraClick}
-            disabled={isProcessing || isInitializing}
-            className="camera-button"
-          >
-            {isProcessing || isInitializing ? (
-              <IonSpinner name="crescent" />
-            ) : (
-              <IonIcon icon={camera} slot="icon-only" />
-            )}
-          </IonButton>
+          <div className="camera-controls">
+            <IonButton
+              fill="clear"
+              onClick={() => toggleFlash()}
+              className="flash-button"
+            >
+              <IonIcon icon={isFlashOn ? flash : flashOff} slot="icon-only" />
+            </IonButton>
+            <IonButton
+              fill="clear"
+              onClick={handleCameraClick}
+              disabled={isProcessing || isInitializing}
+              className="camera-button"
+            >
+              {isProcessing || isInitializing ? (
+                <IonSpinner name="crescent" />
+              ) : (
+                <IonIcon icon={camera} slot="icon-only" />
+              )}
+            </IonButton>
+          </div>
         </div>
       </IonItem>
 
