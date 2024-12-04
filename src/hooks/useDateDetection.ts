@@ -29,6 +29,7 @@ export const useDateDetection = (): UseDateDetectionResult => {
   const scanIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const processingRef = useRef(false);
   const trackRef = useRef<MediaStreamTrack | null>(null);
+  const lastDetectedDatesRef = useRef<string[]>([]);
   const { t } = useLanguage();
 
   const addDebugInfo = useCallback((info: string) => {
@@ -40,26 +41,31 @@ export const useDateDetection = (): UseDateDetectionResult => {
     try {
       const constraints: MediaTrackConstraints & ExtendedMediaTrackConstraintSet = {
         facingMode: 'environment',
-        width: { ideal: 1280 },
-        height: { ideal: 720 },
+        width: { ideal: 1920 },
+        height: { ideal: 1080 },
         focusMode: 'continuous',
         exposureMode: 'continuous',
         whiteBalanceMode: 'continuous'
       };
 
       const stream = await navigator.mediaDevices.getUserMedia({ video: constraints });
-
-      // Guardar la referencia del track para control del flash
       const videoTrack = stream.getVideoTracks()[0];
       trackRef.current = videoTrack;
 
-      // Verificar capacidades del dispositivo
       const capabilities = videoTrack.getCapabilities() as ExtendedMediaTrackCapabilities;
+      const settings: ExtendedMediaTrackConstraintSet = {
+        focusMode: 'continuous',
+        exposureMode: 'continuous',
+        whiteBalanceMode: 'continuous'
+      };
+
       if (capabilities.torch) {
         addDebugInfo('Flash disponible');
-      } else {
-        addDebugInfo('Flash no soportado en este dispositivo');
       }
+
+      await videoTrack.applyConstraints({
+        advanced: [settings]
+      });
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
@@ -124,7 +130,6 @@ export const useDateDetection = (): UseDateDetectionResult => {
     }
 
     if (streamRef.current) {
-      // Asegurarse de apagar el flash antes de detener
       if (isFlashOn && trackRef.current) {
         trackRef.current.applyConstraints({
           advanced: [{ torch: false } as ExtendedMediaTrackConstraintSet]
@@ -146,116 +151,112 @@ export const useDateDetection = (): UseDateDetectionResult => {
 
     processingRef.current = false;
     setIsProcessing(false);
+    lastDetectedDatesRef.current = [];
     addDebugInfo('Escáner detenido completamente');
   }, [addDebugInfo, isFlashOn]);
 
-  const captureFrame = useCallback(async (): Promise<string> => {
-    if (!videoRef.current) {
-      throw new Error('Video element not found');
-    }
-
-    const video = videoRef.current;
-    const canvas = document.createElement('canvas');
-    
-    // Obtener las dimensiones reales del video y del elemento
-    const videoAspectRatio = video.videoWidth / video.videoHeight;
-    const elementAspectRatio = video.clientWidth / video.clientHeight;
-    
-    // Calcular las dimensiones efectivas del video en el elemento
-    let effectiveWidth = video.videoWidth;
-    let effectiveHeight = video.videoHeight;
-    
-    if (elementAspectRatio > videoAspectRatio) {
-      effectiveWidth = video.videoHeight * elementAspectRatio;
-    } else {
-      effectiveHeight = video.videoWidth / elementAspectRatio;
-    }
-    
-    // Calcular el área de escaneo
-    const targetWidth = video.clientWidth * 0.6;
-    const targetHeight = 60;
-    
-    // Convertir dimensiones del elemento a dimensiones del video
-    const scanAreaWidth = (targetWidth / video.clientWidth) * effectiveWidth;
-    const scanAreaHeight = (targetHeight / video.clientHeight) * effectiveHeight;
-    
-    // Calcular posición centrada
-    const x = (video.videoWidth - scanAreaWidth) / 2;
-    const y = (video.videoHeight - scanAreaHeight) / 2;
-
-    // Configurar canvas con dimensiones proporcionales
-    const canvasWidth = scanAreaWidth;
-    const canvasHeight = scanAreaHeight * 2;
-    canvas.width = canvasWidth;
-    canvas.height = canvasHeight;
-    
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      throw new Error('Could not get canvas context');
-    }
-
-    // Fondo blanco para mejor contraste
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-
-    // Configurar calidad
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
-
-    // Capturar el área específica y escalarla verticalmente
-    ctx.drawImage(
-      video,
-      x, y, scanAreaWidth, scanAreaHeight,
-      0, 0, canvasWidth, canvasHeight
-    );
-
-    // Aplicar mejoras
-    ctx.filter = 'contrast(1.3) brightness(1.2)';
-    ctx.drawImage(canvas, 0, 0);
-
-    addDebugInfo(`Captura: ${Math.round(x)},${Math.round(y)} - ${Math.round(scanAreaWidth)}x${Math.round(scanAreaHeight)}`);
-    
-    return canvas.toDataURL('image/jpeg', 1.0);
-  }, [addDebugInfo]);
-
   const processFrame = useCallback(async () => {
-    if (processingRef.current) {
-      return false;
-    }
-
-    if (!videoRef.current?.readyState || videoRef.current.readyState < 2) {
-      addDebugInfo('Video no está listo');
+    if (processingRef.current || !videoRef.current?.readyState || videoRef.current.readyState < 2) {
       return false;
     }
 
     try {
       processingRef.current = true;
       setIsProcessing(true);
-      addDebugInfo('Capturando frame...');
       
-      const imageBase64 = await captureFrame();
+      const video = videoRef.current;
+      const targetElement = document.querySelector('.scanner-target') as HTMLElement;
       
-      addDebugInfo('Preprocesando imagen...');
-      const processedImage = await imagePreprocessingService.optimizeExpirationDateImage(imageBase64);
-      setCurrentFrame(processedImage);
-      
-      addDebugInfo('Detectando fechas...');
-      const detectedDates = await ocrService.detectDates(processedImage);
+      if (!targetElement) {
+        throw new Error('Scanner target element not found');
+      }
 
-      if (detectedDates.length > 0) {
-        addDebugInfo(`Fechas detectadas: ${detectedDates.join(', ')}`);
-        const parsedDates = dateParserService.parseDates(detectedDates);
-        addDebugInfo(`Fechas parseadas: ${parsedDates.length}`);
-        
-        const mostLikelyDate = dateParserService.getMostLikelyExpirationDate(parsedDates);
+      // Obtener las dimensiones y posición del área de escaneo en la pantalla
+      const targetRect = targetElement.getBoundingClientRect();
+      const videoRect = video.getBoundingClientRect();
 
-        if (mostLikelyDate) {
-          addDebugInfo(`Fecha seleccionada: ${mostLikelyDate.toLocaleDateString()}`);
-          setDetectedDate(mostLikelyDate);
-          return true;
+      // Calcular la proporción entre las dimensiones del video y su elemento
+      const scaleX = video.videoWidth / videoRect.width;
+      const scaleY = video.videoHeight / videoRect.height;
+
+      // Calcular las coordenadas del área de escaneo en el espacio del video
+      const scanAreaWidth = targetRect.width * scaleX;
+      const scanAreaHeight = targetRect.height * scaleY;
+      const scanAreaX = (targetRect.left - videoRect.left) * scaleX;
+      const scanAreaY = (targetRect.top - videoRect.top) * scaleY;
+
+      // Crear el canvas con las dimensiones exactas del área de escaneo
+      const canvas = document.createElement('canvas');
+      canvas.width = scanAreaWidth;
+      canvas.height = scanAreaHeight;
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        throw new Error('Could not get canvas context');
+      }
+
+      // Fondo negro para mejor contraste
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Capturar exactamente el área de escaneo
+      ctx.drawImage(video, scanAreaX, scanAreaY, scanAreaWidth, scanAreaHeight, 0, 0, canvas.width, canvas.height);
+
+      // Aplicar mejoras de imagen
+      ctx.filter = 'contrast(1.5) brightness(0.9) saturate(1.2)';
+      ctx.drawImage(canvas, 0, 0);
+
+      // Aplicar sharpening
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const sharpenKernel = [0, -1, 0, -1, 5, -1, 0, -1, 0];
+      const pixels = imageData.data;
+      const tempImageData = new ImageData(new Uint8ClampedArray(pixels), canvas.width, canvas.height);
+      
+      for (let y = 1; y < canvas.height - 1; y++) {
+        for (let x = 1; x < canvas.width - 1; x++) {
+          for (let c = 0; c < 3; c++) {
+            let sum = 0;
+            for (let ky = -1; ky <= 1; ky++) {
+              for (let kx = -1; kx <= 1; kx++) {
+                const idx = ((y + ky) * canvas.width + (x + kx)) * 4 + c;
+                sum += pixels[idx] * sharpenKernel[(ky + 1) * 3 + (kx + 1)];
+              }
+            }
+            const idx = (y * canvas.width + x) * 4 + c;
+            tempImageData.data[idx] = Math.max(0, Math.min(255, sum));
+          }
         }
-      } else {
-        addDebugInfo('No se encontraron fechas');
+      }
+      
+      ctx.putImageData(tempImageData, 0, 0);
+      
+      const imageBase64 = canvas.toDataURL('image/jpeg', 1.0);
+      setCurrentFrame(imageBase64);
+      
+      const detectedDates = await ocrService.detectDates(imageBase64);
+      
+      if (detectedDates.length > 0) {
+        lastDetectedDatesRef.current = [...lastDetectedDatesRef.current, ...detectedDates].slice(-5);
+        
+        const dateFrequency = new Map<string, number>();
+        lastDetectedDatesRef.current.forEach(date => {
+          dateFrequency.set(date, (dateFrequency.get(date) || 0) + 1);
+        });
+        
+        const consistentDates = Array.from(dateFrequency.entries())
+          .filter(([_, freq]) => freq >= 2)
+          .map(([date]) => date);
+        
+        if (consistentDates.length > 0) {
+          const parsedDates = dateParserService.parseDates(consistentDates);
+          const mostLikelyDate = dateParserService.getMostLikelyExpirationDate(parsedDates);
+          
+          if (mostLikelyDate) {
+            addDebugInfo(`Fecha detectada: ${mostLikelyDate.toLocaleDateString()}`);
+            setDetectedDate(mostLikelyDate);
+            return true;
+          }
+        }
       }
       
       return false;
@@ -268,7 +269,7 @@ export const useDateDetection = (): UseDateDetectionResult => {
       processingRef.current = false;
       setIsProcessing(false);
     }
-  }, [captureFrame, addDebugInfo]);
+  }, [addDebugInfo]);
 
   const startScanning = useCallback(async () => {
     try {
@@ -277,6 +278,7 @@ export const useDateDetection = (): UseDateDetectionResult => {
       setDebugInfo([]);
       setCurrentFrame(null);
       processingRef.current = false;
+      lastDetectedDatesRef.current = [];
       addDebugInfo('Iniciando cámara...');
 
       const initialized = await initializeCamera();
@@ -291,7 +293,7 @@ export const useDateDetection = (): UseDateDetectionResult => {
             stopScanning();
           }
         }
-      }, 2000);
+      }, 500);
     } catch (err) {
       console.error('Error al iniciar el escaneo:', err);
       const errorMessage = err instanceof Error ? err.message : t('errors.unknownError');
@@ -335,7 +337,6 @@ export const useDateDetection = (): UseDateDetectionResult => {
   };
 };
 
-// Tipos para las capacidades extendidas de la cámara
 interface ExtendedMediaTrackCapabilities extends MediaTrackCapabilities {
   torch?: boolean;
 }
