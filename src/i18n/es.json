@@ -104,6 +104,9 @@
   "categories.grains": "Granos",
   "categories.beverages": "Bebidas",
   "categories.snacks": "Snacks",
+  "categories.condiments": "Condimentos",
+  "categories.frozen": "Congelados",
+  "categories.ready-made": "Precocinados",
   "categories.other": "Otros",
 
   "locations.fridge": "Refrigerador",

@@ -6,6 +6,9 @@ export const CATEGORIES = [
   'grains',
   'beverages',
   'snacks',
+  'condiments',
+  'frozen',
+  'ready-made',
   'other'
 ] as const;
 
