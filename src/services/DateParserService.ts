@@ -131,7 +131,8 @@ class DateParserService {
       const parsed = this.parseDate(dateStr);
       if (parsed) {
         const { year, month, day } = parsed;
-        const date = new Date(year, month - 1, day);
+        // Aquí ya no restamos 1 al mes porque ya se hizo en isValidDate
+        const date = new Date(year, month, day);
         console.log('Fecha parseada:', this.formatDate(date));
         validDates.push(date);
       }
