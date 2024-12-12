@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { searchPredefinedProducts, PredefinedProduct } from '../services/PredefinedProductsService';
 
@@ -23,6 +23,7 @@ export const useProductForm = (): {
   isCustomQuantity: boolean;
   validationError: string;
   selectedDate: string;
+  isLoadingSuggestions: boolean;
   inputValues: React.MutableRefObject<{
     name: string;
     quantity: string;
@@ -44,7 +45,7 @@ export const useProductForm = (): {
     name: '',
     expiryDate: '',
     quantity: '1',
-    category: '',
+    category: 'other',
     location: 'fridge',
     notes: '',
     selectedSharedUsers: []
@@ -55,6 +56,7 @@ export const useProductForm = (): {
   const [isCustomQuantity, setIsCustomQuantity] = useState(false);
   const [validationError, setValidationError] = useState('');
   const [selectedDate, setSelectedDate] = useState<string>('');
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
 
   const inputValues = useRef({
     name: '',
@@ -62,18 +64,53 @@ export const useProductForm = (): {
     notes: '',
   });
 
+  const searchTimeout = useRef<NodeJS.Timeout>();
+  const lastSearchValue = useRef<string>('');
+  const lastSearchTime = useRef<number>(0);
+
+  const debouncedSearch = useCallback(async (value: string) => {
+    if (searchTimeout.current) {
+      clearTimeout(searchTimeout.current);
+    }
+
+    lastSearchValue.current = value;
+    const currentTime = Date.now();
+
+    if (value.trim().length > 0) {
+      setIsLoadingSuggestions(true);
+      searchTimeout.current = setTimeout(async () => {
+        try {
+          if (lastSearchValue.current === value) {
+            const results = await searchPredefinedProducts(value, language);
+            const showResults = currentTime - lastSearchTime.current < 2000 
+              ? results.length > 0 
+              : results.length > 0 && (results[0].name.toLowerCase() !== value.toLowerCase());
+
+            setSuggestions(results);
+            setShowSuggestions(showResults);
+          }
+        } catch (error) {
+          console.error('Error searching products:', error);
+          setSuggestions([]);
+          setShowSuggestions(false);
+        } finally {
+          if (lastSearchValue.current === value) {
+            setIsLoadingSuggestions(false);
+          }
+        }
+      }, 200);
+    } else {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      setIsLoadingSuggestions(false);
+    }
+  }, [language]);
+
   const setFormValue = (field: keyof ProductFormState, value: string | string[]) => {
     setFormState(prev => ({ ...prev, [field]: value }));
     
     if (field === 'name' && typeof value === 'string') {
-      if (value.trim().length > 0) {
-        const results = searchPredefinedProducts(value, language);
-        setSuggestions(results);
-        setShowSuggestions(results.length > 0);
-      } else {
-        setSuggestions([]);
-        setShowSuggestions(false);
-      }
+      debouncedSearch(value);
     }
   };
 
@@ -102,11 +139,12 @@ export const useProductForm = (): {
   };
 
   const resetForm = () => {
+    lastSearchTime.current = Date.now();
     setFormState({
       name: '',
       expiryDate: '',
       quantity: '1',
-      category: '',
+      category: 'other',
       location: 'fridge',
       notes: '',
       selectedSharedUsers: []
@@ -121,6 +159,7 @@ export const useProductForm = (): {
       quantity: '1',
       notes: '',
     };
+    lastSearchValue.current = '';
   };
 
   const validation: ProductFormValidation = {
@@ -137,6 +176,9 @@ export const useProductForm = (): {
       if (!currentQuantity || Number(currentQuantity) < 1) {
         return { isValid: false, error: t('validation.quantityRequired') };
       }
+      if (!formState.category) {
+        return { isValid: false, error: t('validation.categoryRequired') };
+      }
       return { isValid: true };
     }
   };
@@ -148,6 +190,7 @@ export const useProductForm = (): {
     isCustomQuantity,
     validationError,
     selectedDate,
+    isLoadingSuggestions,
     inputValues,
     setFormValue,
     handleSuggestionClick,

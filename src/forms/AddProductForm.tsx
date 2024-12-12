@@ -30,7 +30,7 @@ interface AddProductFormProps {
 }
 
 const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const formRef = useRef<HTMLFormElement>(null);
   const [isDatePickerOpen, setIsDatePickerOpen] = React.useState(false);
   const [error, setError] = React.useState('');
@@ -45,6 +45,7 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
     isCustomQuantity,
     validationError,
     selectedDate,
+    isLoadingSuggestions,
     inputValues,
     setFormValue,
     handleSuggestionClick,
@@ -96,18 +97,25 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
       return;
     }
 
+    // Set default category if none selected
+    if (!formState.category) {
+      setFormValue('category', 'other');
+    }
+
     setIsLoading(true);
 
     try {
-      await submitProductForm({
+      const productData = {
         name: inputValues.current.name || formState.name,
         expiryDate: formState.expiryDate,
         quantity: Number(inputValues.current.quantity || formState.quantity),
         location: formState.location,
         notes: (inputValues.current.notes || formState.notes),
-        category: formState.category,
+        category: formState.category || 'other',
         sharedWith: formState.selectedSharedUsers
-      });
+      };
+
+      await submitProductForm(productData, language);
       
       if (onProductAdded) {
         onProductAdded();
@@ -143,6 +151,7 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
             name={formState.name}
             showSuggestions={showSuggestions}
             suggestions={suggestions}
+            isLoading={isLoadingSuggestions}
             onNameChange={value => handleInputChange('name', value)}
             onSuggestionClick={handleSuggestionClick}
             onInputBlur={() => {
