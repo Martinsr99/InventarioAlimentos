@@ -41,54 +41,55 @@ export const checkForDuplicateProduct = async (formData: ProductFormData): Promi
 export const submitProductForm = async (
   formData: ProductFormData, 
   language: string,
-  updateQuantity?: number
+  updateQuantity?: number,
+  forceSeparate: boolean = false
 ): Promise<void> => {
   try {
-    const duplicateCheck = await checkForDuplicateProduct(formData);
-
-    if (duplicateCheck.isDuplicate && duplicateCheck.existingProduct) {
-      // If an updateQuantity is provided, use that instead of adding quantities
-      const newQuantity = updateQuantity !== undefined 
-        ? updateQuantity 
-        : duplicateCheck.totalQuantity || formData.quantity;
-
-      // Update existing product with new quantity
-      await updateProduct(duplicateCheck.existingProduct.id, {
-        quantity: newQuantity,
-        expiryDate: formData.expiryDate, // Update expiry date to latest
-        location: formData.location,
-        notes: formData.notes.trim(),
-        ...(formData.category ? { category: formData.category } : {}),
-        sharedWith: formData.sharedWith
-      });
-    } else {
-      // Add new product
-      await addProduct({
-        name: formData.name.trim(),
-        expiryDate: formData.expiryDate,
-        quantity: Number(formData.quantity),
-        location: formData.location,
-        notes: formData.notes.trim(),
-        ...(formData.category ? { category: formData.category } : {}),
-        sharedWith: formData.sharedWith
-      });
-
-      // If the product has a name and category, check if it's a custom product
-      if (formData.name && formData.category) {
-        // Search for the product in predefined products
-        const predefinedProducts = await searchPredefinedProducts(formData.name, language);
-        
-        const exactMatch = predefinedProducts.find(p => 
-          p.name.toLowerCase() === formData.name.trim().toLowerCase()
-        );
-
-        // If it's not a predefined product, save it as a custom product
-        if (!exactMatch) {
-          await addUserProduct({
-            name: formData.name.trim(),
-            category: formData.category
-          }, language);
+    if (!forceSeparate) {
+      const duplicateCheck = await checkForDuplicateProduct(formData);
+      
+      if (duplicateCheck.isDuplicate && duplicateCheck.existingProduct) {
+        if (updateQuantity !== undefined) {
+          // Update existing product with new quantity
+          await updateProduct(duplicateCheck.existingProduct.id, {
+            quantity: updateQuantity,
+            expiryDate: formData.expiryDate,
+            location: formData.location,
+            notes: formData.notes.trim(),
+            ...(formData.category ? { category: formData.category } : {}),
+            sharedWith: formData.sharedWith
+          });
+          return;
         }
+      }
+    }
+
+    // Add new product
+    await addProduct({
+      name: formData.name.trim(),
+      expiryDate: formData.expiryDate,
+      quantity: Number(formData.quantity),
+      location: formData.location,
+      notes: formData.notes.trim(),
+      ...(formData.category ? { category: formData.category } : {}),
+      sharedWith: formData.sharedWith
+    });
+
+    // If the product has a name and category, check if it's a custom product
+    if (formData.name && formData.category) {
+      // Search for the product in predefined products
+      const predefinedProducts = await searchPredefinedProducts(formData.name, language);
+      
+      const exactMatch = predefinedProducts.find(p => 
+        p.name.toLowerCase() === formData.name.trim().toLowerCase()
+      );
+
+      // If it's not a predefined product, save it as a custom product
+      if (!exactMatch) {
+        await addUserProduct({
+          name: formData.name.trim(),
+          category: formData.category
+        }, language);
       }
     }
   } catch (error) {

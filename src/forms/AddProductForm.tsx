@@ -178,10 +178,16 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
         await submitProductForm(
           productData,
           language,
-          duplicateDialog.adjustedQuantity
+          duplicateDialog.adjustedQuantity,
+          false // Not forcing separate
         );
       } else {
-        await submitProductForm(productData, language);
+        await submitProductForm(
+          productData,
+          language,
+          undefined,
+          true // Force separate
+        );
       }
 
       if (onProductAdded) {
