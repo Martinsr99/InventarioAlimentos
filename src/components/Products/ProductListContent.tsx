@@ -20,6 +20,9 @@ interface ProductListContentProps {
   onEdit: (productId: string) => void;
   onDelete: (productId: string) => void;
   navigateToFriends: () => void;
+  selectedProducts?: string[];
+  onSelectProduct?: (productId: string, selected: boolean) => void;
+  selectionMode?: boolean;
 }
 
 const ProductListContent: React.FC<ProductListContentProps> = ({
@@ -31,7 +34,10 @@ const ProductListContent: React.FC<ProductListContentProps> = ({
   hasFriends,
   onEdit,
   onDelete,
-  navigateToFriends
+  navigateToFriends,
+  selectedProducts = [],
+  onSelectProduct,
+  selectionMode = false
 }) => {
   const { t } = useLanguage();
 
@@ -73,13 +79,16 @@ const ProductListContent: React.FC<ProductListContentProps> = ({
 
   return (
     <div className="product-list-content">
-      {filteredProducts.map((product, index) => (
+      {filteredProducts.map((product) => (
         <ProductListItem
           key={product.id}
           product={product}
           viewMode={viewMode}
           onEdit={onEdit}
           onDelete={onDelete}
+          isSelected={selectedProducts.includes(product.id)}
+          onSelect={onSelectProduct}
+          selectionMode={selectionMode}
         />
       ))}
     </div>

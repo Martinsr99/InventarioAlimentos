@@ -6,6 +6,7 @@ import {
   IonText,
   IonButton,
   IonChip,
+  IonCheckbox,
 } from '@ionic/react';
 import { 
   trash, 
@@ -21,6 +22,9 @@ interface ProductListItemProps {
   viewMode: ViewMode;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
+  isSelected?: boolean;
+  onSelect?: (id: string, selected: boolean) => void;
+  selectionMode?: boolean;
 }
 
 const ProductListItem: React.FC<ProductListItemProps> = ({
@@ -28,6 +32,9 @@ const ProductListItem: React.FC<ProductListItemProps> = ({
   viewMode,
   onEdit,
   onDelete,
+  isSelected = false,
+  onSelect,
+  selectionMode = false,
 }) => {
   const { t } = useLanguage();
 
@@ -66,10 +73,24 @@ const ProductListItem: React.FC<ProductListItemProps> = ({
     return 'product-status-fresh';
   };
 
+  const handleSelect = (e: CustomEvent) => {
+    e.stopPropagation();
+    if (onSelect) {
+      onSelect(product.id, e.detail.checked);
+    }
+  };
+
   return (
     <IonItem 
       className={`${isOwnedShared ? 'owned-shared-product' : isSharedProduct ? 'shared-product' : ''}`}
     >
+      {selectionMode && (
+        <IonCheckbox
+          slot="start"
+          checked={isSelected}
+          onIonChange={handleSelect}
+        />
+      )}
       <IonLabel className="ion-text-wrap">
         <h2>{product.name}</h2>
         
@@ -103,7 +124,7 @@ const ProductListItem: React.FC<ProductListItemProps> = ({
         )}
       </IonLabel>
 
-      {(viewMode === 'personal' || isOwnedShared) && (
+      {!selectionMode && (viewMode === 'personal' || isOwnedShared) && (
         <div className="ion-no-padding ion-no-margin">
           <IonButton 
             fill="clear" 

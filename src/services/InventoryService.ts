@@ -1,5 +1,5 @@
 import { db } from '../firebaseConfig';
-import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where } from 'firebase/firestore';
+import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where, writeBatch } from 'firebase/firestore';
 import { auth } from '../firebaseConfig';
 
 export interface Product {
@@ -125,6 +125,26 @@ export const deleteProduct = async (productId: string): Promise<void> => {
     await deleteDoc(doc(db, 'products', productId));
   } catch (error) {
     console.error('Error deleting product:', error);
+    throw error;
+  }
+};
+
+export const deleteProducts = async (productIds: string[]): Promise<void> => {
+  if (!auth.currentUser) {
+    throw new Error('No authenticated user');
+  }
+
+  try {
+    const batch = writeBatch(db);
+    
+    productIds.forEach(id => {
+      const productRef = doc(db, 'products', id);
+      batch.delete(productRef);
+    });
+
+    await batch.commit();
+  } catch (error) {
+    console.error('Error deleting products:', error);
     throw error;
   }
 };

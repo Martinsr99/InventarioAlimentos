@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { getSharedProducts } from '../services/SharedProductsService';
 import { getAcceptedShareUsers } from '../services/FriendService';
 import { auth } from '../firebaseConfig';
-import { getProducts, deleteProduct } from '../services/InventoryService';
+import { getProducts, deleteProduct, deleteProducts as deleteProductsBatch } from '../services/InventoryService';
 import { Product } from '../services/InventoryService';
 
 export type SortOption = 'expiryDate' | 'name' | 'quantity';
@@ -91,6 +91,38 @@ export const useProductList = (onRefreshNeeded?: () => void) => {
     }
   };
 
+  const deleteProducts = async (productIds: string[]) => {
+    try {
+      await deleteProductsBatch(productIds);
+      await loadProducts();
+    } catch (error) {
+      console.error('Error deleting products:', error);
+      throw error;
+    }
+  };
+
+  const getExpiredProductIds = (): string[] => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    return products
+      .filter(product => {
+        const expiryDate = new Date(product.expiryDate);
+        expiryDate.setHours(0, 0, 0, 0);
+        return expiryDate < today;
+      })
+      .map(product => product.id);
+  };
+
+  const deleteExpiredProducts = async () => {
+    const expiredIds = getExpiredProductIds();
+    if (expiredIds.length > 0) {
+      await deleteProductsBatch(expiredIds);
+      await loadProducts();
+    }
+    return expiredIds.length;
+  };
+
   const filterAndSortProducts = (options: FilterOptions) => {
     setCurrentFilterOptions(options);
     const { viewMode, searchText, sortBy, sortDirection } = options;
@@ -150,6 +182,9 @@ export const useProductList = (onRefreshNeeded?: () => void) => {
     loadProducts,
     loadSharedProducts,
     handleDelete,
+    deleteProducts,
+    deleteExpiredProducts,
+    getExpiredProductIds,
     filterAndSortProducts,
     checkFriends
   };
