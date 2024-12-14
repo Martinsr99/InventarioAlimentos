@@ -199,5 +199,8 @@
   "sharing.selectUsers": "Seleccionar Usuarios",
   "sharing.selectedUsers": "{{count}} usuarios seleccionados",
   "sharing.sortByStatus": "Estado",
-  "sharing.sortByEmail": "Correo"
+  "sharing.sortByEmail": "Correo",
+
+  "settings.autoDeleteExpired": "Eliminar Productos Caducados Automáticamente",
+  "settings.autoDeleteExpiredDescription": "Eliminar automáticamente los productos de tu lista cuando caduquen"
 }

@@ -6,10 +6,12 @@ export interface UserSettings {
   language: 'en' | 'es';
   profilePicture?: string;
   email: string;
+  autoDeleteExpired?: boolean;
 }
 
 const DEFAULT_SETTINGS: Omit<UserSettings, 'language' | 'email'> = {
-  profilePicture: '/images/profile/apple.png'
+  profilePicture: '/images/profile/apple.png',
+  autoDeleteExpired: false
 };
 
 // Get browser language
@@ -72,6 +74,12 @@ export const getUserSettings = async (user: User): Promise<UserSettings> => {
     // Asegurarse de que el email esté presente
     if (!settings.email && user.email) {
       settings.email = user.email;
+      await setDoc(userSettingsRef, settings);
+    }
+
+    // Asegurarse de que autoDeleteExpired tenga un valor por defecto
+    if (settings.autoDeleteExpired === undefined) {
+      settings.autoDeleteExpired = DEFAULT_SETTINGS.autoDeleteExpired;
       await setDoc(userSettingsRef, settings);
     }
     

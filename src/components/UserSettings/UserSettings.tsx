@@ -23,12 +23,15 @@ import { EmailSection } from './EmailSection';
 import { LanguageSection } from './LanguageSection';
 import { SharingSection } from './SharingSection';
 import { LogoutSection } from './LogoutSection';
+import AutoDeleteSection from './AutoDeleteSection';
 import './UserSettings.css';
 
 interface UserSettingsProps {
   openToShare?: boolean;
   onClose?: () => void;
 }
+
+const DEFAULT_PROFILE_PICTURE = '/images/profile/apple.png';
 
 const UserSettings: React.FC<UserSettingsProps> = ({ openToShare = false, onClose }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -41,7 +44,7 @@ const UserSettings: React.FC<UserSettingsProps> = ({ openToShare = false, onClos
   const contentRef = useRef<HTMLIonContentElement>(null);
 
   const {
-    profilePicture,
+    settings,
     language,
     isLoading: settingsLoading,
     error: settingsError,
@@ -161,7 +164,7 @@ const UserSettings: React.FC<UserSettingsProps> = ({ openToShare = false, onClos
           ) : (
             <div style={{ paddingTop: '40px' }}>
               <ProfileSection
-                profilePicture={profilePicture}
+                profilePicture={settings.profilePicture || DEFAULT_PROFILE_PICTURE}
                 onProfilePictureChange={handleProfilePictureChange}
               />
 
@@ -187,6 +190,8 @@ const UserSettings: React.FC<UserSettingsProps> = ({ openToShare = false, onClos
                   onSortDirectionChange={toggleSortDirection}
                 />
               </div>
+
+              <AutoDeleteSection />
 
               <LogoutSection onLogout={handleLogout} />
             </div>

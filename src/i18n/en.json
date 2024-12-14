@@ -191,5 +191,8 @@
   "sharing.selectUsers": "Select Users",
   "sharing.selectedUsers": "{{count}} users selected",
   "sharing.sortByStatus": "Status",
-  "sharing.sortByEmail": "Email"
+  "sharing.sortByEmail": "Email",
+
+  "settings.autoDeleteExpired": "Auto-Delete Expired Products",
+  "settings.autoDeleteExpiredDescription": "Automatically remove products from your list when they expire"
 }

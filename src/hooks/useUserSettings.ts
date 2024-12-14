@@ -1,10 +1,15 @@
 import { useState, useEffect } from 'react';
 import { User } from 'firebase/auth';
-import { getUserSettings, updateUserSettings } from '../services/UserSettingsService';
+import { getUserSettings, updateUserSettings, UserSettings } from '../services/UserSettingsService';
 import { useLanguage } from '../contexts/LanguageContext';
 
 export const useUserSettings = (user: User | null) => {
-  const [profilePicture, setProfilePicture] = useState('/images/profile/apple.png');
+  const [settings, setSettings] = useState<UserSettings>({
+    language: 'es',
+    email: '',
+    profilePicture: '/images/profile/apple.png',
+    autoDeleteExpired: false
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { language, setLanguage, t } = useLanguage();
@@ -15,10 +20,8 @@ export const useUserSettings = (user: User | null) => {
 
       try {
         setIsLoading(true);
-        const settings = await getUserSettings(user);
-        if (settings.profilePicture) {
-          setProfilePicture(settings.profilePicture);
-        }
+        const userSettings = await getUserSettings(user);
+        setSettings(userSettings);
       } catch (error) {
         setError(t('errors.settingsLoad'));
       } finally {
@@ -35,7 +38,10 @@ export const useUserSettings = (user: User | null) => {
     try {
       setIsLoading(true);
       await updateUserSettings(user, { profilePicture: newPicture });
-      setProfilePicture(newPicture);
+      setSettings(prev => ({
+        ...prev,
+        profilePicture: newPicture
+      }));
       setError(null);
     } catch (error) {
       setError(t('errors.settingsSave'));
@@ -48,12 +54,31 @@ export const useUserSettings = (user: User | null) => {
     setLanguage(language === 'es' ? 'en' : 'es');
   };
 
+  const updateSettings = async (newSettings: Partial<UserSettings>) => {
+    if (!user) return;
+
+    try {
+      setIsLoading(true);
+      await updateUserSettings(user, newSettings);
+      setSettings(prev => ({
+        ...prev,
+        ...newSettings
+      }));
+      setError(null);
+    } catch (error) {
+      setError(t('errors.settingsSave'));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
-    profilePicture,
+    settings,
     language,
     isLoading,
     error,
     handleProfilePictureChange,
-    toggleLanguage
+    toggleLanguage,
+    updateSettings
   };
 };

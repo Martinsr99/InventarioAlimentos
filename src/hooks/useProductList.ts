@@ -3,6 +3,7 @@ import { getSharedProducts } from '../services/SharedProductsService';
 import { getAcceptedShareUsers } from '../services/FriendService';
 import { auth } from '../firebaseConfig';
 import { getProducts, deleteProduct, deleteProducts as deleteProductsBatch } from '../services/InventoryService';
+import { getUserSettings } from '../services/UserSettingsService';
 import { Product } from '../services/InventoryService';
 
 export type SortOption = 'expiryDate' | 'name' | 'quantity';
@@ -42,8 +43,30 @@ export const useProductList = (onRefreshNeeded?: () => void) => {
     try {
       setLoading(true);
       setError(null);
-      const userProducts = await getProducts();
-      setProducts(userProducts);
+
+      // Get user settings to check auto-delete preference
+      const settings = await getUserSettings(auth.currentUser);
+      let currentProducts = await getProducts();
+
+      // If auto-delete is enabled, remove expired products
+      if (settings.autoDeleteExpired) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const expiredProducts = currentProducts.filter(product => {
+          const expiryDate = new Date(product.expiryDate);
+          expiryDate.setHours(0, 0, 0, 0);
+          return expiryDate < today;
+        });
+
+        if (expiredProducts.length > 0) {
+          await deleteProductsBatch(expiredProducts.map(p => p.id));
+          // Get updated products list after deletion
+          currentProducts = await getProducts();
+        }
+      }
+
+      setProducts(currentProducts);
       if (onRefreshNeeded) {
         onRefreshNeeded();
       }
