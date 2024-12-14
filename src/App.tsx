@@ -12,7 +12,8 @@ import {
   IonButtons,
   IonSpinner,
   IonToast,
-  IonRouterOutlet
+  IonRouterOutlet,
+  IonAlert
 } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import { Route, Redirect } from 'react-router-dom';
@@ -61,6 +62,7 @@ const AppContent: React.FC = () => {
   const [lastScrollTop, setLastScrollTop] = useState(0);
   const [openSettingsToShare, setOpenSettingsToShare] = useState(false);
   const [authKey, setAuthKey] = useState(0);
+  const [showNotificationAlert, setShowNotificationAlert] = useState(false);
 
   useEffect(() => {
     auth.languageCode = language;
@@ -73,10 +75,14 @@ const AppContent: React.FC = () => {
         try {
           await scheduleExpiryNotifications();
           setAuthKey(prev => prev + 1);
-        } catch (error) {
+        } catch (error: any) {
           if (Capacitor.isNativePlatform()) {
             console.error('Error scheduling notifications:', error);
-            setError(t('errors.notificationSetup'));
+            if (error.message === 'Notification permissions not granted') {
+              setShowNotificationAlert(true);
+            } else {
+              setError(t('errors.notificationSetup'));
+            }
           }
         }
       }
@@ -195,6 +201,19 @@ const AppContent: React.FC = () => {
         onDidDismiss={() => setError('')}
         position="bottom"
         color="danger"
+      />
+
+      <IonAlert
+        isOpen={showNotificationAlert}
+        onDidDismiss={() => setShowNotificationAlert(false)}
+        header={t('notifications.permissionRequired')}
+        message={t('notifications.enableInSettings')}
+        buttons={[
+          {
+            text: t('common.ok'),
+            role: 'cancel'
+          }
+        ]}
       />
     </IonApp>
   );

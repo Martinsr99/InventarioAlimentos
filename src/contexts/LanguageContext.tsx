@@ -19,7 +19,7 @@ interface TranslationsMap {
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (key: string) => string;
+  t: (key: string, params?: Record<string, any>) => string;
 }
 
 const translations: TranslationsMap = {
@@ -63,6 +63,16 @@ const getInitialLanguage = (): Language => {
   const browserLang = getBrowserLanguage();
   localStorage.setItem('language', browserLang);
   return browserLang;
+};
+
+// Function to interpolate parameters in translation strings
+const interpolateParams = (text: string, params?: Record<string, any>): string => {
+  if (!params) return text;
+  
+  return Object.entries(params).reduce((result, [key, value]) => {
+    const regex = new RegExp(`{{${key}}}`, 'g');
+    return result.replace(regex, String(value));
+  }, text);
 };
 
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
@@ -124,9 +134,10 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     }
   };
 
-  const t = (key: string): string => {
+  const t = (key: string, params?: Record<string, any>): string => {
     const currentTranslations = translations[language];
-    return currentTranslations[key] || key;
+    const translation = currentTranslations[key] || key;
+    return params ? interpolateParams(translation, params) : translation;
   };
 
   // Show loading state while fetching initial settings

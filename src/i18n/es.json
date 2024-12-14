@@ -90,6 +90,11 @@
   "products.sharedWith": "Compartir con",
   "products.selectSharedWith": "Selecciona con quién compartir",
   "products.noSharedUsers": "No hay usuarios compartidos disponibles",
+  "products.duplicateFound": "Producto Ya Existe",
+  "products.duplicateMessage": "Este producto ya existe con cantidad {{existingQuantity}}. Agregando {{newQuantity}} resultará en un total de {{totalQuantity}}.",
+  "products.updateQuantity": "Actualizar Cantidad",
+  "products.adjustQuantity": "Ajustar Cantidad Total",
+  "products.keepSeparate": "Mantener Separado",
   
   "validation.nameRequired": "Por favor ingresa un nombre de producto",
   "validation.expiryRequired": "Por favor selecciona una fecha de caducidad",
@@ -119,6 +124,8 @@
   "notifications.expiresIn": "caduca en",
   "notifications.expired": "ha caducado",
   "notifications.checkProduct": "Revisa tu producto",
+  "notifications.permissionRequired": "Se requieren permisos de notificación",
+  "notifications.enableInSettings": "Por favor activa las notificaciones en la configuración de tu dispositivo para recibir recordatorios de caducidad",
   
   "errors.notificationSetup": "Error al configurar notificaciones",
   "errors.signOut": "Error al cerrar sesión",

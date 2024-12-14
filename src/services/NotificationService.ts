@@ -6,10 +6,36 @@ import { Capacitor } from '@capacitor/core';
 
 const isNative = Capacitor.isNativePlatform();
 
+const checkNotificationPermissions = async () => {
+    if (!isNative) return true;
+
+    try {
+        // Check if permissions are already granted
+        const { display } = await LocalNotifications.checkPermissions();
+        
+        if (display === 'granted') {
+            return true;
+        }
+
+        // Request permissions if not granted
+        const { display: newPermission } = await LocalNotifications.requestPermissions();
+        return newPermission === 'granted';
+    } catch (error) {
+        console.error('Error checking notification permissions:', error);
+        return false;
+    }
+};
+
 export const scheduleExpiryNotifications = async () => {
     // Skip notification scheduling on web
     if (!isNative) {
         return;
+    }
+
+    // Check permissions first
+    const hasPermission = await checkNotificationPermissions();
+    if (!hasPermission) {
+        throw new Error('Notification permissions not granted');
     }
 
     const today = new Date();
@@ -30,7 +56,9 @@ export const scheduleExpiryNotifications = async () => {
         };
     });
 
-    await LocalNotifications.schedule({ notifications });
+    if (notifications.length > 0) {
+        await LocalNotifications.schedule({ notifications });
+    }
 };
 
 export const sendShareInvitationNotification = async (toUserId: string, fromUser: User) => {
@@ -47,14 +75,17 @@ export const sendShareInvitationNotification = async (toUserId: string, fromUser
 
         // Schedule local notification only on native platforms
         if (isNative) {
-            await LocalNotifications.schedule({
-                notifications: [{
-                    title: 'New Share Invitation',
-                    body: `${fromUser.email} wants to share their products with you`,
-                    id: Math.floor(Math.random() * 100000),
-                    schedule: { at: new Date() }
-                }]
-            });
+            const hasPermission = await checkNotificationPermissions();
+            if (hasPermission) {
+                await LocalNotifications.schedule({
+                    notifications: [{
+                        title: 'New Share Invitation',
+                        body: `${fromUser.email} wants to share their products with you`,
+                        id: Math.floor(Math.random() * 100000),
+                        schedule: { at: new Date() }
+                    }]
+                });
+            }
         }
 
         // Add email notification to queue in Firestore

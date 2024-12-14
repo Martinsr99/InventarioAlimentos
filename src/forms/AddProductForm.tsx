@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import {
   IonCard,
   IonCardContent,
@@ -11,10 +11,12 @@ import {
   IonToast,
   IonSpinner,
   IonText,
+  IonAlert,
+  AlertInput,
 } from '@ionic/react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getAcceptedShareUsers } from '../services/FriendService';
-import { submitProductForm } from '../services/ProductFormService';
+import { submitProductForm, checkForDuplicateProduct } from '../services/ProductFormService';
 import { auth } from '../firebaseConfig';
 import { useProductForm } from '../hooks/useProductForm';
 import DateSelector from '../components/Products/AddProduct/DateSelector';
@@ -29,14 +31,26 @@ interface AddProductFormProps {
   onProductAdded?: () => void;
 }
 
+interface DuplicateDialogState {
+  isOpen: boolean;
+  existingQuantity?: number;
+  newQuantity?: number;
+  totalQuantity?: number;
+  productId?: string;
+  adjustedQuantity?: number;
+}
+
 const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
   const { t, language } = useLanguage();
   const formRef = useRef<HTMLFormElement>(null);
-  const [isDatePickerOpen, setIsDatePickerOpen] = React.useState(false);
-  const [error, setError] = React.useState('');
-  const [success, setSuccess] = React.useState(false);
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [sharedUsers, setSharedUsers] = React.useState<{ userId: string; email: string }[]>([]);
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [sharedUsers, setSharedUsers] = useState<{ userId: string; email: string }[]>([]);
+  const [duplicateDialog, setDuplicateDialog] = useState<DuplicateDialogState>({
+    isOpen: false
+  });
 
   const {
     formState,
@@ -115,6 +129,21 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
         sharedWith: formState.selectedSharedUsers
       };
 
+      const duplicateCheck = await checkForDuplicateProduct(productData);
+      
+      if (duplicateCheck.isDuplicate && duplicateCheck.existingProduct) {
+        setDuplicateDialog({
+          isOpen: true,
+          existingQuantity: duplicateCheck.existingProduct.quantity,
+          newQuantity: productData.quantity,
+          totalQuantity: duplicateCheck.totalQuantity,
+          productId: duplicateCheck.existingProduct.id,
+          adjustedQuantity: duplicateCheck.totalQuantity
+        });
+        setIsLoading(false);
+        return;
+      }
+
       await submitProductForm(productData, language);
       
       if (onProductAdded) {
@@ -129,6 +158,44 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
       setError(t('errors.productAdd'));
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDuplicateConfirm = async (updateQuantity: boolean) => {
+    setIsLoading(true);
+    try {
+      const productData = {
+        name: inputValues.current.name || formState.name,
+        expiryDate: formState.expiryDate,
+        quantity: Number(inputValues.current.quantity || formState.quantity),
+        location: formState.location,
+        notes: (inputValues.current.notes || formState.notes),
+        category: formState.category || 'other',
+        sharedWith: formState.selectedSharedUsers
+      };
+
+      if (updateQuantity) {
+        await submitProductForm(
+          productData,
+          language,
+          duplicateDialog.adjustedQuantity
+        );
+      } else {
+        await submitProductForm(productData, language);
+      }
+
+      if (onProductAdded) {
+        onProductAdded();
+      }
+
+      setSuccess(true);
+      resetForm();
+    } catch (error) {
+      console.error('Error handling duplicate product:', error);
+      setError(t('errors.productAdd'));
+    } finally {
+      setIsLoading(false);
+      setDuplicateDialog({ isOpen: false });
     }
   };
 
@@ -240,6 +307,43 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
           </IonButton>
         </IonCardContent>
       </IonCard>
+
+      <IonAlert
+        isOpen={duplicateDialog.isOpen}
+        header={t('products.duplicateFound')}
+        message={t('products.duplicateMessage', {
+          existingQuantity: duplicateDialog.existingQuantity,
+          newQuantity: duplicateDialog.newQuantity,
+          totalQuantity: duplicateDialog.totalQuantity
+        })}
+        inputs={[
+          {
+            name: 'quantity',
+            type: 'number',
+            placeholder: t('products.quantity'),
+            value: duplicateDialog.adjustedQuantity?.toString(),
+            min: 1,
+            handler: (input: AlertInput) => {
+              setDuplicateDialog(prev => ({
+                ...prev,
+                adjustedQuantity: Number(input.value)
+              }));
+            }
+          }
+        ]}
+        buttons={[
+          {
+            text: t('products.keepSeparate'),
+            role: 'cancel',
+            handler: () => handleDuplicateConfirm(false)
+          },
+          {
+            text: t('products.updateQuantity'),
+            handler: () => handleDuplicateConfirm(true)
+          }
+        ]}
+        onDidDismiss={() => setDuplicateDialog({ isOpen: false })}
+      />
 
       <IonToast
         isOpen={!!error}

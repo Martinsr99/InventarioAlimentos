@@ -87,6 +87,11 @@
   "products.sharedWith": "Share with",
   "products.selectSharedWith": "Select who to share with",
   "products.noSharedUsers": "No shared users available",
+  "products.duplicateFound": "Product Already Exists",
+  "products.duplicateMessage": "This product already exists with quantity {{existingQuantity}}. Adding {{newQuantity}} will result in a total of {{totalQuantity}}.",
+  "products.updateQuantity": "Update Quantity",
+  "products.adjustQuantity": "Adjust Total Quantity",
+  "products.keepSeparate": "Keep Separate",
   
   "validation.nameRequired": "Please enter a product name",
   "validation.expiryRequired": "Please select an expiry date",
@@ -116,6 +121,8 @@
   "notifications.expiresIn": "expires in",
   "notifications.expired": "has expired",
   "notifications.checkProduct": "Check your product",
+  "notifications.permissionRequired": "Notifications Permission Required",
+  "notifications.enableInSettings": "Please enable notifications in your device settings to receive expiry reminders",
   
   "errors.notificationSetup": "Error setting up notifications",
   "errors.signOut": "Error signing out",

@@ -38,6 +38,36 @@ export const getProducts = async (): Promise<Product[]> => {
   }
 };
 
+export const findExistingProduct = async (name: string): Promise<Product | null> => {
+  if (!auth.currentUser) {
+    throw new Error('No authenticated user');
+  }
+
+  try {
+    const q = query(
+      collection(db, 'products'),
+      where('userId', '==', auth.currentUser.uid),
+      where('name', '==', name.trim())
+    );
+    const querySnapshot = await getDocs(q);
+    
+    if (querySnapshot.empty) {
+      return null;
+    }
+
+    const doc = querySnapshot.docs[0];
+    return {
+      id: doc.id,
+      ...doc.data(),
+      notes: doc.data().notes || '',
+      sharedWith: doc.data().sharedWith || []
+    } as Product;
+  } catch (error) {
+    console.error('Error finding existing product:', error);
+    throw error;
+  }
+};
+
 export const addProduct = async (product: Omit<Product, 'id' | 'userId' | 'addedAt'>): Promise<string> => {
   if (!auth.currentUser) {
     throw new Error('No authenticated user');
