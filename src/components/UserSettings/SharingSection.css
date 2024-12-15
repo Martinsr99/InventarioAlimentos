@@ -67,16 +67,26 @@
   border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
+  position: relative;
+  min-width: 80px;
+  justify-content: center;
 }
 
 .sort-button:hover {
   background: rgba(255, 255, 255, 0.1);
+  color: var(--ion-color-light);
+}
+
+.sort-button.active {
+  background: rgba(var(--ion-color-primary-rgb), 0.1);
+  color: var(--ion-color-primary);
 }
 
 .sort-button ion-icon {
   font-size: 16px;
   transition: transform 0.2s;
+  margin-left: 4px;
 }
 
 .sort-button ion-icon.desc {

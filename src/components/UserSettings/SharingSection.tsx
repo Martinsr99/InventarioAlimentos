@@ -67,6 +67,14 @@ export const SharingSection: React.FC<SharingSectionProps> = ({
 
   const hasContent = friends.length > 0 || receivedInvitations.length > 0 || sentInvitations.length > 0;
 
+  const handleSortClick = (option: SortOption) => {
+    if (sortBy === option) {
+      onSortDirectionChange();
+    } else {
+      onSortByChange(option);
+    }
+  };
+
   return (
     <IonCard>
       <IonCardHeader>
@@ -108,34 +116,26 @@ export const SharingSection: React.FC<SharingSectionProps> = ({
             <h2>{t('sharing.friendsSection')}</h2>
             <div className="friends-sort-controls">
               <button 
-                className="sort-button"
-                onClick={() => onSortByChange('status')}
+                className={`sort-button ${sortBy === 'status' ? 'active' : ''}`}
+                onClick={() => handleSortClick('status')}
               >
                 {t('sharing.sortByStatus')}
                 {sortBy === 'status' && (
                   <IonIcon 
                     icon={arrowUp} 
                     className={sortDirection === 'desc' ? 'desc' : ''}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onSortDirectionChange();
-                    }}
                   />
                 )}
               </button>
               <button 
-                className="sort-button"
-                onClick={() => onSortByChange('email')}
+                className={`sort-button ${sortBy === 'email' ? 'active' : ''}`}
+                onClick={() => handleSortClick('email')}
               >
                 {t('sharing.sortByEmail')}
                 {sortBy === 'email' && (
                   <IonIcon 
                     icon={arrowUp} 
                     className={sortDirection === 'desc' ? 'desc' : ''}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onSortDirectionChange();
-                    }}
                   />
                 )}
               </button>
