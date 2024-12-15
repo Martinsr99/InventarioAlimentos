@@ -1,0 +1,17 @@
+{
+  "loading": "Loading",
+  "error": "Error",
+  "ok": "OK",
+  "cancel": "Cancel",
+  "save": "Save",
+  "delete": "Delete",
+  "edit": "Edit",
+  "tryAgain": "Please try again",
+  "settings": "Settings",
+  "language": "Language",
+  "yes": "Yes",
+  "no": "No",
+  "optional": "optional",
+  "custom": "Custom",
+  "done": "Done"
+}

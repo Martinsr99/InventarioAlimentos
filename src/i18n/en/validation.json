@@ -1,0 +1,7 @@
+{
+  "nameRequired": "Please enter a product name",
+  "expiryRequired": "Please select an expiry date",
+  "quantityRequired": "Please enter a valid quantity",
+  "categoryRequired": "Please select a category",
+  "locationRequired": "Please select a location"
+}

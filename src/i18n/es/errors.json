@@ -1,0 +1,17 @@
+{
+  "notificationSetup": "Error al configurar notificaciones",
+  "signOut": "Error al cerrar sesión",
+  "settingsLoad": "Error al cargar configuración",
+  "settingsSave": "Error al guardar configuración",
+  "productAdd": "Error al agregar producto",
+  "productUpdate": "Error al actualizar producto",
+  "productDelete": "Error al eliminar producto",
+  "productLoad": "Error al cargar productos",
+  "invitationSend": "Error al enviar invitación",
+  "invitationResponse": "Error al responder invitación",
+  "invitationDelete": "Error al eliminar invitación",
+  "userNotFound": "Usuario no encontrado",
+  "userNotFoundMessage": "El usuario debe estar registrado para recibir invitaciones",
+  "invitationExists": "La invitación ya existe",
+  "invitationExistsMessage": "Ya has enviado una invitación a este usuario"
+}

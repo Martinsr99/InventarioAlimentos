@@ -1,0 +1,4 @@
+{
+  "autoDeleteExpired": "Eliminar Productos Caducados Automáticamente",
+  "autoDeleteExpiredDescription": "Eliminar automáticamente los productos de tu lista cuando caduquen"
+}

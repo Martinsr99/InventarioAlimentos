@@ -1,0 +1,17 @@
+{
+  "loading": "Cargando",
+  "error": "Error",
+  "ok": "OK",
+  "cancel": "Cancelar",
+  "save": "Guardar",
+  "delete": "Eliminar",
+  "edit": "Editar",
+  "tryAgain": "Por favor intenta de nuevo",
+  "settings": "Configuración",
+  "language": "Idioma",
+  "yes": "Sí",
+  "no": "No",
+  "optional": "opcional",
+  "custom": "Personalizado",
+  "done": "Listo"
+}

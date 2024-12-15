@@ -1,0 +1,9 @@
+{
+  "title": "Notificación de caducidad",
+  "productExpiring": "Producto por caducar",
+  "expiresIn": "caduca en",
+  "expired": "ha caducado",
+  "checkProduct": "Revisa tu producto",
+  "permissionRequired": "Se requieren permisos de notificación",
+  "enableInSettings": "Por favor activa las notificaciones en la configuración de tu dispositivo para recibir recordatorios de caducidad"
+}

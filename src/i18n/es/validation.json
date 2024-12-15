@@ -1,0 +1,7 @@
+{
+  "nameRequired": "Por favor ingresa un nombre de producto",
+  "expiryRequired": "Por favor selecciona una fecha de caducidad",
+  "quantityRequired": "Por favor ingresa una cantidad válida",
+  "categoryRequired": "Por favor selecciona una categoría",
+  "locationRequired": "Por favor selecciona una ubicación"
+}

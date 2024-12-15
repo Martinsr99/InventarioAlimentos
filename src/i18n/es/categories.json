@@ -1,0 +1,13 @@
+{
+  "dairy": "Lácteos",
+  "meat": "Carnes",
+  "vegetables": "Verduras",
+  "fruits": "Frutas",
+  "grains": "Granos",
+  "beverages": "Bebidas",
+  "snacks": "Snacks",
+  "condiments": "Condimentos",
+  "frozen": "Congelados",
+  "ready-made": "Precocinados",
+  "other": "Otros"
+}

@@ -1,0 +1,17 @@
+{
+  "notificationSetup": "Error setting up notifications",
+  "signOut": "Error signing out",
+  "settingsLoad": "Error loading user settings",
+  "settingsSave": "Error saving user settings",
+  "productAdd": "Error adding product",
+  "productUpdate": "Error updating product",
+  "productDelete": "Error deleting product",
+  "productLoad": "Error loading products",
+  "invitationSend": "Error sending invitation",
+  "invitationResponse": "Error responding to invitation",
+  "invitationDelete": "Error deleting invitation",
+  "userNotFound": "User not found",
+  "userNotFoundMessage": "The user must be registered to receive invitations",
+  "invitationExists": "Invitation already exists",
+  "invitationExistsMessage": "You have already sent an invitation to this user"
+}

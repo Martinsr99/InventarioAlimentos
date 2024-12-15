@@ -1,0 +1,13 @@
+{
+  "dairy": "Dairy",
+  "meat": "Meat",
+  "vegetables": "Vegetables",
+  "fruits": "Fruits",
+  "grains": "Grains",
+  "beverages": "Beverages",
+  "snacks": "Snacks",
+  "condiments": "Condiments",
+  "frozen": "Frozen",
+  "ready-made": "Ready-Made",
+  "other": "Other"
+}

@@ -2,30 +2,13 @@ import React, { createContext, useState, useContext, ReactNode, useEffect } from
 import { auth } from '../firebaseConfig';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { getUserSettings, updateUserSettings } from '../services/UserSettingsService';
-import enTranslations from '../i18n/en.json';
-import esTranslations from '../i18n/es.json';
-
-type Language = 'en' | 'es';
-
-interface Translations {
-  [key: string]: string;
-}
-
-interface TranslationsMap {
-  en: Translations;
-  es: Translations;
-}
+import { translations, Language, TranslationDictionary } from '../i18n';
 
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
   t: (key: string, params?: Record<string, any>) => string;
 }
-
-const translations: TranslationsMap = {
-  en: enTranslations,
-  es: esTranslations
-};
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
@@ -35,22 +18,16 @@ interface LanguageProviderProps {
 
 // Get browser language
 const getBrowserLanguage = (): Language => {
-  // Primero intentar obtener el idioma completo (e.g., 'es-ES', 'en-US')
   const fullLang = navigator.language;
-  
-  // Si el idioma completo empieza con 'es', usar español
   if (fullLang.startsWith('es')) {
     return 'es';
   }
-  
-  // Si no, intentar con los idiomas preferidos del navegador
   const languages = navigator.languages || [navigator.language];
   for (const lang of languages) {
     if (lang.startsWith('es')) {
       return 'es';
     }
   }
-  
   return 'en';
 };
 
@@ -68,11 +45,21 @@ const getInitialLanguage = (): Language => {
 // Function to interpolate parameters in translation strings
 const interpolateParams = (text: string, params?: Record<string, any>): string => {
   if (!params) return text;
-  
   return Object.entries(params).reduce((result, [key, value]) => {
     const regex = new RegExp(`{{${key}}}`, 'g');
     return result.replace(regex, String(value));
   }, text);
+};
+
+// Function to get nested value from an object using dot notation
+const getNestedValue = (obj: any, path: string): string | undefined => {
+  const parts = path.split('.');
+  let current = obj;
+  for (const part of parts) {
+    if (current === undefined) return undefined;
+    current = current[part];
+  }
+  return current as string;
 };
 
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
@@ -80,7 +67,6 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoadingSettings, setIsLoadingSettings] = useState(true);
 
-  // Listen for auth state changes and load user settings
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
@@ -96,14 +82,12 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
           }
         } catch (error) {
           console.error('Error loading user language settings:', error);
-          // Si hay error, usar el idioma del navegador
           const browserLang = getBrowserLanguage();
           setLanguage(browserLang);
           localStorage.setItem('language', browserLang);
           auth.languageCode = browserLang;
         }
       } else {
-        // Si no hay usuario, usar el idioma almacenado o el del navegador
         const initialLang = getInitialLanguage();
         setLanguage(initialLang);
         localStorage.setItem('language', initialLang);
@@ -116,9 +100,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     return () => unsubscribe();
   }, []);
 
-  // Update user settings when language changes
   const handleLanguageChange = async (newLanguage: Language) => {
-    // Prevent language change while loading settings
     if (isLoadingSettings) return;
 
     setLanguage(newLanguage);
@@ -135,14 +117,22 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   };
 
   const t = (key: string, params?: Record<string, any>): string => {
+    console.log('Translation key:', key);
+    console.log('Current language:', language);
+    
     const currentTranslations = translations[language];
-    const translation = currentTranslations[key] || key;
+    const translation = getNestedValue(currentTranslations, key);
+    
+    if (!translation) {
+      console.warn(`Missing translation for key: ${key} in language: ${language}`);
+      return key;
+    }
+    
     return params ? interpolateParams(translation, params) : translation;
   };
 
-  // Show loading state while fetching initial settings
   if (isLoadingSettings) {
-    return null; // or a loading spinner
+    return null;
   }
 
   return (
