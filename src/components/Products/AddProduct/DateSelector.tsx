@@ -322,7 +322,7 @@ const DateSelector: React.FC<DateSelectorProps> = ({
                 <IonCard>
                   <IonCardContent>
                     <IonText color="medium">
-                      <h3>Frame actual:</h3>
+                      <h3>{t('products.currentFrame')}:</h3>
                     </IonText>
                     <IonImg src={currentFrame} className="frame-image" />
                   </IonCardContent>
@@ -332,9 +332,9 @@ const DateSelector: React.FC<DateSelectorProps> = ({
             <IonCard className="debug-card">
               <IonCardContent>
                 <IonText color="medium">
-                  <h2>Estado del escáner:</h2>
-                  {isInitializing && <p>Iniciando cámara...</p>}
-                  {isProcessing && <p>Procesando imagen...</p>}
+                  <h2>{t('products.scannerStatus')}:</h2>
+                  {isInitializing && <p>{t('products.initializingCamera')}</p>}
+                  {isProcessing && <p>{t('products.processingImage')}</p>}
                   {debugInfo.map((info, index) => (
                     <p key={index}>{info}</p>
                   ))}

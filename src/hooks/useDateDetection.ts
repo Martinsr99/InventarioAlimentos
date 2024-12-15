@@ -60,7 +60,7 @@ export const useDateDetection = (): UseDateDetectionResult => {
       };
 
       if (capabilities.torch) {
-        addDebugInfo('Flash disponible');
+        addDebugInfo(t('products.flashAvailable'));
       }
 
       await videoTrack.applyConstraints({
@@ -75,7 +75,7 @@ export const useDateDetection = (): UseDateDetectionResult => {
           if (videoRef.current) {
             videoRef.current.onloadedmetadata = () => {
               videoRef.current?.play();
-              addDebugInfo('Video iniciado');
+              addDebugInfo(t('products.videoStarted'));
               resolve();
             };
           } else {
@@ -84,13 +84,13 @@ export const useDateDetection = (): UseDateDetectionResult => {
         });
       }
 
-      addDebugInfo('Cámara iniciada correctamente');
+      addDebugInfo(t('products.cameraStarted'));
       return true;
     } catch (err) {
       console.error('Error al iniciar la cámara:', err);
       const errorMessage = err instanceof Error ? err.message : t('errors.unknownError');
       setError(errorMessage);
-      addDebugInfo(`Error al iniciar: ${errorMessage}`);
+      addDebugInfo(`${t('errors.initializationError')}: ${errorMessage}`);
       return false;
     }
   }, [addDebugInfo, t]);
@@ -105,9 +105,9 @@ export const useDateDetection = (): UseDateDetectionResult => {
             advanced: [{ torch: newFlashState } as ExtendedMediaTrackConstraintSet]
           });
           setIsFlashOn(newFlashState);
-          addDebugInfo(`Flash ${newFlashState ? 'activado' : 'desactivado'}`);
+          addDebugInfo(newFlashState ? t('products.flashEnabled') : t('products.flashDisabled'));
         } else {
-          addDebugInfo('Este dispositivo no soporta flash');
+          addDebugInfo(t('products.flashNotSupported'));
         }
       } else {
         const initialized = await initializeCamera();
@@ -117,12 +117,12 @@ export const useDateDetection = (): UseDateDetectionResult => {
       }
     } catch (err) {
       console.error('Error toggling flash:', err);
-      addDebugInfo('Error al controlar el flash');
+      addDebugInfo(t('errors.flashControl'));
     }
-  }, [isFlashOn, addDebugInfo, initializeCamera]);
+  }, [isFlashOn, addDebugInfo, initializeCamera, t]);
 
   const stopScanning = useCallback(() => {
-    addDebugInfo('Deteniendo escáner...');
+    addDebugInfo(t('products.stoppingScanner'));
     
     if (scanIntervalRef.current) {
       clearInterval(scanIntervalRef.current);
@@ -139,7 +139,7 @@ export const useDateDetection = (): UseDateDetectionResult => {
 
       streamRef.current.getTracks().forEach(track => {
         track.stop();
-        addDebugInfo('Cámara detenida');
+        addDebugInfo(t('products.cameraStopped'));
       });
       streamRef.current = null;
       trackRef.current = null;
@@ -152,8 +152,8 @@ export const useDateDetection = (): UseDateDetectionResult => {
     processingRef.current = false;
     setIsProcessing(false);
     lastDetectedDatesRef.current = [];
-    addDebugInfo('Escáner detenido completamente');
-  }, [addDebugInfo, isFlashOn]);
+    addDebugInfo(t('products.scannerStopped'));
+  }, [addDebugInfo, isFlashOn, t]);
 
   const processFrame = useCallback(async () => {
     if (processingRef.current || !videoRef.current?.readyState || videoRef.current.readyState < 2) {
@@ -252,7 +252,7 @@ export const useDateDetection = (): UseDateDetectionResult => {
           const mostLikelyDate = dateParserService.getMostLikelyExpirationDate(parsedDates);
           
           if (mostLikelyDate) {
-            addDebugInfo(`Fecha detectada: ${mostLikelyDate.toLocaleDateString()}`);
+            addDebugInfo(t('products.dateDetected', { date: mostLikelyDate.toLocaleDateString() }));
             setDetectedDate(mostLikelyDate);
             return true;
           }
@@ -261,15 +261,15 @@ export const useDateDetection = (): UseDateDetectionResult => {
       
       return false;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
-      addDebugInfo(`Error: ${errorMessage}`);
+      const errorMessage = err instanceof Error ? err.message : t('errors.unknownError');
+      addDebugInfo(`${t('errors.generic')}: ${errorMessage}`);
       setError(errorMessage);
       return false;
     } finally {
       processingRef.current = false;
       setIsProcessing(false);
     }
-  }, [addDebugInfo]);
+  }, [addDebugInfo, t]);
 
   const startScanning = useCallback(async () => {
     try {
@@ -279,7 +279,7 @@ export const useDateDetection = (): UseDateDetectionResult => {
       setCurrentFrame(null);
       processingRef.current = false;
       lastDetectedDatesRef.current = [];
-      addDebugInfo('Iniciando cámara...');
+      addDebugInfo(t('products.initializingCamera'));
 
       const initialized = await initializeCamera();
       if (!initialized) {
@@ -298,7 +298,7 @@ export const useDateDetection = (): UseDateDetectionResult => {
       console.error('Error al iniciar el escaneo:', err);
       const errorMessage = err instanceof Error ? err.message : t('errors.unknownError');
       setError(errorMessage);
-      addDebugInfo(`Error al iniciar: ${errorMessage}`);
+      addDebugInfo(`${t('errors.initializationError')}: ${errorMessage}`);
       stopScanning();
     }
   }, [processFrame, stopScanning, t, addDebugInfo, initializeCamera]);
