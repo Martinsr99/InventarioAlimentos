@@ -117,8 +117,6 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   };
 
   const t = (key: string, params?: Record<string, any>): string => {
-    console.log('Translation key:', key);
-    console.log('Current language:', language);
     
     const currentTranslations = translations[language];
     const translation = getNestedValue(currentTranslations, key);
