@@ -35,6 +35,7 @@
   "today": "today",
   "tomorrow": "tomorrow",
   "addSuccess": "Product added successfully",
+  "updateSuccess": "Product updated successfully",
   "deleteSuccess": "Products deleted successfully",
   "searchPlaceholder": "Search products...",
   "sortByName": "Name",

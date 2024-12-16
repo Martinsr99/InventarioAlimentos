@@ -35,6 +35,7 @@
   "today": "hoy",
   "tomorrow": "mañana",
   "addSuccess": "Producto agregado exitosamente",
+  "updateSuccess": "Producto actualizado exitosamente",
   "deleteSuccess": "Productos eliminados exitosamente",
   "searchPlaceholder": "Buscar productos...",
   "sortByName": "Nombre",
