@@ -23,6 +23,7 @@ interface ProductListContentProps {
   selectedProducts?: string[];
   onSelectProduct?: (productId: string, selected: boolean) => void;
   selectionMode?: boolean;
+  onEnterSelectionMode?: () => void;
 }
 
 const ProductListContent: React.FC<ProductListContentProps> = ({
@@ -37,7 +38,8 @@ const ProductListContent: React.FC<ProductListContentProps> = ({
   navigateToFriends,
   selectedProducts = [],
   onSelectProduct,
-  selectionMode = false
+  selectionMode = false,
+  onEnterSelectionMode
 }) => {
   const { t } = useLanguage();
 
@@ -89,6 +91,7 @@ const ProductListContent: React.FC<ProductListContentProps> = ({
           isSelected={selectedProducts.includes(product.id)}
           onSelect={onSelectProduct}
           selectionMode={selectionMode}
+          onEnterSelectionMode={onEnterSelectionMode}
         />
       ))}
     </div>

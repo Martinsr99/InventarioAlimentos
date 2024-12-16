@@ -48,6 +48,11 @@
   margin: 0;
 }
 
+/* Ocultar la flecha del IonItem */
+.product-list-card ion-item[button]::part(detail-icon) {
+  display: none;
+}
+
 .product-list-card ion-item:last-child {
   --border-width: 0;
 }
@@ -177,24 +182,49 @@
   --margin-start: 2px;
   --margin-end: 2px;
   font-size: 0.9rem;
+  min-height: 40px;
 }
 
-.sort-direction-button {
-  margin: 0;
-  height: 50px;
-  width: 50px;
-  --padding-start: 0;
-  --padding-end: 0;
-  --border-radius: 8px;
-  --background: var(--ion-color-step-50);
-  --color: var(--ion-text-color);
-  --box-shadow: none;
+.sort-button-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 4px 8px;
 }
 
-.sort-direction-button ion-icon {
-  font-size: 2rem !important;
-  margin: 0 !important;
-  padding: 0 !important;
+.sort-button-content ion-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  min-height: 20px;
+}
+
+.sort-button-content ion-icon[name="text"] {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  min-height: 20px;
+}
+
+.sort-button-content ion-icon[name="time"] {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  min-height: 20px;
+}
+
+.sort-button-content ion-icon[name="arrow-up"],
+.sort-button-content ion-icon[name="arrow-down"] {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  min-height: 20px;
 }
 
 /* Estilos de productos compartidos */

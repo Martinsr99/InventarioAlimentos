@@ -1,11 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   IonSearchbar,
   IonSegment,
   IonSegmentButton,
   IonIcon,
   IonLabel,
-  IonButton,
 } from '@ionic/react';
 import { 
   text,
@@ -34,6 +33,42 @@ const ProductListFilters: React.FC<ProductListFiltersProps> = ({
   onSortDirectionChange,
 }) => {
   const { t } = useLanguage();
+  const [nameDirection, setNameDirection] = useState<SortDirection>('asc');
+  const [dateDirection, setDateDirection] = useState<SortDirection>('asc');
+
+  const handleSegmentClick = (newSortBy: SortOption) => {
+    if (newSortBy === sortBy) {
+      // Si se hace click en el mismo criterio, cambiar dirección
+      onSortDirectionChange();
+      if (newSortBy === 'name') {
+        setNameDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+      } else {
+        setDateDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+      }
+    } else {
+      // Si se cambia de criterio, usar la dirección guardada
+      onSortByChange(newSortBy);
+      if (newSortBy === 'name') {
+        onSortDirectionChange(); // Alternar si es necesario para coincidir con nameDirection
+        if (sortDirection !== nameDirection) {
+          onSortDirectionChange();
+        }
+      } else {
+        if (sortDirection !== dateDirection) {
+          onSortDirectionChange();
+        }
+      }
+    }
+  };
+
+  const getDirectionIcon = (option: SortOption) => {
+    if (option === sortBy) {
+      return sortDirection === 'asc' ? arrowUp : arrowDown;
+    }
+    return option === 'name' ? 
+      (nameDirection === 'asc' ? arrowUp : arrowDown) :
+      (dateDirection === 'asc' ? arrowUp : arrowDown);
+  };
 
   return (
     <div className="filters-container">
@@ -48,25 +83,37 @@ const ProductListFilters: React.FC<ProductListFiltersProps> = ({
       <div className="sort-controls">
         <IonSegment 
           value={sortBy} 
-          onIonChange={e => onSortByChange(e.detail.value as SortOption)}
           className="sort-segment"
         >
-          <IonSegmentButton value="name" className="sort-segment-button">
-            <IonIcon icon={text} />
-            <IonLabel>{t('products.sortByName')}</IonLabel>
+          <IonSegmentButton 
+            value="name" 
+            className="sort-segment-button"
+            onClick={() => handleSegmentClick('name')}
+          >
+            <div className="sort-button-content">
+              <IonIcon icon={text} />
+              <IonLabel>{t('products.sortByName')}</IonLabel>
+              <IonIcon 
+                icon={getDirectionIcon('name')} 
+                className="sort-direction-icon"
+              />
+            </div>
           </IonSegmentButton>
-          <IonSegmentButton value="expiryDate" className="sort-segment-button">
-            <IonIcon icon={time} />
-            <IonLabel>{t('products.sortByExpiry')}</IonLabel>
+          <IonSegmentButton 
+            value="expiryDate" 
+            className="sort-segment-button"
+            onClick={() => handleSegmentClick('expiryDate')}
+          >
+            <div className="sort-button-content">
+              <IonIcon icon={time} />
+              <IonLabel>{t('products.sortByExpiry')}</IonLabel>
+              <IonIcon 
+                icon={getDirectionIcon('expiryDate')} 
+                className="sort-direction-icon"
+              />
+            </div>
           </IonSegmentButton>
         </IonSegment>
-        <IonButton
-          fill="clear"
-          className="sort-direction-button"
-          onClick={onSortDirectionChange}
-        >
-          <IonIcon icon={sortDirection === 'asc' ? arrowUp : arrowDown} />
-        </IonButton>
       </div>
     </div>
   );

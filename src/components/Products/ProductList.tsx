@@ -244,6 +244,7 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded, onOpenSettin
             selectedProducts={selectedProducts}
             onSelectProduct={handleSelectProduct}
             selectionMode={selectionMode}
+            onEnterSelectionMode={toggleSelectionMode}
           />
         </IonCardContent>
       </IonCard>

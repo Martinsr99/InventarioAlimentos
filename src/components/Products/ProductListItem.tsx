@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import {
   IonItem,
   IonLabel,
@@ -25,6 +25,7 @@ interface ProductListItemProps {
   isSelected?: boolean;
   onSelect?: (id: string, selected: boolean) => void;
   selectionMode?: boolean;
+  onEnterSelectionMode?: () => void;
 }
 
 const ProductListItem: React.FC<ProductListItemProps> = ({
@@ -35,8 +36,11 @@ const ProductListItem: React.FC<ProductListItemProps> = ({
   isSelected = false,
   onSelect,
   selectionMode = false,
+  onEnterSelectionMode,
 }) => {
   const { t } = useLanguage();
+  const longPressTimer = useRef<NodeJS.Timeout>();
+  const [isLongPress, setIsLongPress] = useState(false);
 
   const calculateDaysUntilExpiry = (expiryDate: string) => {
     const today = new Date();
@@ -73,22 +77,52 @@ const ProductListItem: React.FC<ProductListItemProps> = ({
     return 'product-status-fresh';
   };
 
-  const handleSelect = (e: CustomEvent) => {
-    e.stopPropagation();
-    if (onSelect) {
-      onSelect(product.id, e.detail.checked);
+  const handleItemClick = (e: React.MouseEvent) => {
+    if (selectionMode && onSelect && !(e.target as HTMLElement).closest('.action-buttons')) {
+      onSelect(product.id, !isSelected);
     }
+  };
+
+  const handleTouchStart = () => {
+    if (!selectionMode && viewMode === 'personal') {
+      longPressTimer.current = setTimeout(() => {
+        setIsLongPress(true);
+        if (onEnterSelectionMode) {
+          onEnterSelectionMode();
+          onSelect?.(product.id, true);
+        }
+      }, 500); // 500ms para considerar long press
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+    }
+    setIsLongPress(false);
+  };
+
+  const handleActionClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
   };
 
   return (
     <IonItem 
       className={`${isOwnedShared ? 'owned-shared-product' : isSharedProduct ? 'shared-product' : ''}`}
+      onClick={handleItemClick}
+      button={selectionMode}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onTouchMove={handleTouchEnd}
+      onMouseDown={handleTouchStart}
+      onMouseUp={handleTouchEnd}
+      onMouseLeave={handleTouchEnd}
     >
       {selectionMode && (
         <IonCheckbox
           slot="start"
           checked={isSelected}
-          onIonChange={handleSelect}
+          onClick={(e) => e.stopPropagation()}
         />
       )}
       <IonLabel className="ion-text-wrap">
@@ -125,7 +159,7 @@ const ProductListItem: React.FC<ProductListItemProps> = ({
       </IonLabel>
 
       {!selectionMode && (viewMode === 'personal' || isOwnedShared) && (
-        <div className="ion-no-padding ion-no-margin">
+        <div className="action-buttons ion-no-padding ion-no-margin" onClick={handleActionClick}>
           <IonButton 
             fill="clear" 
             onClick={() => onEdit(product.id)}
