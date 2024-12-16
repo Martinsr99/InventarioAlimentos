@@ -13,5 +13,6 @@
   "no": "No",
   "optional": "optional",
   "custom": "Custom",
-  "done": "Done"
+  "done": "Done",
+  "confirm": "Confirm"
 }

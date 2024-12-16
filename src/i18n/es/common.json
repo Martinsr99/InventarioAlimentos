@@ -13,5 +13,6 @@
   "no": "No",
   "optional": "opcional",
   "custom": "Personalizado",
-  "done": "Listo"
+  "done": "Listo",
+  "confirm": "Confirmar"
 }

@@ -1,4 +1,9 @@
 {
-  "autoDeleteExpired": "Eliminar Productos Caducados Automáticamente",
-  "autoDeleteExpiredDescription": "Eliminar automáticamente los productos de tu lista cuando caduquen"
+  "autoDeleteExpired": "Auto-eliminar Productos Caducados",
+  "autoDeleteExpiredDescription": "Eliminar automáticamente los productos de tu lista cuando caduquen",
+  "deleteAccount": "Eliminar Cuenta",
+  "deleteAccountConfirmHeader": "Eliminar Cuenta",
+  "deleteAccountConfirmMessage": "Esta acción eliminará permanentemente tu cuenta y todos los datos asociados. Esta acción no se puede deshacer.",
+  "deleteAccountConfirmInstructions": "Para confirmar la eliminación, escribe 'Confirmar' a continuación:",
+  "deleteAccountConfirmPlaceholder": "Escribe 'Confirmar' para proceder"
 }

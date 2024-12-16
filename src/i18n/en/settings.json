@@ -1,4 +1,9 @@
 {
   "autoDeleteExpired": "Auto-Delete Expired Products",
-  "autoDeleteExpiredDescription": "Automatically remove products from your list when they expire"
+  "autoDeleteExpiredDescription": "Automatically remove products from your list when they expire",
+  "deleteAccount": "Delete Account",
+  "deleteAccountConfirmHeader": "Delete Account",
+  "deleteAccountConfirmMessage": "This action will permanently delete your account and all associated data. This cannot be undone.",
+  "deleteAccountConfirmInstructions": "To confirm deletion, please type 'Confirm' below:",
+  "deleteAccountConfirmPlaceholder": "Type 'Confirm' to proceed"
 }

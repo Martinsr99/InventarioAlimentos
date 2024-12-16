@@ -24,6 +24,7 @@ import { LanguageSection } from './LanguageSection';
 import { SharingSection } from './SharingSection';
 import { LogoutSection } from './LogoutSection';
 import AutoDeleteSection from './AutoDeleteSection';
+import DeleteAccountSection from './DeleteAccountSection';
 import './UserSettings.css';
 
 interface UserSettingsProps {
@@ -194,6 +195,8 @@ const UserSettings: React.FC<UserSettingsProps> = ({ openToShare = false, onClos
               <AutoDeleteSection />
 
               <LogoutSection onLogout={handleLogout} />
+
+              <DeleteAccountSection />
             </div>
           )}
         </IonContent>
