@@ -7,7 +7,6 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Dependencies
 node_modules
 dist
 dist-ssr
@@ -24,47 +23,51 @@ dist-ssr
 *.sln
 *.sw?
 
-# Firebase files
-firebase.json
-firestore.indexes.json
-firestore.rules
-.firebase/
-firebase-debug.log
-firestore-debug.log
-ui-debug.log
-.firebaserc
-
-# Firebase config files
-src/firebaseConfig.ts
-GoogleService-Info.plist
-google-services.json
-
-# Keep templates
-!src/firebaseConfig.template.ts
-!ios/App/GoogleService-Info.template.plist
-!android/app/google-services.template.json
-
-# testing
-/coverage
-
-# production
-/build
-
-# misc
+# Environment variables
+.env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 
-# capacitor
-ios/App/App/public/
-android/app/src/main/assets/public
+# Firebase config
+src/firebaseConfig.ts
 
-# Gradle files
-.gradle/
-android/build/
-android/app/build/
-android/captures/
+# iOS
+ios/App/Pods
+ios/App/App/GoogleService-Info.plist
+ios/App/public
+ios/App/build
+ios/App/App.xcarchive
+ios/App/App.xcworkspace/xcuserdata
+ios/App/App.xcodeproj/xcuserdata
+
+# Android
+android/app/google-services.json
+android/app/release
+android/app/debug
+android/app/build
+android/.gradle
 android/local.properties
-android/.gradle/
-android/gradle-wrapper.jar
+android/*.iml
+android/.idea
+android/captures
+android/build
+
+# Capacitor
+capacitor.config.json
+ios/App/App/capacitor.config.json
+android/app/src/main/assets/capacitor.config.json
+
+# Testing
+/coverage
+
+# Production
+/build
+
+# Misc
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local

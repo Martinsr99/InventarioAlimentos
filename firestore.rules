@@ -1,0 +1,61 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /shareInvitations/{invitationId} {
+      allow read, write: if request.auth != null;
+    }
+
+    match /products/{productId} {
+      allow read: if request.auth != null && (
+        request.auth.uid == resource.data.userId || 
+        request.auth.uid in resource.data.sharedWith
+      );
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+
+    match /userProducts/{productId} {
+      // Allow reading user's own products
+      allow read: if request.auth != null;
+      
+      // Allow creating documents where the user is the owner
+      allow create: if request.auth != null && 
+                   request.resource.data.userId == request.auth.uid &&
+                   request.resource.data.name is string &&
+                   request.resource.data.category is string;
+      
+      // Allow updating and deleting own documents
+      allow update, delete: if request.auth != null && 
+                          resource.data.userId == request.auth.uid;
+    }
+
+    match /userSettings/{userId} {
+      allow read: if request.auth != null;  // Allow reading any user settings for verification
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    match /userSharing/{userId} {
+      // Allow read to check if users exist
+      allow read: if request.auth != null;
+      // Allow create/update of own document
+      allow create, update: if request.auth != null && request.auth.uid == userId;
+    }
+
+    match /notifications/{notificationId} {
+      // Allow read of own notifications
+      allow read: if request.auth != null && resource.data.toUserId == request.auth.uid;
+      // Allow create for authenticated users
+      allow create: if request.auth != null;
+      // Allow update/delete of own notifications
+      allow update, delete: if request.auth != null && resource.data.toUserId == request.auth.uid;
+    }
+
+    match /mail/{mailId} {
+      // Allow create for authenticated users
+      allow create: if request.auth != null;
+      // No read/update/delete needed for mail queue
+      allow read, update, delete: if false;
+    }
+  }
+}
