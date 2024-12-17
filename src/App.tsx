@@ -1,15 +1,9 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   IonApp, 
   IonContent, 
-  IonHeader, 
-  IonToolbar, 
   IonPage,
   setupIonicReact,
-  IonGrid,
-  IonRow,
-  IonCol,
-  IonButtons,
   IonSpinner,
   IonToast,
   IonRouterOutlet,
@@ -20,13 +14,12 @@ import { Route, Redirect } from 'react-router-dom';
 import { auth } from './firebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';
 import Auth from './components/Authenticator/Auth';
-import AddProductForm from './forms/AddProductForm';
-import ProductList from './components/Products/ProductList';
-import EditProduct from './components/Products/EditProduct/EditProduct';
+import { RecipePage } from './components/Recipes/RecipePage';
 import { scheduleExpiryNotifications } from './services/NotificationService';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
-import UserSettings from './components/UserSettings/UserSettings';
 import { Capacitor } from '@capacitor/core';
+import Home from './pages/Home';
+import EditProduct from './components/Products/EditProduct/EditProduct';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -56,12 +49,6 @@ const AppContent: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
-  const [refreshKey, setRefreshKey] = useState(0);
-  const [isHeaderElevated, setIsHeaderElevated] = useState(false);
-  const [isHeaderHidden, setIsHeaderHidden] = useState(false);
-  const [lastScrollTop, setLastScrollTop] = useState(0);
-  const [openSettingsToShare, setOpenSettingsToShare] = useState(false);
-  const [authKey, setAuthKey] = useState(0);
   const [showNotificationAlert, setShowNotificationAlert] = useState(false);
 
   useEffect(() => {
@@ -74,7 +61,6 @@ const AppContent: React.FC = () => {
       if (user) {
         try {
           await scheduleExpiryNotifications();
-          setAuthKey(prev => prev + 1);
         } catch (error: any) {
           if (Capacitor.isNativePlatform()) {
             console.error('Error scheduling notifications:', error);
@@ -92,107 +78,51 @@ const AppContent: React.FC = () => {
     return () => unsubscribe();
   }, [t]);
 
-  const handleScroll = (e: CustomEvent) => {
-    const scrollTop = (e.detail as any).scrollTop;
-    const isScrollingDown = scrollTop > lastScrollTop;
-    
-    if (isScrollingDown && scrollTop > 20) {
-      setIsHeaderHidden(true);
-    } else if (!isScrollingDown) {
-      setIsHeaderHidden(false);
-    }
-
-    setIsHeaderElevated(scrollTop > 0);
-    setLastScrollTop(scrollTop);
-  };
-
-  const handleProductChange = useCallback(() => {
-    setRefreshKey(prev => prev + 1);
-  }, []);
-
-  const handleOpenSettingsToShare = () => {
-    setOpenSettingsToShare(true);
-  };
-
-  const handleSettingsClose = () => {
-    setOpenSettingsToShare(false);
-  };
-
   if (isLoading) {
     return (
-      <IonApp className="dark-theme">
-        <IonPage>
-          <IonContent>
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'center', 
-              alignItems: 'center', 
-              height: '100%' 
-            }}>
-              <IonSpinner name="crescent" />
-            </div>
-          </IonContent>
-        </IonPage>
-      </IonApp>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return (
-      <IonApp className="dark-theme">
-        <IonPage>
-          <IonContent>
-            <Auth />
-          </IonContent>
-        </IonPage>
-      </IonApp>
+      <IonPage>
+        <IonContent>
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            height: '100%' 
+          }}>
+            <IonSpinner name="crescent" />
+          </div>
+        </IonContent>
+      </IonPage>
     );
   }
 
   return (
-    <IonApp className="dark-theme">
-      <IonRouterOutlet>
-        <Route exact path="/">
-          <IonPage>
-            <IonHeader>
-              <IonToolbar className={`app-header ${isHeaderElevated ? 'header-elevation' : ''} ${isHeaderHidden ? 'header-hidden' : ''}`}>
-                <IonButtons slot="end" className="header-buttons">
-                  <UserSettings 
-                    openToShare={openSettingsToShare} 
-                    onClose={handleSettingsClose}
-                  />
-                </IonButtons>
-              </IonToolbar>
-            </IonHeader>
-            <IonContent 
-              scrollY={true}
-              scrollEvents={true}
-              onIonScroll={handleScroll}
-            >
-              <div style={{ paddingTop: '40px' }}>
-                <AddProductForm onProductAdded={handleProductChange} />
-                <ProductList 
-                  key={`${authKey}-${refreshKey}`} 
-                  onOpenSettingsToShare={handleOpenSettingsToShare}
-                />
-              </div>
-            </IonContent>
-          </IonPage>
-        </Route>
-        <Route 
-          exact 
-          path="/edit-product/:id" 
-          render={({ match }) => (
-            <EditProduct 
-              productId={match.params.id} 
-              onSaved={handleProductChange} 
-            />
-          )}
-        />
-        <Route>
-          <Redirect to="/" />
-        </Route>
-      </IonRouterOutlet>
+    <>
+      <IonReactRouter>
+        <IonRouterOutlet>
+          <Route path="/auth" exact>
+            {isAuthenticated ? <Redirect to="/home" /> : <Auth />}
+          </Route>
+          <Route path="/home" exact>
+            {isAuthenticated ? <Home /> : <Redirect to="/auth" />}
+          </Route>
+          <Route path="/recipes" exact>
+            {isAuthenticated ? <RecipePage /> : <Redirect to="/auth" />}
+          </Route>
+          <Route path="/edit-product/:id" exact>
+            {isAuthenticated ? (
+              <EditProduct 
+                productId={window.location.pathname.split('/').pop() || ''} 
+                onSaved={() => {}} 
+              />
+            ) : (
+              <Redirect to="/auth" />
+            )}
+          </Route>
+          <Route exact path="/">
+            <Redirect to={isAuthenticated ? "/home" : "/auth"} />
+          </Route>
+        </IonRouterOutlet>
+      </IonReactRouter>
 
       <IonToast
         isOpen={!!error}
@@ -215,17 +145,17 @@ const AppContent: React.FC = () => {
           }
         ]}
       />
-    </IonApp>
+    </>
   );
 };
 
 const App: React.FC = () => {
   return (
-    <IonReactRouter>
+    <IonApp className="dark-theme">
       <LanguageProvider>
         <AppContent />
       </LanguageProvider>
-    </IonReactRouter>
+    </IonApp>
   );
 };
 

@@ -14,3 +14,16 @@ export interface UserSharing {
   sharedWith: Array<{ userId: string; email: string }>;
   createdAt: string;
 }
+
+export interface Product {
+  id: string;
+  name: string;
+  expiryDate: string;
+  location: string;
+  quantity: number;
+  category?: string;
+  notes: string;
+  userId: string;
+  addedAt: string;
+  sharedWith?: string[];
+}

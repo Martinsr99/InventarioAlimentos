@@ -1,22 +1,74 @@
-import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/react';
-import ExploreContainer from '../components/ExploreContainer';
+import React, { useState, useCallback } from 'react';
+import {
+  IonContent,
+  IonHeader,
+  IonPage,
+  IonTitle,
+  IonToolbar,
+  IonButtons,
+  IonButton,
+  IonIcon,
+  IonRefresher,
+  IonRefresherContent,
+  RefresherEventDetail
+} from '@ionic/react';
+import { settingsOutline, restaurantOutline } from 'ionicons/icons';
+import { useTranslation } from 'react-i18next';
+import AddProductForm from '../forms/AddProductForm';
+import ProductList from '../components/Products/ProductList';
+import UserSettings from '../components/UserSettings/UserSettings';
+import { useProductList } from '../hooks/useProductList';
 import './Home.css';
 
 const Home: React.FC = () => {
+  const { t } = useTranslation();
+  const { loadProducts } = useProductList();
+  const [updateTrigger, setUpdateTrigger] = useState(0);
+
+  const handleRefresh = async (event: CustomEvent<RefresherEventDetail>) => {
+    try {
+      await loadProducts();
+      event.detail.complete();
+    } catch (error) {
+      console.error('Error refreshing:', error);
+      event.detail.complete();
+    }
+  };
+
+  const handleProductAdded = useCallback(async () => {
+    try {
+      await loadProducts();
+      // Forzar la actualización del ProductList
+      setUpdateTrigger(prev => prev + 1);
+    } catch (error) {
+      console.error('Error updating products:', error);
+    }
+  }, [loadProducts]);
+
   return (
     <IonPage>
       <IonHeader>
         <IonToolbar>
-          <IonTitle>Blank</IonTitle>
+          <IonTitle>{t('app.title')}</IonTitle>
+          <IonButtons slot="end">
+            <IonButton routerLink="/recipes">
+              <IonIcon slot="icon-only" icon={restaurantOutline} />
+            </IonButton>
+            <UserSettings />
+          </IonButtons>
         </IonToolbar>
       </IonHeader>
       <IonContent fullscreen>
-        <IonHeader collapse="condense">
-          <IonToolbar>
-            <IonTitle size="large">Blank</IonTitle>
-          </IonToolbar>
-        </IonHeader>
-        <ExploreContainer />
+        <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
+          <IonRefresherContent />
+        </IonRefresher>
+        <div style={{ paddingTop: '1rem' }}>
+          <AddProductForm onProductAdded={handleProductAdded} />
+          <ProductList 
+            key={updateTrigger}
+            onRefreshNeeded={loadProducts}
+          />
+        </div>
       </IonContent>
     </IonPage>
   );

@@ -1,0 +1,23 @@
+{
+  "title": "Recipes",
+  "suggestions": "Suggestions",
+  "saved": "Saved",
+  "ingredientsUsed": "{{count}} ingredients available",
+  "expiringProductsNotice": "You have {{count}} products that will expire soon. Here are some recipes you can prepare with them!",
+  "noExpiringProducts": "You don't have any products expiring soon. Add more products to get recipe suggestions!",
+  "noRecipesFound": "No recipes found with available ingredients",
+  "viewRecipe": "View recipe",
+  "saveRecipe": "Save recipe",
+  "unsaveRecipe": "Remove from saved",
+  "preparationTime": "Preparation time: {{time}} minutes",
+  "servings": "Servings: {{count}}",
+  "ingredients": "Ingredients",
+  "instructions": "Instructions",
+  "createMenu": "Create menu",
+  "addToMenu": "Add to menu",
+  "error": {
+    "fetchingRecipes": "Error loading recipes",
+    "savingRecipe": "Error saving recipe",
+    "removingRecipe": "Error removing recipe from saved"
+  }
+}

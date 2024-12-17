@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getSharedProducts } from '../services/SharedProductsService';
 import { getAcceptedShareUsers } from '../services/FriendService';
 import { auth } from '../firebaseConfig';
 import { getProducts, deleteProduct, deleteProducts as deleteProductsBatch } from '../services/InventoryService';
 import { getUserSettings } from '../services/UserSettingsService';
-import { Product } from '../services/InventoryService';
+import { Product } from '../services/types';
 
 export type SortOption = 'expiryDate' | 'name' | 'quantity';
 export type SortDirection = 'asc' | 'desc';
@@ -30,25 +30,23 @@ export const useProductList = (onRefreshNeeded?: () => void) => {
   const [loadingShared, setLoadingShared] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasFriends, setHasFriends] = useState(false);
-  const [currentFilterOptions, setCurrentFilterOptions] = useState<FilterOptions>({
+  const [filterOptions, setFilterOptions] = useState<FilterOptions>({
     viewMode: 'personal',
     searchText: '',
     sortBy: 'expiryDate',
     sortDirection: 'asc'
   });
 
-  const loadProducts = async () => {
+  const loadProducts = useCallback(async () => {
     if (!auth.currentUser) return;
 
     try {
       setLoading(true);
       setError(null);
 
-      // Get user settings to check auto-delete preference
       const settings = await getUserSettings(auth.currentUser);
       let currentProducts = await getProducts();
 
-      // If auto-delete is enabled, remove expired products
       if (settings.autoDeleteExpired) {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -61,7 +59,6 @@ export const useProductList = (onRefreshNeeded?: () => void) => {
 
         if (expiredProducts.length > 0) {
           await deleteProductsBatch(expiredProducts.map(p => p.id));
-          // Get updated products list after deletion
           currentProducts = await getProducts();
         }
       }
@@ -76,9 +73,9 @@ export const useProductList = (onRefreshNeeded?: () => void) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [onRefreshNeeded]);
 
-  const loadSharedProducts = async () => {
+  const loadSharedProducts = useCallback(async () => {
     if (!auth.currentUser) return;
 
     try {
@@ -91,9 +88,9 @@ export const useProductList = (onRefreshNeeded?: () => void) => {
     } finally {
       setLoadingShared(false);
     }
-  };
+  }, []);
 
-  const checkFriends = async () => {
+  const checkFriends = useCallback(async () => {
     if (!auth.currentUser) return;
 
     try {
@@ -102,7 +99,7 @@ export const useProductList = (onRefreshNeeded?: () => void) => {
     } catch (error) {
       console.error('Error checking friends:', error);
     }
-  };
+  }, []);
 
   const handleDelete = async (productId: string) => {
     try {
@@ -146,14 +143,12 @@ export const useProductList = (onRefreshNeeded?: () => void) => {
     return expiredIds.length;
   };
 
-  const filterAndSortProducts = (options: FilterOptions) => {
-    setCurrentFilterOptions(options);
+  const filterAndSortProducts = useCallback((options: FilterOptions) => {
     const { viewMode, searchText, sortBy, sortDirection } = options;
     let filtered = viewMode === 'personal' 
       ? products.map(p => ({ ...p, isOwner: true })) 
       : sharedProducts;
 
-    // Apply search filter
     if (searchText) {
       const searchLower = searchText.toLowerCase();
       filtered = filtered.filter(product =>
@@ -161,7 +156,6 @@ export const useProductList = (onRefreshNeeded?: () => void) => {
       );
     }
 
-    // Apply sorting
     filtered.sort((a, b) => {
       let comparison = 0;
       switch (sortBy) {
@@ -179,20 +173,27 @@ export const useProductList = (onRefreshNeeded?: () => void) => {
     });
 
     setFilteredProducts(filtered);
-  };
+  }, [products, sharedProducts]);
 
-  // Cargar productos cuando el usuario está autenticado
+  // Initial load
   useEffect(() => {
     if (auth.currentUser) {
       loadProducts();
       checkFriends();
     }
-  }, [auth.currentUser]);
+  }, [auth.currentUser, loadProducts, checkFriends]);
 
-  // Actualizar filteredProducts cuando cambian los productos o los productos compartidos
+  // Load shared products when view mode changes
   useEffect(() => {
-    filterAndSortProducts(currentFilterOptions);
-  }, [products, sharedProducts, currentFilterOptions.viewMode]);
+    if (filterOptions.viewMode === 'shared') {
+      loadSharedProducts();
+    }
+  }, [filterOptions.viewMode, loadSharedProducts]);
+
+  // Apply filters when products or filter options change
+  useEffect(() => {
+    filterAndSortProducts(filterOptions);
+  }, [products, sharedProducts, filterOptions, filterAndSortProducts]);
 
   return {
     products,
@@ -208,7 +209,7 @@ export const useProductList = (onRefreshNeeded?: () => void) => {
     deleteProducts,
     deleteExpiredProducts,
     getExpiredProductIds,
-    filterAndSortProducts,
+    filterAndSortProducts: (options: FilterOptions) => setFilterOptions(options),
     checkFriends
   };
 };

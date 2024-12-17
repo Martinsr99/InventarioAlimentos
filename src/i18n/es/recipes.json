@@ -1,0 +1,23 @@
+{
+  "title": "Recetas",
+  "suggestions": "Sugerencias",
+  "saved": "Guardadas",
+  "ingredientsUsed": "{{count}} ingredientes disponibles",
+  "expiringProductsNotice": "Tienes {{count}} productos que caducarán pronto. ¡Aquí hay algunas recetas que puedes preparar con ellos!",
+  "noExpiringProducts": "No tienes productos próximos a caducar. ¡Agrega más productos para obtener sugerencias de recetas!",
+  "noRecipesFound": "No se encontraron recetas con los ingredientes disponibles",
+  "viewRecipe": "Ver receta",
+  "saveRecipe": "Guardar receta",
+  "unsaveRecipe": "Eliminar de guardados",
+  "preparationTime": "Tiempo de preparación: {{time}} minutos",
+  "servings": "Porciones: {{count}}",
+  "ingredients": "Ingredientes",
+  "instructions": "Instrucciones",
+  "createMenu": "Crear menú",
+  "addToMenu": "Agregar al menú",
+  "error": {
+    "fetchingRecipes": "Error al cargar las recetas",
+    "savingRecipe": "Error al guardar la receta",
+    "removingRecipe": "Error al eliminar la receta de guardados"
+  }
+}

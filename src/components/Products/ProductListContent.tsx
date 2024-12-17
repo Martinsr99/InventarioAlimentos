@@ -1,10 +1,8 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
-  IonList,
   IonSpinner,
   IonText,
   IonButton,
-  IonItem,
 } from '@ionic/react';
 import { ExtendedProduct, ViewMode } from '../../hooks/useProductList';
 import ProductListItem from './ProductListItem';
@@ -26,7 +24,7 @@ interface ProductListContentProps {
   onEnterSelectionMode?: () => void;
 }
 
-const ProductListContent: React.FC<ProductListContentProps> = ({
+const ProductListContent: React.FC<ProductListContentProps> = React.memo(({
   loading,
   loadingShared,
   viewMode,
@@ -43,6 +41,34 @@ const ProductListContent: React.FC<ProductListContentProps> = ({
 }) => {
   const { t } = useLanguage();
 
+  const renderEmptyState = useCallback(() => {
+    if (searchText) {
+      return <p>{t('products.noSearchResults')}</p>;
+    }
+
+    if (viewMode === 'shared') {
+      if (!hasFriends) {
+        return (
+          <>
+            <p>{t('sharing.noFriendsYet')}</p>
+            <p>{t('sharing.inviteFriends')}</p>
+            <IonButton onClick={navigateToFriends} fill="outline" size="small">
+              {t('sharing.friendsSection')}
+            </IonButton>
+          </>
+        );
+      }
+      return <p>{t('sharing.noSharedProducts')}</p>;
+    }
+
+    return (
+      <>
+        <p>{t('products.noProducts')}</p>
+        <p>{t('products.addFirst')}</p>
+      </>
+    );
+  }, [searchText, viewMode, hasFriends, navigateToFriends, t]);
+
   if (loading || (loadingShared && viewMode === 'shared')) {
     return (
       <div className="loading-spinner">
@@ -55,25 +81,7 @@ const ProductListContent: React.FC<ProductListContentProps> = ({
     return (
       <div className="empty-state">
         <IonText color="medium">
-          <p>
-            {searchText 
-              ? t('products.noSearchResults')
-              : viewMode === 'shared'
-                ? hasFriends 
-                  ? t('sharing.noSharedProducts')
-                  : t('sharing.noFriendsYet')
-                : t('products.noProducts')
-            }
-          </p>
-          {!searchText && viewMode === 'personal' && <p>{t('products.addFirst')}</p>}
-          {!searchText && viewMode === 'shared' && !hasFriends && (
-            <>
-              <p>{t('sharing.inviteFriends')}</p>
-              <IonButton onClick={navigateToFriends} fill="outline" size="small">
-                {t('sharing.friendsSection')}
-              </IonButton>
-            </>
-          )}
+          {renderEmptyState()}
         </IonText>
       </div>
     );
@@ -96,6 +104,20 @@ const ProductListContent: React.FC<ProductListContentProps> = ({
       ))}
     </div>
   );
-};
+}, (prevProps, nextProps) => {
+  // Comparación personalizada para evitar re-renderizados innecesarios
+  return (
+    prevProps.loading === nextProps.loading &&
+    prevProps.loadingShared === nextProps.loadingShared &&
+    prevProps.viewMode === nextProps.viewMode &&
+    prevProps.searchText === nextProps.searchText &&
+    prevProps.hasFriends === nextProps.hasFriends &&
+    prevProps.selectionMode === nextProps.selectionMode &&
+    prevProps.filteredProducts === nextProps.filteredProducts &&
+    prevProps.selectedProducts === nextProps.selectedProducts
+  );
+});
+
+ProductListContent.displayName = 'ProductListContent';
 
 export default ProductListContent;

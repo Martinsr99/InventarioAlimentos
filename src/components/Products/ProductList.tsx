@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   IonCard,
   IonCardContent,
@@ -27,7 +27,7 @@ interface ProductListProps {
   onOpenSettingsToShare?: () => void;
 }
 
-const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded, onOpenSettingsToShare }) => {
+const ProductList: React.FC<ProductListProps> = React.memo(({ onRefreshNeeded, onOpenSettingsToShare }) => {
   const [searchText, setSearchText] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('expiryDate');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -61,36 +61,28 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded, onOpenSettin
     sharedProducts
   } = useProductList(onRefreshNeeded);
 
-  // Reset selection mode when changing view mode
   useEffect(() => {
     setSelectionMode(false);
     setSelectedProducts([]);
   }, [viewMode]);
 
-  // Initial load - now depends on auth.currentUser
-  useEffect(() => {
-    if (auth.currentUser) {
-      loadProducts();
-      checkFriends();
-      // Initialize filters
-      filterAndSortProducts({ viewMode, searchText, sortBy, sortDirection });
-    }
-  }, [auth.currentUser]); // Add auth.currentUser as dependency
+  const handleViewModeChange = useCallback((newMode: ViewMode) => {
+    setViewMode(newMode);
+  }, []);
 
-  // Handle view mode changes
-  useEffect(() => {
-    if (viewMode === 'shared') {
-      loadSharedProducts();
-    }
-    filterAndSortProducts({ viewMode, searchText, sortBy, sortDirection });
-  }, [viewMode]);
+  const handleSearchChange = useCallback((text: string) => {
+    setSearchText(text);
+  }, []);
 
-  // Handle filter changes
-  useEffect(() => {
-    filterAndSortProducts({ viewMode, searchText, sortBy, sortDirection });
-  }, [searchText, sortBy, sortDirection]);
+  const handleSortByChange = useCallback((option: SortOption) => {
+    setSortBy(option);
+  }, []);
 
-  const handleRefresh = async (event: CustomEvent<RefresherEventDetail>) => {
+  const handleSortDirectionChange = useCallback(() => {
+    setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+  }, []);
+
+  const handleRefresh = useCallback(async (event: CustomEvent<RefresherEventDetail>) => {
     try {
       if (viewMode === 'personal') {
         await loadProducts();
@@ -98,40 +90,34 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded, onOpenSettin
         await loadSharedProducts();
         await checkFriends();
       }
-      // Re-apply filters after refresh
-      filterAndSortProducts({ viewMode, searchText, sortBy, sortDirection });
     } finally {
       event.detail.complete();
     }
-  };
+  }, [viewMode, loadProducts, loadSharedProducts, checkFriends]);
 
-  const handleDeleteConfirm = async (productId: string) => {
+  const handleDeleteConfirm = useCallback(async (productId: string) => {
     try {
       await handleDelete(productId);
-      // Re-apply filters after deletion
-      filterAndSortProducts({ viewMode, searchText, sortBy, sortDirection });
     } catch (error) {
       setShowToast(true);
       setErrorMessage(t('errors.productDelete'));
     }
     setProductToDelete(null);
-  };
+  }, [handleDelete, t]);
 
-  const handleBatchDeleteConfirm = async () => {
+  const handleBatchDeleteConfirm = useCallback(async () => {
     try {
       await deleteProducts(selectedProducts);
       setSelectedProducts([]);
       setSelectionMode(false);
-      // Re-apply filters after deletion
-      filterAndSortProducts({ viewMode, searchText, sortBy, sortDirection });
     } catch (error) {
       setShowToast(true);
       setErrorMessage(t('errors.productDelete'));
     }
     setShowBatchDeleteConfirm(false);
-  };
+  }, [deleteProducts, selectedProducts, t]);
 
-  const handleDeleteExpiredClick = () => {
+  const handleDeleteExpiredClick = useCallback(() => {
     const count = getExpiredProductIds().length;
     if (count > 0) {
       setExpiredCount(count);
@@ -140,25 +126,23 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded, onOpenSettin
       setShowToast(true);
       setErrorMessage(t('products.noExpiredProducts'));
     }
-  };
+  }, [getExpiredProductIds, t]);
 
-  const handleDeleteExpiredConfirm = async () => {
+  const handleDeleteExpiredConfirm = useCallback(async () => {
     try {
       await deleteExpiredProducts();
-      // Re-apply filters after deletion
-      filterAndSortProducts({ viewMode, searchText, sortBy, sortDirection });
     } catch (error) {
       setShowToast(true);
       setErrorMessage(t('errors.productDelete'));
     }
     setShowDeleteExpiredConfirm(false);
-  };
+  }, [deleteExpiredProducts, t]);
 
-  const handleEdit = (productId: string) => {
+  const handleEdit = useCallback((productId: string) => {
     history.push(`/edit-product/${productId}`);
-  };
+  }, [history]);
 
-  const handleSelectProduct = (productId: string, selected: boolean) => {
+  const handleSelectProduct = useCallback((productId: string, selected: boolean) => {
     setSelectedProducts(prev => {
       if (selected) {
         return [...prev, productId];
@@ -166,14 +150,27 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded, onOpenSettin
         return prev.filter(id => id !== productId);
       }
     });
-  };
+  }, []);
 
-  const toggleSelectionMode = () => {
+  const toggleSelectionMode = useCallback(() => {
     setSelectionMode(prev => !prev);
     if (selectionMode) {
       setSelectedProducts([]);
     }
-  };
+  }, [selectionMode]);
+
+  // Memoizar las opciones de filtro para evitar actualizaciones innecesarias
+  const filterOptions = useMemo(() => ({
+    viewMode,
+    searchText,
+    sortBy,
+    sortDirection
+  }), [viewMode, searchText, sortBy, sortDirection]);
+
+  // Aplicar filtros solo cuando las opciones cambien
+  useEffect(() => {
+    filterAndSortProducts(filterOptions);
+  }, [filterOptions]);
 
   return (
     <>
@@ -218,17 +215,17 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded, onOpenSettin
         <IonCardContent>
           <ProductListHeader
             viewMode={viewMode}
-            onViewModeChange={setViewMode}
+            onViewModeChange={handleViewModeChange}
             sharedProductsCount={sharedProducts.length}
           />
 
           <ProductListFilters
             searchText={searchText}
-            onSearchChange={setSearchText}
+            onSearchChange={handleSearchChange}
             sortBy={sortBy}
-            onSortByChange={setSortBy}
+            onSortByChange={handleSortByChange}
             sortDirection={sortDirection}
-            onSortDirectionChange={() => setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')}
+            onSortDirectionChange={handleSortDirectionChange}
           />
 
           <ProductListContent
@@ -240,7 +237,7 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded, onOpenSettin
             hasFriends={hasFriends}
             onEdit={handleEdit}
             onDelete={setProductToDelete}
-            navigateToFriends={() => onOpenSettingsToShare?.()}
+            navigateToFriends={onOpenSettingsToShare || (() => {})}
             selectedProducts={selectedProducts}
             onSelectProduct={handleSelectProduct}
             selectionMode={selectionMode}
@@ -319,6 +316,8 @@ const ProductList: React.FC<ProductListProps> = ({ onRefreshNeeded, onOpenSettin
       />
     </>
   );
-};
+});
+
+ProductList.displayName = 'ProductList';
 
 export default ProductList;

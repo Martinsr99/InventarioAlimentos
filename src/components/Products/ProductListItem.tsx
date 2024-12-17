@@ -64,6 +64,27 @@ const ProductListItem: React.FC<ProductListItemProps> = ({
     return `${daysUntilExpiry} ${t('products.days')}`;
   };
 
+  const getCategoryTranslation = (category: string) => {
+    // Mapear las categorías a las claves correctas
+    const categoryMap: { [key: string]: string } = {
+      'carnes': 'meat',
+      'meat': 'meat',
+      'dairy': 'dairy',
+      'vegetables': 'vegetables',
+      'fruits': 'fruits',
+      'grains': 'grains',
+      'beverages': 'beverages',
+      'snacks': 'snacks',
+      'condiments': 'condiments',
+      'frozen': 'frozen',
+      'ready-made': 'ready-made',
+      'other': 'other'
+    };
+    
+    const translationKey = categoryMap[category.toLowerCase()] || 'other';
+    return t(`categories.${translationKey}`);
+  };
+
   const daysUntilExpiry = calculateDaysUntilExpiry(product.expiryDate);
   const expiryText = getExpiryText(daysUntilExpiry);
   const isExpired = daysUntilExpiry < 0;
@@ -130,7 +151,7 @@ const ProductListItem: React.FC<ProductListItemProps> = ({
         
         {product.category && (
           <div className="category-tag">
-            {t(`categories.${product.category.toLowerCase()}`)}
+            {getCategoryTranslation(product.category)}
           </div>
         )}
         
