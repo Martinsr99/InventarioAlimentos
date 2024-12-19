@@ -12,7 +12,7 @@ import {
   IonRefresherContent,
   RefresherEventDetail
 } from '@ionic/react';
-import { settingsOutline, restaurantOutline } from 'ionicons/icons';
+import { settingsOutline } from 'ionicons/icons';
 import { useTranslation } from 'react-i18next';
 import AddProductForm from '../forms/AddProductForm';
 import ProductList from '../components/Products/ProductList';
@@ -51,9 +51,6 @@ const Home: React.FC = () => {
         <IonToolbar>
           <IonTitle>{t('app.title')}</IonTitle>
           <IonButtons slot="end">
-            <IonButton routerLink="/recipes">
-              <IonIcon slot="icon-only" icon={restaurantOutline} />
-            </IonButton>
             <UserSettings />
           </IonButtons>
         </IonToolbar>

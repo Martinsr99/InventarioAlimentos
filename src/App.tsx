@@ -14,7 +14,6 @@ import { Route, Redirect } from 'react-router-dom';
 import { auth } from './firebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';
 import Auth from './components/Authenticator/Auth';
-import { RecipePage } from './components/Recipes/RecipePage';
 import { scheduleExpiryNotifications } from './services/NotificationService';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { Capacitor } from '@capacitor/core';
@@ -104,9 +103,6 @@ const AppContent: React.FC = () => {
           </Route>
           <Route path="/home" exact>
             {isAuthenticated ? <Home /> : <Redirect to="/auth" />}
-          </Route>
-          <Route path="/recipes" exact>
-            {isAuthenticated ? <RecipePage /> : <Redirect to="/auth" />}
           </Route>
           <Route path="/edit-product/:id" exact>
             {isAuthenticated ? (
