@@ -34,11 +34,16 @@
   border-bottom: 1px solid var(--ion-color-step-150) !important;
 }
 
+/* Form container */
+.form-container {
+  margin: 0 auto;
+  padding: 0;
+}
+
 /* Form section styles */
 .form-section {
-  margin-top: 1rem;
-  margin-bottom: 1.5rem;
-  padding: 1rem;
+  margin-bottom: 8px;
+  padding: 12px;
   background: var(--ion-card-background);
   border-radius: 12px;
   box-shadow: var(--ion-shadow-md);

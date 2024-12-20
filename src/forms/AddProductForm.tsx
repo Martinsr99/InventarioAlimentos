@@ -206,8 +206,8 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} ref={formRef}>
-      <IonCard>
+    <form onSubmit={handleSubmit} ref={formRef} className="form-container">
+      <IonCard className="form-section">
         <IonCardHeader>
           <IonCardTitle>{t('products.add')}</IonCardTitle>
         </IonCardHeader>

@@ -178,7 +178,8 @@ const ProductList: React.FC<ProductListProps> = React.memo(({ onRefreshNeeded, o
         <IonRefresherContent></IonRefresherContent>
       </IonRefresher>
       
-      <IonCard className="product-list-card">
+      <div className="product-list-container">
+        <IonCard className="product-list-card">
         <IonCardHeader>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <IonCardTitle>{t('products.title')}</IonCardTitle>
@@ -244,7 +245,8 @@ const ProductList: React.FC<ProductListProps> = React.memo(({ onRefreshNeeded, o
             onEnterSelectionMode={toggleSelectionMode}
           />
         </IonCardContent>
-      </IonCard>
+        </IonCard>
+      </div>
 
       <IonAlert
         isOpen={!!productToDelete}

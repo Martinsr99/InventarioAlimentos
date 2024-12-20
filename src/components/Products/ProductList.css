@@ -1,5 +1,9 @@
+.product-list-container {
+  margin: 0 auto;
+  padding: 0;
+}
+
 .product-list-card {
-  margin: 16px;
   border-radius: 12px;
   box-shadow: none;
   background: var(--ion-card-background);
@@ -139,10 +143,10 @@
 
 /* Filtros y ordenamiento */
 .filters-container {
-  margin: 16px 16px 0 16px;
+  margin-bottom: 8px;
   background: var(--ion-card-background);
   border-radius: 12px;
-  padding: 16px;
+  padding: 12px;
   border: 1px solid var(--ion-color-step-150);
 }
 
