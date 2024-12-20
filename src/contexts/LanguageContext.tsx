@@ -2,7 +2,10 @@ import React, { createContext, useState, useContext, ReactNode, useEffect } from
 import { auth } from '../firebaseConfig';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { getUserSettings, updateUserSettings } from '../services/UserSettingsService';
-import { translations, Language, TranslationDictionary } from '../i18n';
+import { useTranslation } from 'react-i18next';
+import i18n from '../i18n';
+
+export type Language = 'en' | 'es';
 
 interface LanguageContextType {
   language: Language;
@@ -42,30 +45,11 @@ const getInitialLanguage = (): Language => {
   return browserLang;
 };
 
-// Function to interpolate parameters in translation strings
-const interpolateParams = (text: string, params?: Record<string, any>): string => {
-  if (!params) return text;
-  return Object.entries(params).reduce((result, [key, value]) => {
-    const regex = new RegExp(`{{${key}}}`, 'g');
-    return result.replace(regex, String(value));
-  }, text);
-};
-
-// Function to get nested value from an object using dot notation
-const getNestedValue = (obj: any, path: string): string | undefined => {
-  const parts = path.split('.');
-  let current = obj;
-  for (const part of parts) {
-    if (current === undefined) return undefined;
-    current = current[part];
-  }
-  return current as string;
-};
-
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
   const [language, setLanguage] = useState<Language>(getInitialLanguage());
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoadingSettings, setIsLoadingSettings] = useState(true);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -76,9 +60,11 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
         try {
           const settings = await getUserSettings(user);
           if (settings.language) {
-            setLanguage(settings.language);
-            localStorage.setItem('language', settings.language);
-            auth.languageCode = settings.language;
+            const newLang = settings.language as Language;
+            setLanguage(newLang);
+            localStorage.setItem('language', newLang);
+            auth.languageCode = newLang;
+            i18n.changeLanguage(newLang);
           }
         } catch (error) {
           console.error('Error loading user language settings:', error);
@@ -86,12 +72,14 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
           setLanguage(browserLang);
           localStorage.setItem('language', browserLang);
           auth.languageCode = browserLang;
+          i18n.changeLanguage(browserLang);
         }
       } else {
         const initialLang = getInitialLanguage();
         setLanguage(initialLang);
         localStorage.setItem('language', initialLang);
         auth.languageCode = initialLang;
+        i18n.changeLanguage(initialLang);
       }
 
       setIsLoadingSettings(false);
@@ -106,6 +94,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     setLanguage(newLanguage);
     localStorage.setItem('language', newLanguage);
     auth.languageCode = newLanguage;
+    i18n.changeLanguage(newLanguage);
     
     if (currentUser) {
       try {
@@ -114,19 +103,6 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
         console.error('Error updating language setting:', error);
       }
     }
-  };
-
-  const t = (key: string, params?: Record<string, any>): string => {
-    
-    const currentTranslations = translations[language];
-    const translation = getNestedValue(currentTranslations, key);
-    
-    if (!translation) {
-      console.warn(`Missing translation for key: ${key} in language: ${language}`);
-      return key;
-    }
-    
-    return params ? interpolateParams(translation, params) : translation;
   };
 
   if (isLoadingSettings) {

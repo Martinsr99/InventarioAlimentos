@@ -104,16 +104,19 @@ const AppContent: React.FC = () => {
           <Route path="/home" exact>
             {isAuthenticated ? <Home /> : <Redirect to="/auth" />}
           </Route>
-          <Route path="/edit-product/:id" exact>
-            {isAuthenticated ? (
-              <EditProduct 
-                productId={window.location.pathname.split('/').pop() || ''} 
-                onSaved={() => {}} 
-              />
-            ) : (
-              <Redirect to="/auth" />
-            )}
-          </Route>
+          <Route 
+            path="/edit-product/:id" 
+            render={({ match }) => 
+              isAuthenticated ? (
+                <EditProduct 
+                  productId={match.params.id} 
+                  onSaved={() => {}} 
+                />
+              ) : (
+                <Redirect to="/auth" />
+              )
+            }
+          />
           <Route exact path="/">
             <Redirect to={isAuthenticated ? "/home" : "/auth"} />
           </Route>

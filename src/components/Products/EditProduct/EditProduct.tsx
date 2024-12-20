@@ -60,6 +60,12 @@ export const EditProduct: React.FC<EditProductProps> = ({ productId, onSaved }) 
 
   useEffect(() => {
     const loadProduct = async () => {
+      if (!productId) {
+        setLoadError(t('errors.invalidProductId'));
+        setIsLoading(false);
+        return;
+      }
+
       try {
         const productRef = doc(db, 'products', productId);
         const productSnap = await getDoc(productRef);
