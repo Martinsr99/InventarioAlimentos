@@ -36,8 +36,9 @@
 
 /* Form section styles */
 .form-section {
+  margin-top: 1rem;
   margin-bottom: 1.5rem;
-  padding: 0 1rem;
+  padding: 1rem;
   background: var(--ion-card-background);
   border-radius: 12px;
   box-shadow: var(--ion-shadow-md);

@@ -77,7 +77,7 @@ const Home: React.FC = () => {
         <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
           <IonRefresherContent />
         </IonRefresher>
-        <div style={{ paddingTop: '1rem' }}>
+        <div className="page-content">
           <AddProductForm onProductAdded={handleProductAdded} />
           <ProductList 
             key={updateTrigger}

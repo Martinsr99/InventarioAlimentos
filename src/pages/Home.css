@@ -18,13 +18,25 @@ ion-content {
   --padding-top: 0;
 }
 
-/* Form and list container */
-ion-content > div {
-  padding: 0 16px;
+/* Page content container */
+.page-content {
+  padding: 16px;
+  padding-top: 64px; /* Further reduced padding */
   padding-bottom: 16px;
   max-width: 800px;
   margin: 0 auto;
-  margin-top: 56px; /* Height of the header */
+  min-height: 100%;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1;
+}
+
+/* Content spacing */
+ion-content {
+  --padding-top: 0;
+  --padding-bottom: var(--ion-safe-area-bottom, 0);
+  --offset-top: 0;
+  --offset-bottom: 0;
 }
 
 /* Settings button positioning */
