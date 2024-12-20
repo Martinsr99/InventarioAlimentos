@@ -61,11 +61,11 @@ export const scheduleExpiryNotifications = async () => {
     }
 };
 
-export const sendShareInvitationNotification = async (toUserId: string, fromUser: User) => {
+export const sendShareInvitationNotification = async (toUserId: string, fromUser: User, type: 'invitation' | 'accepted' = 'invitation') => {
     try {
         // Add notification to Firestore
         await addDoc(collection(db, 'notifications'), {
-            type: 'share_invitation',
+            type: type === 'invitation' ? 'share_invitation' : 'invitation_accepted',
             toUserId,
             fromUserId: fromUser.uid,
             fromUserEmail: fromUser.email,
@@ -79,8 +79,10 @@ export const sendShareInvitationNotification = async (toUserId: string, fromUser
             if (hasPermission) {
                 await LocalNotifications.schedule({
                     notifications: [{
-                        title: 'New Share Invitation',
-                        body: `${fromUser.email} wants to share their products with you`,
+                        title: type === 'invitation' ? 'New Share Invitation' : 'Invitation Accepted',
+                        body: type === 'invitation' 
+                            ? `${fromUser.email} wants to share their products with you`
+                            : `${fromUser.email} accepted your share invitation`,
                         id: Math.floor(Math.random() * 100000),
                         schedule: { at: new Date() }
                     }]

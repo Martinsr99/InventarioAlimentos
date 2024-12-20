@@ -114,10 +114,11 @@ export const respondToInvitation = async (
     await updateDoc(invitationRef, updateData);
 
     if (response === 'accepted') {
-      // Initialize userSharing for both users
+      // Initialize userSharing for both users and send notification
       await Promise.all([
         initializeUserSharing({ uid: invitation.fromUserId, email: invitation.fromUserEmail } as User),
-        initializeUserSharing(currentUser)
+        initializeUserSharing(currentUser),
+        sendShareInvitationNotification(invitation.fromUserId, currentUser, 'accepted')
       ]);
 
       try {

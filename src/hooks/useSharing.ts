@@ -1,4 +1,6 @@
-      import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { onSnapshot, collection, query, where } from 'firebase/firestore';
+import { db } from '../firebaseConfig';
 import { User } from 'firebase/auth';
 import {
   sendShareInvitation,
@@ -30,31 +32,7 @@ export const useSharing = (user: User | null, t: (key: string) => string) => {
   const [sortBy, setSortBy] = useState<SortOption>('status');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
-  useEffect(() => {
-    if (user) {
-      const loadData = async () => {
-        try {
-          setIsLoading(true);
-          await loadSharingData();
-        } catch (error) {
-          console.error('Error loading sharing data:', error);
-        } finally {
-          setIsLoading(false);
-        }
-      };
-      loadData();
-    }
-  }, [user]);
-
-  // Recargar datos cada 30 segundos si hay invitaciones pendientes
-  useEffect(() => {
-    if (user && receivedInvitations.some(inv => inv.status === 'pending')) {
-      const interval = setInterval(loadSharingData, 30000);
-      return () => clearInterval(interval);
-    }
-  }, [user, receivedInvitations]);
-
-  const sortItems = (items: any[]) => {
+  const sortItems = useCallback((items: any[]) => {
     return [...items].sort((a, b) => {
       let aValue = sortBy === 'email' 
         ? (a.email || a.fromUserEmail || a.toUserEmail || '')
@@ -69,7 +47,72 @@ export const useSharing = (user: User | null, t: (key: string) => string) => {
 
       return aValue.localeCompare(bValue);
     });
-  };
+  }, [sortBy, sortDirection]);
+
+  // Escuchar cambios en invitaciones recibidas
+  useEffect(() => {
+    if (!user?.email) return;
+
+    setIsLoading(true);
+    
+    // Query para invitaciones recibidas
+    const receivedQuery = query(
+      collection(db, 'shareInvitations'),
+      where('toUserEmail', '==', user.email)
+    );
+
+    // Query para invitaciones enviadas
+    const sentQuery = query(
+      collection(db, 'shareInvitations'),
+      where('fromUserId', '==', user.uid)
+    );
+
+    // Query para amigos aceptados
+    const userSharingQuery = query(
+      collection(db, 'userSharing'),
+      where('userId', '==', user.uid)
+    );
+
+    // Suscribirse a cambios en invitaciones recibidas
+    const unsubscribeReceived = onSnapshot(receivedQuery, (snapshot) => {
+      const pendingInvitations = snapshot.docs
+        .map(doc => ({ id: doc.id, ...doc.data() } as ShareInvitation))
+        .filter(inv => inv.status === 'pending');
+      setReceivedInvitations(sortItems(pendingInvitations));
+      setIsLoading(false);
+    });
+
+    // Suscribirse a cambios en invitaciones enviadas
+    const unsubscribeSent = onSnapshot(sentQuery, async (snapshot) => {
+      const sentInvitations = snapshot.docs.map(doc => ({ 
+        id: doc.id, 
+        ...doc.data() 
+      } as ShareInvitation));
+      
+      // Solo mostrar invitaciones pendientes o rechazadas
+      const filteredInvitations = sentInvitations.filter(inv => 
+        inv.status !== 'accepted'
+      );
+      
+      setSentInvitations(sortItems(filteredInvitations));
+    });
+
+    // Suscribirse a cambios en amigos
+    const unsubscribeSharing = onSnapshot(userSharingQuery, async (snapshot) => {
+      if (!snapshot.empty) {
+        const userData = snapshot.docs[0].data();
+        setFriends(sortItems(userData.sharedWith || []));
+      }
+    });
+
+    // Limpiar suscripciones al desmontar
+    return () => {
+      unsubscribeReceived();
+      unsubscribeSent();
+      unsubscribeSharing();
+    };
+  }, [user, sortItems]);
+
 
   const loadSharingData = async () => {
     if (!user) return;
@@ -103,10 +146,10 @@ export const useSharing = (user: User | null, t: (key: string) => string) => {
   };
 
   useEffect(() => {
-    setReceivedInvitations(sortItems(receivedInvitations));
-    setSentInvitations(sortItems(sentInvitations));
-    setFriends(sortItems(friends));
-  }, [sortBy, sortDirection]);
+    setReceivedInvitations(prev => sortItems([...prev]));
+    setSentInvitations(prev => sortItems([...prev]));
+    setFriends(prev => sortItems([...prev]));
+  }, [sortBy, sortDirection, sortItems]);
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
