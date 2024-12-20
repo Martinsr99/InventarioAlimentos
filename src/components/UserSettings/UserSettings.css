@@ -38,6 +38,8 @@
 .settings-container {
   padding: 1rem;
   margin: 1rem auto;
+  max-width: 600px;
+  width: 100%;
 }
 
 /* Unified Settings Card */
@@ -71,7 +73,6 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  padding: 1.25rem;
 }
 
 .user-info-group .email-section,
