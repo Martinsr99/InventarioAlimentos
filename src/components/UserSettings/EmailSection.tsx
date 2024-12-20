@@ -1,9 +1,5 @@
 import React from 'react';
 import {
-  IonCard,
-  IonCardContent,
-  IonCardHeader,
-  IonCardTitle,
   IonItem,
   IonIcon,
   IonLabel
@@ -19,18 +15,14 @@ export const EmailSection: React.FC<EmailSectionProps> = ({ email }) => {
   const { t } = useLanguage();
 
   return (
-    <IonCard>
-      <IonCardHeader>
-        <IonCardTitle>{t('auth.email')}</IonCardTitle>
-      </IonCardHeader>
-      <IonCardContent>
-        <IonItem lines="none">
-          <IonIcon icon={mailOutline} slot="start" />
-          <IonLabel>
-            <p>{email}</p>
-          </IonLabel>
-        </IonItem>
-      </IonCardContent>
-    </IonCard>
+    <div className="email-section">
+      <h2 className="settings-section-title">{t('auth.email')}</h2>
+      <IonItem lines="none">
+        <IonIcon icon={mailOutline} slot="start" />
+        <IonLabel>
+          <p>{email}</p>
+        </IonLabel>
+      </IonItem>
+    </div>
   );
 };

@@ -19,8 +19,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { useUserSettings } from '../../hooks/useUserSettings';
 import { useSharing } from '../../hooks/useSharing';
 import { ProfileSection } from './ProfileSection';
-import { EmailSection } from './EmailSection';
-import { LanguageSection } from './LanguageSection';
+import { UserInfoSection } from './UserInfoSection';
 import { SharingSection } from './SharingSection';
 import { LogoutSection } from './LogoutSection';
 import AutoDeleteSection from './AutoDeleteSection';
@@ -163,40 +162,49 @@ const UserSettings: React.FC<UserSettingsProps> = ({ openToShare = false, onClos
               <IonSpinner />
             </div>
           ) : (
-            <div style={{ paddingTop: '40px' }}>
-              <ProfileSection
-                profilePicture={settings.profilePicture || DEFAULT_PROFILE_PICTURE}
-                onProfilePictureChange={handleProfilePictureChange}
-              />
-
-              <EmailSection email={user?.email} />
-
-              <LanguageSection onToggleLanguage={toggleLanguage} />
-
-              <div ref={sharingCardRef}>
-                <SharingSection
-                  inviteEmail={inviteEmail}
-                  isEmailValid={isEmailValid}
-                  receivedInvitations={receivedInvitations}
-                  sentInvitations={sentInvitations}
-                  friends={friends}
-                  sortBy={sortBy}
-                  sortDirection={sortDirection}
-                  onEmailChange={handleEmailChange}
-                  onSendInvite={handleSendInvite}
-                  onInvitationResponse={handleInvitationResponse}
-                  onDeleteInvite={confirmDeleteInvitation}
-                  onDeleteFriend={confirmDeleteFriend}
-                  onSortByChange={setSortBy}
-                  onSortDirectionChange={toggleSortDirection}
+            <div className="settings-container">
+              <div className="settings-card">
+                <ProfileSection
+                  profilePicture={settings.profilePicture || DEFAULT_PROFILE_PICTURE}
+                  onProfilePictureChange={handleProfilePictureChange}
                 />
+
+                <div className="settings-divider"></div>
+
+                <UserInfoSection 
+                  email={user?.email}
+                  onToggleLanguage={toggleLanguage}
+                />
+
+                <div className="settings-divider"></div>
+
+                <div ref={sharingCardRef}>
+                  <SharingSection
+                    inviteEmail={inviteEmail}
+                    isEmailValid={isEmailValid}
+                    receivedInvitations={receivedInvitations}
+                    sentInvitations={sentInvitations}
+                    friends={friends}
+                    sortBy={sortBy}
+                    sortDirection={sortDirection}
+                    onEmailChange={handleEmailChange}
+                    onSendInvite={handleSendInvite}
+                    onInvitationResponse={handleInvitationResponse}
+                    onDeleteInvite={confirmDeleteInvitation}
+                    onDeleteFriend={confirmDeleteFriend}
+                    onSortByChange={setSortBy}
+                    onSortDirectionChange={toggleSortDirection}
+                  />
+                </div>
+
+                <div className="settings-divider"></div>
+
+                <LogoutSection onLogout={handleLogout} />
+
+                <div className="settings-divider"></div>
+
+                <DeleteAccountSection />
               </div>
-
-              <AutoDeleteSection />
-
-              <LogoutSection onLogout={handleLogout} />
-
-              <DeleteAccountSection />
             </div>
           )}
         </IonContent>

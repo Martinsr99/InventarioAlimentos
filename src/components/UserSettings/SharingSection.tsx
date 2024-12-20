@@ -1,9 +1,5 @@
 import React from 'react';
 import {
-  IonCard,
-  IonCardContent,
-  IonCardHeader,
-  IonCardTitle,
   IonItem,
   IonIcon,
   IonLabel,
@@ -76,172 +72,169 @@ export const SharingSection: React.FC<SharingSectionProps> = ({
   };
 
   return (
-    <IonCard>
-      <IonCardHeader>
-        <IonCardTitle>{t('sharing.title')}</IonCardTitle>
-      </IonCardHeader>
-      <IonCardContent>
-        <IonItem lines="none" className={`invite-input-container ${inviteEmail && (isEmailValid ? 'valid-email' : 'invalid-email')}`}>
-          <IonIcon icon={mailOutline} slot="start" />
-          <IonInput
-            type="email"
-            value={inviteEmail}
-            onIonInput={onEmailChange}
-            placeholder={t('sharing.enterEmail')}
+    <div className="sharing-section">
+      <h2 className="settings-section-title">{t('sharing.title')}</h2>
+      
+      <IonItem lines="none" className={`invite-input-container ${inviteEmail && (isEmailValid ? 'valid-email' : 'invalid-email')}`}>
+        <IonIcon icon={mailOutline} slot="start" />
+        <IonInput
+          type="email"
+          value={inviteEmail}
+          onIonInput={onEmailChange}
+          placeholder={t('sharing.enterEmail')}
+        />
+        {inviteEmail && (
+          <IonIcon
+            slot="end"
+            icon={isEmailValid ? checkmarkCircle : closeCircle}
+            color={isEmailValid ? 'success' : 'danger'}
+            className="email-validation-icon"
           />
-          {inviteEmail && (
-            <IonIcon
-              slot="end"
-              icon={isEmailValid ? checkmarkCircle : closeCircle}
-              color={isEmailValid ? 'success' : 'danger'}
-              className="email-validation-icon"
-            />
-          )}
-        </IonItem>
-        
-        <IonButton 
-          expand="block"
-          onClick={onSendInvite}
-          disabled={!isEmailValid}
-          color={isEmailValid ? 'primary' : 'medium'}
-          className="invite-button"
-        >
-          <IonIcon icon={personAddOutline} slot="start" />
-          {t('sharing.sendInvite')}
-        </IonButton>
+        )}
+      </IonItem>
+      
+      <IonButton 
+        expand="block"
+        onClick={onSendInvite}
+        disabled={!isEmailValid}
+        color={isEmailValid ? 'primary' : 'medium'}
+        className="invite-button"
+      >
+        <IonIcon icon={personAddOutline} slot="start" />
+        {t('sharing.sendInvite')}
+      </IonButton>
 
-        <div className="friends-section">
-          <div className="friends-section-header">
-            <IonIcon icon={peopleOutline} />
-            <h2>{t('sharing.friendsSection')}</h2>
-            <div className="friends-sort-controls">
-              <button 
-                className={`sort-button ${sortBy === 'status' ? 'active' : ''}`}
-                onClick={() => handleSortClick('status')}
-              >
-                {t('sharing.sortByStatus')}
-                {sortBy === 'status' && (
-                  <IonIcon 
-                    icon={arrowUp} 
-                    className={sortDirection === 'desc' ? 'desc' : ''}
-                  />
-                )}
-              </button>
-              <button 
-                className={`sort-button ${sortBy === 'email' ? 'active' : ''}`}
-                onClick={() => handleSortClick('email')}
-              >
-                {t('sharing.sortByEmail')}
-                {sortBy === 'email' && (
-                  <IonIcon 
-                    icon={arrowUp} 
-                    className={sortDirection === 'desc' ? 'desc' : ''}
-                  />
-                )}
-              </button>
-            </div>
+      <div className="friends-section">
+        <div className="friends-section-header">
+          <IonIcon icon={peopleOutline} />
+          <h3>{t('sharing.friendsSection')}</h3>
+          <div className="friends-sort-controls">
+            <button 
+              className={`sort-button ${sortBy === 'status' ? 'active' : ''}`}
+              onClick={() => handleSortClick('status')}
+            >
+              {t('sharing.sortByStatus')}
+              {sortBy === 'status' && (
+                <IonIcon 
+                  icon={arrowUp} 
+                  className={sortDirection === 'desc' ? 'desc' : ''}
+                />
+              )}
+            </button>
+            <button 
+              className={`sort-button ${sortBy === 'email' ? 'active' : ''}`}
+              onClick={() => handleSortClick('email')}
+            >
+              {t('sharing.sortByEmail')}
+              {sortBy === 'email' && (
+                <IonIcon 
+                  icon={arrowUp} 
+                  className={sortDirection === 'desc' ? 'desc' : ''}
+                />
+              )}
+            </button>
           </div>
-          
-          {hasContent ? (
-            <IonList>
-              {/* Accepted Friends */}
-              {friends.map(friend => (
-                <IonItem key={friend.userId} lines="none" className="friend-item">
-                  <IonAvatar slot="start">
-                    <IonImg src="/images/profile/apple.png" alt="User" />
-                  </IonAvatar>
-                  <IonLabel>
-                    <h2>{friend.email}</h2>
-                    <IonBadge color="success" className="friend-status accepted">
-                      {t('sharing.inviteAccepted')}
-                    </IonBadge>
-                    <div className="friend-actions">
-                      <IonButton
-                        color="danger"
-                        fill="clear"
-                        size="small"
-                        className="delete-button"
-                        onClick={() => onDeleteFriend(friend.userId)}
-                      >
-                        <IonIcon icon={trashOutline} slot="icon-only" />
-                      </IonButton>
-                    </div>
-                  </IonLabel>
-                </IonItem>
-              ))}
-
-              {/* Received Invitations */}
-              {receivedInvitations.map(invitation => (
-                <IonItem key={invitation.id} lines="none" className="friend-item">
-                  <IonAvatar slot="start">
-                    <IonImg src="/images/profile/apple.png" alt="User" />
-                  </IonAvatar>
-                  <IonLabel>
-                    <h2>{invitation.fromUserEmail}</h2>
-                    <IonBadge color="warning" className="friend-status pending">
-                      {t('sharing.invitePending')}
-                    </IonBadge>
-                    <div className="friend-actions">
-                      <IonButton
-                        color="success"
-                        size="small"
-                        onClick={() => onInvitationResponse(invitation.id, 'accepted')}
-                      >
-                        <IonIcon icon={checkmarkCircleOutline} slot="start" />
-                        {t('sharing.accept')}
-                      </IonButton>
-                      <IonButton
-                        color="danger"
-                        size="small"
-                        onClick={() => onInvitationResponse(invitation.id, 'rejected')}
-                      >
-                        <IonIcon icon={closeCircleOutline} slot="start" />
-                        {t('sharing.reject')}
-                      </IonButton>
-                    </div>
-                  </IonLabel>
-                </IonItem>
-              ))}
-
-              {/* Sent Invitations */}
-              {sentInvitations.map(invitation => (
-                <IonItem key={invitation.id} lines="none" className="friend-item">
-                  <IonAvatar slot="start">
-                    <IonImg src="/images/profile/apple.png" alt="User" />
-                  </IonAvatar>
-                  <IonLabel>
-                    <h2>{invitation.toUserEmail}</h2>
-                    <IonBadge 
-                      color={
-                        invitation.status === 'accepted' ? 'success' :
-                        invitation.status === 'rejected' ? 'danger' : 'warning'
-                      } 
-                      className={`friend-status ${invitation.status}`}
-                    >
-                      {t(`sharing.invite${invitation.status.charAt(0).toUpperCase() + invitation.status.slice(1)}`)}
-                    </IonBadge>
-                    <div className="friend-actions">
-                      <IonButton
-                        color="danger"
-                        fill="clear"
-                        size="small"
-                        className="delete-button"
-                        onClick={() => onDeleteInvite(invitation.id)}
-                      >
-                        <IonIcon icon={trashOutline} slot="icon-only" />
-                      </IonButton>
-                    </div>
-                  </IonLabel>
-                </IonItem>
-              ))}
-            </IonList>
-          ) : (
-            <div className="no-friends-text">
-              {t('sharing.noFriends')}
-            </div>
-          )}
         </div>
-      </IonCardContent>
-    </IonCard>
+        
+        {hasContent ? (
+          <IonList>
+            {/* Accepted Friends */}
+            {friends.map(friend => (
+              <IonItem key={friend.userId} lines="none" className="friend-item">
+                <IonAvatar slot="start">
+                  <IonImg src="/images/profile/apple.png" alt="User" />
+                </IonAvatar>
+                <IonLabel>
+                  <h2>{friend.email}</h2>
+                  <IonBadge color="success" className="friend-status accepted">
+                    {t('sharing.inviteAccepted')}
+                  </IonBadge>
+                  <div className="friend-actions">
+                    <IonButton
+                      color="danger"
+                      fill="clear"
+                      size="small"
+                      className="delete-button"
+                      onClick={() => onDeleteFriend(friend.userId)}
+                    >
+                      <IonIcon icon={trashOutline} slot="icon-only" />
+                    </IonButton>
+                  </div>
+                </IonLabel>
+              </IonItem>
+            ))}
+
+            {/* Received Invitations */}
+            {receivedInvitations.map(invitation => (
+              <IonItem key={invitation.id} lines="none" className="friend-item">
+                <IonAvatar slot="start">
+                  <IonImg src="/images/profile/apple.png" alt="User" />
+                </IonAvatar>
+                <IonLabel>
+                  <h2>{invitation.fromUserEmail}</h2>
+                  <IonBadge color="warning" className="friend-status pending">
+                    {t('sharing.invitePending')}
+                  </IonBadge>
+                  <div className="friend-actions">
+                    <IonButton
+                      color="success"
+                      size="small"
+                      onClick={() => onInvitationResponse(invitation.id, 'accepted')}
+                    >
+                      <IonIcon icon={checkmarkCircleOutline} slot="start" />
+                      {t('sharing.accept')}
+                    </IonButton>
+                    <IonButton
+                      color="danger"
+                      size="small"
+                      onClick={() => onInvitationResponse(invitation.id, 'rejected')}
+                    >
+                      <IonIcon icon={closeCircleOutline} slot="start" />
+                      {t('sharing.reject')}
+                    </IonButton>
+                  </div>
+                </IonLabel>
+              </IonItem>
+            ))}
+
+            {/* Sent Invitations */}
+            {sentInvitations.map(invitation => (
+              <IonItem key={invitation.id} lines="none" className="friend-item">
+                <IonAvatar slot="start">
+                  <IonImg src="/images/profile/apple.png" alt="User" />
+                </IonAvatar>
+                <IonLabel>
+                  <h2>{invitation.toUserEmail}</h2>
+                  <IonBadge 
+                    color={
+                      invitation.status === 'accepted' ? 'success' :
+                      invitation.status === 'rejected' ? 'danger' : 'warning'
+                    } 
+                    className={`friend-status ${invitation.status}`}
+                  >
+                    {t(`sharing.invite${invitation.status.charAt(0).toUpperCase() + invitation.status.slice(1)}`)}
+                  </IonBadge>
+                  <div className="friend-actions">
+                    <IonButton
+                      color="danger"
+                      fill="clear"
+                      size="small"
+                      className="delete-button"
+                      onClick={() => onDeleteInvite(invitation.id)}
+                    >
+                      <IonIcon icon={trashOutline} slot="icon-only" />
+                    </IonButton>
+                  </div>
+                </IonLabel>
+              </IonItem>
+            ))}
+          </IonList>
+        ) : (
+          <div className="no-friends-text">
+            {t('sharing.noFriends')}
+          </div>
+        )}
+      </div>
+    </div>
   );
 };

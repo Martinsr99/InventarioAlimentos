@@ -4,8 +4,10 @@
   --inner-padding-end: 0;
   margin-bottom: 8px;
   border-radius: 8px;
-  --background: rgba(255, 255, 255, 0.05);
-  --border-style: none;
+  --background: transparent;
+  --border-color: rgba(44, 44, 44, 0.5);
+  --border-width: 1px;
+  --border-style: solid;
 }
 
 .invite-input-container ion-input {
@@ -20,9 +22,6 @@
 }
 
 .friends-section {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  padding: 16px;
   margin-bottom: 16px;
 }
 
@@ -43,7 +42,7 @@
   font-size: 20px;
 }
 
-.friends-section-header h2 {
+.friends-section-header h3 {
   margin: 0;
   font-size: 16px;
   font-weight: 500;
@@ -74,7 +73,7 @@
 }
 
 .sort-button:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
   color: var(--ion-color-light);
 }
 
@@ -94,15 +93,15 @@
 }
 
 .friend-item {
-  --background: rgba(255, 255, 255, 0.03);
+  --background: transparent;
   --padding-start: 12px;
   --padding-end: 12px;
   --padding-top: 12px;
   --padding-bottom: 12px;
   --border-radius: 8px;
-  --border-style: none;
-  --inner-border-width: 0;
-  --border-width: 0;
+  --border-color: rgba(44, 44, 44, 0.5);
+  --border-width: 1px;
+  --border-style: solid;
   margin-bottom: 8px;
 }
 
@@ -118,7 +117,7 @@
   font-size: 14px;
   font-weight: 500;
   margin-bottom: 4px;
-  color: var(--ion-color-light);
+  color: var(--ion-text-color);
 }
 
 .friend-status {
@@ -182,20 +181,6 @@
 
 .invalid-email {
   --background: rgba(var(--ion-color-danger-rgb), 0.1);
-}
-
-ion-card {
-  --background: transparent;
-  box-shadow: none;
-  margin: 0;
-}
-
-ion-card-header {
-  padding: 16px;
-}
-
-ion-card-content {
-  padding: 0 16px 16px 16px;
 }
 
 ion-avatar {

@@ -1,9 +1,5 @@
 import React from 'react';
 import {
-  IonCard,
-  IonCardContent,
-  IonCardHeader,
-  IonCardTitle,
   IonItem,
   IonLabel,
   IonToggle,
@@ -32,28 +28,24 @@ const AutoDeleteSection: React.FC = () => {
   };
 
   return (
-    <IonCard>
-      <IonCardHeader>
-        <IonCardTitle className="settings-section-title">
-          {t('products.deleteExpired')}
-        </IonCardTitle>
-      </IonCardHeader>
-      <IonCardContent>
-        <IonItem lines="none">
-          <IonIcon icon={trashBin} slot="start" color="danger" />
-          <IonLabel>
-            {t('settings.autoDeleteExpired')}
-            <IonNote className="ion-margin-top">
-              {t('settings.autoDeleteExpiredDescription')}
-            </IonNote>
-          </IonLabel>
-          <IonToggle
-            checked={settings.autoDeleteExpired}
-            onIonChange={e => handleAutoDeleteChange(e.detail.checked)}
-          />
-        </IonItem>
-      </IonCardContent>
-    </IonCard>
+    <div className="auto-delete-section">
+      <h2 className="settings-section-title">
+        {t('products.deleteExpired')}
+      </h2>
+      <IonItem lines="none">
+        <IonIcon icon={trashBin} slot="start" color="danger" />
+        <IonLabel>
+          {t('settings.autoDeleteExpired')}
+          <IonNote className="ion-margin-top">
+            {t('settings.autoDeleteExpiredDescription')}
+          </IonNote>
+        </IonLabel>
+        <IonToggle
+          checked={settings.autoDeleteExpired}
+          onIonChange={e => handleAutoDeleteChange(e.detail.checked)}
+        />
+      </IonItem>
+    </div>
   );
 };
 
