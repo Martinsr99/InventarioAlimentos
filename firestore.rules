@@ -11,8 +11,14 @@ service cloud.firestore {
         request.auth.uid == resource.data.userId || 
         request.auth.uid in resource.data.sharedWith
       );
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && (
+        request.auth.uid == request.resource.data.userId ||
+        request.auth.uid in request.resource.data.sharedWith
+      );
+      allow update, delete: if request.auth != null && (
+        request.auth.uid == resource.data.userId ||
+        request.auth.uid in resource.data.sharedWith
+      );
     }
 
     match /userProducts/{productId} {
@@ -38,8 +44,39 @@ service cloud.firestore {
     match /userSharing/{userId} {
       // Allow read to check if users exist
       allow read: if request.auth != null;
-      // Allow create/update of own document
-      allow create, update: if request.auth != null && request.auth.uid == userId;
+      
+      // Allow create/update in these cases:
+      // 1. User is updating their own document
+      // 2. User is being added as a friend (exists in sharedWith array)
+      // 3. User has an accepted invitation
+      allow create, update: if request.auth != null && (
+        // Own document
+        request.auth.uid == userId ||
+        
+        // Already shared
+        (request.resource.data.sharedWith != null && 
+         request.resource.data.sharedWith.hasAny([{'userId': request.auth.uid}])) ||
+        
+        // Setting or cleaning up invitationId
+        ((request.resource.data.invitationId == null ||
+          (exists(/databases/$(database)/documents/shareInvitations/$(request.resource.data.invitationId)) &&
+           get(/databases/$(database)/documents/shareInvitations/$(request.resource.data.invitationId)).data.status == 'accepted' &&
+           (
+             get(/databases/$(database)/documents/shareInvitations/$(request.resource.data.invitationId)).data.fromUserId == request.auth.uid ||
+             get(/databases/$(database)/documents/shareInvitations/$(request.resource.data.invitationId)).data.toUserId == request.auth.uid
+           ))) &&
+         (resource.data.invitationId == null || resource.data.invitationId == request.resource.data.invitationId)) ||
+        
+        // Updating sharedWith when user has valid invitation
+        (request.resource.data.sharedWith != null &&
+         resource.data.invitationId != null &&
+         exists(/databases/$(database)/documents/shareInvitations/$(resource.data.invitationId)) &&
+         get(/databases/$(database)/documents/shareInvitations/$(resource.data.invitationId)).data.status == 'accepted' &&
+         (
+           get(/databases/$(database)/documents/shareInvitations/$(resource.data.invitationId)).data.fromUserId == request.auth.uid ||
+           get(/databases/$(database)/documents/shareInvitations/$(resource.data.invitationId)).data.toUserId == request.auth.uid
+         ))
+      );
     }
 
     match /notifications/{notificationId} {

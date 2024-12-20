@@ -51,5 +51,7 @@
   "typeError": "Error de tipo",
   "rangeError": "Error de rango",
   "referenceError": "Error de referencia",
-  "internalError": "Error interno"
+  "internalError": "Error interno",
+  "sharingUpdate": "Error al actualizar los permisos de compartir",
+  "sharingLoad": "Error al cargar los datos compartidos"
 }

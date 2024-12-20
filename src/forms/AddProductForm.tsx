@@ -75,11 +75,20 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
   useEffect(() => {
     const loadSharedUsers = async () => {
       if (auth.currentUser) {
-        const users = await getAcceptedShareUsers(auth.currentUser);
-        setSharedUsers(users);
+        try {
+          const users = await getAcceptedShareUsers(auth.currentUser);
+          console.log('Loaded shared users for AddProductForm:', users);
+          setSharedUsers(users);
+        } catch (error) {
+          console.error('Error loading shared users:', error);
+        }
       }
     };
     loadSharedUsers();
+
+    // Set up an interval to periodically check for new friends
+    const interval = setInterval(loadSharedUsers, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleDateChange = (value: string | string[] | null | undefined) => {

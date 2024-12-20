@@ -13,5 +13,7 @@
   "userNotFound": "User not found",
   "userNotFoundMessage": "The user must be registered to receive invitations",
   "invitationExists": "Invitation already exists",
-  "invitationExistsMessage": "You have already sent an invitation to this user"
+  "invitationExistsMessage": "You have already sent an invitation to this user",
+  "sharingUpdate": "Error updating sharing permissions",
+  "sharingLoad": "Error loading sharing data"
 }

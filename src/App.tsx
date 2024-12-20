@@ -18,6 +18,7 @@ import { scheduleExpiryNotifications } from './services/NotificationService';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { checkAndDeleteExpiredProducts } from './services/AutoDeleteService';
+import { initializeUserSharing } from './services/FriendService';
 import { useUserSettings } from './hooks/useUserSettings';
 import { Capacitor } from '@capacitor/core';
 import Home from './pages/Home';
@@ -63,7 +64,10 @@ const AppContent: React.FC = () => {
       setIsAuthenticated(!!user);
       if (user) {
         try {
-          await scheduleExpiryNotifications();
+          await Promise.all([
+            scheduleExpiryNotifications(),
+            initializeUserSharing(user)
+          ]);
 
           // Check for auto-deleted products if the setting is enabled
           if (settings.autoDeleteExpired) {

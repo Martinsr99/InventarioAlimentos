@@ -15,7 +15,8 @@ export const initializeUserSharing = async (user: User): Promise<void> => {
         userId: user.uid,
         email: user.email,
         sharedWith: [],
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        invitationId: null
       });
     }
   } catch (error) {
@@ -24,7 +25,10 @@ export const initializeUserSharing = async (user: User): Promise<void> => {
 };
 
 export const getAcceptedShareUsers = async (currentUser: User): Promise<{ userId: string; email: string }[]> => {
-  if (!currentUser?.email) return [];
+  if (!currentUser?.email) {
+    console.log('No user email available');
+    return [];
+  }
 
   try {
     // Get the current user's userSharing document
@@ -32,13 +36,28 @@ export const getAcceptedShareUsers = async (currentUser: User): Promise<{ userId
     const userSharingDoc = await getDoc(userSharingRef);
     
     if (!userSharingDoc.exists()) {
+      console.log('UserSharing document does not exist for user:', currentUser.uid);
+      // Try to initialize the document if it doesn't exist
+      await initializeUserSharing(currentUser);
       return [];
     }
 
     const userData = userSharingDoc.data() as UserSharing;
-    return userData.sharedWith || [];
+    if (!userData.sharedWith) {
+      console.log('No sharedWith array in userSharing document');
+      return [];
+    }
+
+    console.log('Found shared users:', userData.sharedWith);
+    return userData.sharedWith;
   } catch (error) {
     console.error('Error getting accepted share users:', error);
+    // Try to initialize the document in case it failed during registration
+    try {
+      await initializeUserSharing(currentUser);
+    } catch (initError) {
+      console.error('Error initializing user sharing:', initError);
+    }
     return [];
   }
 };
@@ -70,7 +89,8 @@ export const deleteFriend = async (currentUser: User, friendUserId: string): Pro
       user => user.userId !== friendUserId
     );
     updates.push(updateDoc(doc(db, 'userSharing', currentUser.uid), {
-      sharedWith: updatedCurrentUserSharedWith
+      sharedWith: updatedCurrentUserSharedWith,
+      invitationId: null
     }));
 
     // Update friend's userSharing
@@ -78,7 +98,8 @@ export const deleteFriend = async (currentUser: User, friendUserId: string): Pro
       user => user.userId !== currentUser.uid
     );
     updates.push(updateDoc(doc(db, 'userSharing', friendUserId), {
-      sharedWith: updatedFriendSharedWith
+      sharedWith: updatedFriendSharedWith,
+      invitationId: null
     }));
 
     // Delete the accepted invitation

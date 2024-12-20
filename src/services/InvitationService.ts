@@ -120,41 +120,74 @@ export const respondToInvitation = async (
         initializeUserSharing(currentUser)
       ]);
 
-      // Get both users' sharing documents
-      const [senderDoc, receiverDoc] = await Promise.all([
-        getDoc(doc(db, 'userSharing', invitation.fromUserId)),
-        getDoc(doc(db, 'userSharing', currentUser.uid))
-      ]);
+      try {
+        // Update receiver's document first
+        const receiverDoc = await getDoc(doc(db, 'userSharing', currentUser.uid));
+        if (receiverDoc.exists()) {
+          const receiverData = receiverDoc.data() as UserSharing;
+          if (!receiverData.sharedWith.some(user => user.userId === invitation.fromUserId)) {
+            try {
+              // First update with invitationId to pass security rules
+              await updateDoc(doc(db, 'userSharing', currentUser.uid), {
+                invitationId
+              });
 
-      // Prepare updates for both users
-      const updates: Promise<void>[] = [];
-
-      if (senderDoc.exists()) {
-        const senderData = senderDoc.data() as UserSharing;
-        if (!senderData.sharedWith.some(user => user.userId === currentUser.uid)) {
-          updates.push(updateDoc(doc(db, 'userSharing', invitation.fromUserId), {
-            sharedWith: [...(senderData.sharedWith || []), {
-              userId: currentUser.uid,
-              email: currentUser.email
-            }]
-          }));
+              // Then update sharedWith array
+              await updateDoc(doc(db, 'userSharing', currentUser.uid), {
+                sharedWith: [...(receiverData.sharedWith || []), {
+                  userId: invitation.fromUserId,
+                  email: invitation.fromUserEmail
+                }]
+              });
+            } catch (error) {
+              // If any update fails, try to clean up
+              try {
+                await updateDoc(doc(db, 'userSharing', currentUser.uid), {
+                  invitationId: null
+                });
+              } catch (cleanupError) {
+                console.error('Error cleaning up after failed update:', cleanupError);
+              }
+              throw error;
+            }
+          }
         }
-      }
 
-      if (receiverDoc.exists()) {
-        const receiverData = receiverDoc.data() as UserSharing;
-        if (!receiverData.sharedWith.some(user => user.userId === invitation.fromUserId)) {
-          updates.push(updateDoc(doc(db, 'userSharing', currentUser.uid), {
-            sharedWith: [...(receiverData.sharedWith || []), {
-              userId: invitation.fromUserId,
-              email: invitation.fromUserEmail
-            }]
-          }));
+        // Then update sender's document
+        const senderDoc = await getDoc(doc(db, 'userSharing', invitation.fromUserId));
+        if (senderDoc.exists()) {
+          const senderData = senderDoc.data() as UserSharing;
+          if (!senderData.sharedWith.some(user => user.userId === currentUser.uid)) {
+            try {
+              // First update with invitationId to pass security rules
+              await updateDoc(doc(db, 'userSharing', invitation.fromUserId), {
+                invitationId
+              });
+
+              // Then update sharedWith array
+              await updateDoc(doc(db, 'userSharing', invitation.fromUserId), {
+                sharedWith: [...(senderData.sharedWith || []), {
+                  userId: currentUser.uid,
+                  email: currentUser.email
+                }]
+              });
+            } catch (error) {
+              // If any update fails, try to clean up
+              try {
+                await updateDoc(doc(db, 'userSharing', invitation.fromUserId), {
+                  invitationId: null
+                });
+              } catch (cleanupError) {
+                console.error('Error cleaning up after failed update:', cleanupError);
+              }
+              throw error;
+            }
+          }
         }
+      } catch (error) {
+        console.error('Error updating sharing documents:', error);
+        throw new Error('Failed to update sharing documents');
       }
-
-      // Execute all updates atomically
-      await Promise.all(updates);
     }
   } catch (error) {
     console.error('Error responding to invitation:', error);

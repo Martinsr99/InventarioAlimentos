@@ -13,6 +13,7 @@ export interface UserSharing {
   email: string;
   sharedWith: Array<{ userId: string; email: string }>;
   createdAt: string;
+  invitationId?: string;
 }
 
 export interface Product {

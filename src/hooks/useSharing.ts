@@ -118,14 +118,33 @@ export const useSharing = (user: User | null, t: (key: string) => string) => {
       // Optimistically update the UI
       setReceivedInvitations(prev => sortItems(prev.filter(inv => inv.id !== invitationId)));
       
-      await respondToInvitation(user, invitationId, response);
-      // Only reload data after the operation is complete
-      await loadSharingData();
-      setError(null);
+      let retries = 5;
+      while (retries > 0) {
+        try {
+          await respondToInvitation(user, invitationId, response);
+          // Success - reload data and exit
+          await loadSharingData();
+          setError(null);
+          return;
+        } catch (error) {
+          console.error(`Attempt ${6 - retries} failed:`, error);
+          retries--;
+          if (retries === 0) throw error;
+          // Exponential backoff: wait longer between each retry
+          const delay = Math.pow(2, 5 - retries) * 1000; // 2s, 4s, 8s, 16s, 32s
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
     } catch (error) {
+      console.error('All retry attempts failed:', error);
       // If there's an error, reload the data to ensure UI is in sync
       await loadSharingData();
-      setError(t('errors.invitationResponse'));
+      // Show a more specific error message
+      if (error instanceof Error && error.message === 'Failed to update sharing documents') {
+        setError(t('errors.sharingUpdate'));
+      } else {
+        setError(t('errors.invitationResponse'));
+      }
     } finally {
       setIsLoading(false);
     }
