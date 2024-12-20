@@ -224,6 +224,25 @@ ion-input {
   --placeholder-color: var(--ion-color-medium);
 }
 
+/* Logout and Delete Account sections */
+.logout-container,
+.delete-account-container {
+  padding: 0 1.25rem;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.logout-container {
+  padding-top: 1.25rem;
+  padding-bottom: 0.5rem;
+}
+
+.delete-account-container {
+  padding-top: 0.5rem;
+  padding-bottom: 2.5rem;
+}
+
 /* Logout and Delete Account buttons */
 .logout-button-settings,
 .delete-account-button {
