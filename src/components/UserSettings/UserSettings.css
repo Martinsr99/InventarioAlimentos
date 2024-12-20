@@ -37,7 +37,7 @@
 /* Settings Container */
 .settings-container {
   padding: 1rem;
-  margin: 3rem auto;
+  margin: 3rem auto 1rem;
   max-width: 600px;
   width: 100%;
 }
@@ -190,7 +190,8 @@
   color: var(--ion-text-color);
 }
 
-.language-switch {
+.language-switch,
+.auto-delete-switch {
   --background: var(--ion-color-step-200);
   --background-checked: var(--ion-color-primary);
   --handle-background: var(--ion-color-light);
@@ -243,7 +244,7 @@ ion-input {
 
 .delete-account-container {
   padding-top: 0.5rem;
-  padding-bottom: 2.5rem;
+  padding-bottom: 1rem;
 }
 
 /* Logout and Delete Account buttons */
