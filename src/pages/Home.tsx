@@ -12,11 +12,10 @@ import {
   IonRefresherContent,
   RefresherEventDetail
 } from '@ionic/react';
-import { settingsOutline } from 'ionicons/icons';
 import { useTranslation } from 'react-i18next';
 import AddProductForm from '../forms/AddProductForm';
 import ProductList from '../components/Products/ProductList';
-import UserSettings from '../components/UserSettings/UserSettings';
+import ProfileButton from '../components/common/ProfileButton';
 import { useProductList } from '../hooks/useProductList';
 import './Home.css';
 
@@ -51,7 +50,7 @@ const Home: React.FC = () => {
         <IonToolbar>
           <IonTitle>{t('app.title')}</IonTitle>
           <IonButtons slot="end">
-            <UserSettings />
+            <ProfileButton />
           </IonButtons>
         </IonToolbar>
       </IonHeader>

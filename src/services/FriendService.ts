@@ -48,7 +48,6 @@ export const getAcceptedShareUsers = async (currentUser: User): Promise<{ userId
       return [];
     }
 
-    console.log('Found shared users:', userData.sharedWith);
     return userData.sharedWith;
   } catch (error) {
     console.error('Error getting accepted share users:', error);

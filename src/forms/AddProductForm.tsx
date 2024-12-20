@@ -77,7 +77,6 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
       if (auth.currentUser) {
         try {
           const users = await getAcceptedShareUsers(auth.currentUser);
-          console.log('Loaded shared users for AddProductForm:', users);
           setSharedUsers(users);
         } catch (error) {
           console.error('Error loading shared users:', error);

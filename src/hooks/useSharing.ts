@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+      import { useState, useEffect } from 'react';
 import { User } from 'firebase/auth';
 import {
   sendShareInvitation,
@@ -31,8 +31,28 @@ export const useSharing = (user: User | null, t: (key: string) => string) => {
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
   useEffect(() => {
-    loadSharingData();
+    if (user) {
+      const loadData = async () => {
+        try {
+          setIsLoading(true);
+          await loadSharingData();
+        } catch (error) {
+          console.error('Error loading sharing data:', error);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      loadData();
+    }
   }, [user]);
+
+  // Recargar datos cada 30 segundos si hay invitaciones pendientes
+  useEffect(() => {
+    if (user && receivedInvitations.some(inv => inv.status === 'pending')) {
+      const interval = setInterval(loadSharingData, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [user, receivedInvitations]);
 
   const sortItems = (items: any[]) => {
     return [...items].sort((a, b) => {
@@ -62,9 +82,17 @@ export const useSharing = (user: User | null, t: (key: string) => string) => {
         getAcceptedShareUsers(user)
       ]);
 
+      // Filtrar invitaciones pendientes
       const pendingInvitations = received.filter(inv => inv.status === 'pending');
       setReceivedInvitations(sortItems(pendingInvitations));
-      setSentInvitations(sortItems(sent));
+
+      // Filtrar invitaciones enviadas para no mostrar las que ya están aceptadas
+      const nonAcceptedSentInvitations = sent.filter(inv => 
+        !acceptedUsers.some(user => user.email === inv.toUserEmail)
+      );
+      setSentInvitations(sortItems(nonAcceptedSentInvitations));
+
+      // Establecer amigos aceptados
       setFriends(sortItems(acceptedUsers));
       setError(null);
     } catch (error) {
@@ -115,26 +143,10 @@ export const useSharing = (user: User | null, t: (key: string) => string) => {
 
     try {
       setIsLoading(true);
-      // Optimistically update the UI
-      setReceivedInvitations(prev => sortItems(prev.filter(inv => inv.id !== invitationId)));
-      
-      let retries = 5;
-      while (retries > 0) {
-        try {
-          await respondToInvitation(user, invitationId, response);
-          // Success - reload data and exit
-          await loadSharingData();
-          setError(null);
-          return;
-        } catch (error) {
-          console.error(`Attempt ${6 - retries} failed:`, error);
-          retries--;
-          if (retries === 0) throw error;
-          // Exponential backoff: wait longer between each retry
-          const delay = Math.pow(2, 5 - retries) * 1000; // 2s, 4s, 8s, 16s, 32s
-          await new Promise(resolve => setTimeout(resolve, delay));
-        }
-      }
+      await respondToInvitation(user, invitationId, response);
+      // Inmediatamente recargar los datos
+      await loadSharingData();
+      setError(response === 'accepted' ? t('sharing.inviteAccepted') : t('sharing.inviteRejected'));
     } catch (error) {
       console.error('All retry attempts failed:', error);
       // If there's an error, reload the data to ensure UI is in sync
@@ -225,6 +237,7 @@ export const useSharing = (user: User | null, t: (key: string) => string) => {
     setFriendToDelete,
     setError,
     setSortBy,
-    toggleSortDirection
+    toggleSortDirection,
+    loadSharingData
   };
 };

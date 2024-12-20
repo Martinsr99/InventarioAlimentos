@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef } from 'react';
 import {
   IonButton,
   IonIcon,
@@ -12,7 +12,7 @@ import {
   IonToast,
   IonAlert
 } from '@ionic/react';
-import { settingsOutline, chevronBackOutline } from 'ionicons/icons';
+import { chevronBackOutline } from 'ionicons/icons';
 import { auth } from '../../firebaseConfig';
 import { signOut } from 'firebase/auth';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -27,17 +27,13 @@ import DeleteAccountSection from './DeleteAccountSection';
 import './UserSettings.css';
 
 interface UserSettingsProps {
-  openToShare?: boolean;
+  isOpen?: boolean;
   onClose?: () => void;
 }
 
 const DEFAULT_PROFILE_PICTURE = '/images/profile/apple.png';
 
-const UserSettings: React.FC<UserSettingsProps> = ({ openToShare = false, onClose }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [isHeaderHidden, setIsHeaderHidden] = useState(false);
-  const [isHeaderElevated, setIsHeaderElevated] = useState(false);
-  const [lastScrollTop, setLastScrollTop] = useState(0);
+const UserSettings: React.FC<UserSettingsProps> = ({ isOpen = false, onClose }) => {
   const { t } = useLanguage();
   const user = auth.currentUser;
   const sharingCardRef = useRef<HTMLDivElement>(null);
@@ -45,7 +41,6 @@ const UserSettings: React.FC<UserSettingsProps> = ({ openToShare = false, onClos
 
   const {
     settings,
-    language,
     isLoading: settingsLoading,
     error: settingsError,
     handleProfilePictureChange,
@@ -83,47 +78,10 @@ const UserSettings: React.FC<UserSettingsProps> = ({ openToShare = false, onClos
   const isLoading = settingsLoading || sharingLoading;
   const error = settingsError || sharingError;
 
-  useEffect(() => {
-    if (openToShare) {
-      setIsOpen(true);
-    }
-  }, [openToShare]);
-
-  useEffect(() => {
-    if (isOpen && openToShare && !isLoading) {
-      setTimeout(() => {
-        if (sharingCardRef.current && contentRef.current) {
-          contentRef.current.scrollToPoint(0, sharingCardRef.current.offsetTop, 500);
-        }
-      }, 100);
-    }
-  }, [isOpen, openToShare, isLoading]);
-
-  const handleClose = () => {
-    setIsOpen(false);
-    if (onClose) {
-      onClose();
-    }
-  };
-
-  const handleScroll = (e: CustomEvent) => {
-    const scrollTop = (e.detail as any).scrollTop;
-    const isScrollingDown = scrollTop > lastScrollTop;
-    
-    if (isScrollingDown && scrollTop > 20) {
-      setIsHeaderHidden(true);
-    } else if (!isScrollingDown) {
-      setIsHeaderHidden(false);
-    }
-
-    setIsHeaderElevated(scrollTop > 0);
-    setLastScrollTop(scrollTop);
-  };
-
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      handleClose();
+      onClose?.();
     } catch (error) {
       console.error('Error signing out:', error);
       setSharingError(t('errors.signOut'));
@@ -131,84 +89,73 @@ const UserSettings: React.FC<UserSettingsProps> = ({ openToShare = false, onClos
   };
 
   return (
-    <>
-      <IonButton 
-        fill="clear" 
-        onClick={() => setIsOpen(true)}
-        className="settings-button"
+    <IonModal isOpen={isOpen} onDidDismiss={onClose}>
+      <IonHeader>
+        <IonToolbar className="app-header">
+          <IonButtons slot="start">
+            <IonButton onClick={onClose} className="back-button">
+              <IonIcon icon={chevronBackOutline} />
+            </IonButton>
+          </IonButtons>
+          <IonTitle>{t('common.settings')}</IonTitle>
+        </IonToolbar>
+      </IonHeader>
+      
+      <IonContent 
+        ref={contentRef}
+        scrollEvents={true}
       >
-        <IonIcon icon={settingsOutline} />
-      </IonButton>
+        {isLoading ? (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}>
+            <IonSpinner />
+          </div>
+        ) : (
+          <div className="settings-container">
+            <div className="settings-card">
+              <ProfileSection
+                profilePicture={settings.profilePicture || DEFAULT_PROFILE_PICTURE}
+                onProfilePictureChange={handleProfilePictureChange}
+              />
 
-      <IonModal isOpen={isOpen} onDidDismiss={handleClose}>
-        <IonHeader>
-          <IonToolbar className={`app-header ${isHeaderElevated ? 'header-elevation' : ''} ${isHeaderHidden ? 'header-hidden' : ''}`}>
-            <IonButtons slot="start">
-              <IonButton onClick={handleClose} className="back-button">
-                <IonIcon icon={chevronBackOutline} />
-              </IonButton>
-            </IonButtons>
-            <IonTitle>{t('common.settings')}</IonTitle>
-          </IonToolbar>
-        </IonHeader>
-        
-        <IonContent 
-          ref={contentRef}
-          scrollEvents={true}
-          onIonScroll={handleScroll}
-        >
-          {isLoading ? (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}>
-              <IonSpinner />
-            </div>
-          ) : (
-            <div className="settings-container">
-              <div className="settings-card">
-                <ProfileSection
-                  profilePicture={settings.profilePicture || DEFAULT_PROFILE_PICTURE}
-                  onProfilePictureChange={handleProfilePictureChange}
+              <div className="settings-divider"></div>
+
+              <UserInfoSection 
+                email={user?.email}
+                onToggleLanguage={toggleLanguage}
+              />
+
+              <div className="settings-divider"></div>
+
+              <div ref={sharingCardRef}>
+                <SharingSection
+                  inviteEmail={inviteEmail}
+                  isEmailValid={isEmailValid}
+                  receivedInvitations={receivedInvitations}
+                  sentInvitations={sentInvitations}
+                  friends={friends}
+                  sortBy={sortBy}
+                  sortDirection={sortDirection}
+                  onEmailChange={handleEmailChange}
+                  onSendInvite={handleSendInvite}
+                  onInvitationResponse={handleInvitationResponse}
+                  onDeleteInvite={confirmDeleteInvitation}
+                  onDeleteFriend={confirmDeleteFriend}
+                  onSortByChange={setSortBy}
+                  onSortDirectionChange={toggleSortDirection}
                 />
-
-                <div className="settings-divider"></div>
-
-                <UserInfoSection 
-                  email={user?.email}
-                  onToggleLanguage={toggleLanguage}
-                />
-
-                <div className="settings-divider"></div>
-
-                <div ref={sharingCardRef}>
-                  <SharingSection
-                    inviteEmail={inviteEmail}
-                    isEmailValid={isEmailValid}
-                    receivedInvitations={receivedInvitations}
-                    sentInvitations={sentInvitations}
-                    friends={friends}
-                    sortBy={sortBy}
-                    sortDirection={sortDirection}
-                    onEmailChange={handleEmailChange}
-                    onSendInvite={handleSendInvite}
-                    onInvitationResponse={handleInvitationResponse}
-                    onDeleteInvite={confirmDeleteInvitation}
-                    onDeleteFriend={confirmDeleteFriend}
-                    onSortByChange={setSortBy}
-                    onSortDirectionChange={toggleSortDirection}
-                  />
-                </div>
-
-                <div className="settings-divider"></div>
-
-                <LogoutSection onLogout={handleLogout} />
-
-                <div className="settings-divider"></div>
-
-                <DeleteAccountSection />
               </div>
+
+              <div className="settings-divider"></div>
+
+              <LogoutSection onLogout={handleLogout} />
+
+              <div className="settings-divider"></div>
+
+              <DeleteAccountSection />
             </div>
-          )}
-        </IonContent>
-      </IonModal>
+          </div>
+        )}
+      </IonContent>
 
       <IonAlert
         isOpen={showDeleteConfirm}
@@ -248,9 +195,12 @@ const UserSettings: React.FC<UserSettingsProps> = ({ openToShare = false, onClos
         onDidDismiss={() => setSharingError(null)}
         message={error || ''}
         duration={3000}
-        color={error === t('sharing.inviteSent') || error === t('sharing.deleteSuccess') ? 'success' : 'danger'}
+        color={error === t('sharing.inviteSent') || 
+               error === t('sharing.deleteSuccess') || 
+               error === t('sharing.inviteAccepted') || 
+               error === t('sharing.inviteRejected') ? 'success' : 'danger'}
       />
-    </>
+    </IonModal>
   );
 };
 

@@ -127,18 +127,22 @@ export const respondToInvitation = async (
           const receiverData = receiverDoc.data() as UserSharing;
           if (!receiverData.sharedWith.some(user => user.userId === invitation.fromUserId)) {
             try {
-              // First update with invitationId to pass security rules
-              await updateDoc(doc(db, 'userSharing', currentUser.uid), {
-                invitationId
-              });
+      // First update with invitationId to pass security rules
+      await updateDoc(doc(db, 'userSharing', currentUser.uid), {
+        invitationId
+      });
 
-              // Then update sharedWith array
-              await updateDoc(doc(db, 'userSharing', currentUser.uid), {
-                sharedWith: [...(receiverData.sharedWith || []), {
-                  userId: invitation.fromUserId,
-                  email: invitation.fromUserEmail
-                }]
-              });
+      // Verificar si el usuario ya está en sharedWith
+      const isAlreadyShared = receiverData.sharedWith.some(user => user.userId === invitation.fromUserId);
+      if (!isAlreadyShared) {
+        // Then update sharedWith array
+        await updateDoc(doc(db, 'userSharing', currentUser.uid), {
+          sharedWith: [...(receiverData.sharedWith || []), {
+            userId: invitation.fromUserId,
+            email: invitation.fromUserEmail
+          }]
+        });
+      }
             } catch (error) {
               // If any update fails, try to clean up
               try {
@@ -159,18 +163,22 @@ export const respondToInvitation = async (
           const senderData = senderDoc.data() as UserSharing;
           if (!senderData.sharedWith.some(user => user.userId === currentUser.uid)) {
             try {
-              // First update with invitationId to pass security rules
-              await updateDoc(doc(db, 'userSharing', invitation.fromUserId), {
-                invitationId
-              });
+      // First update with invitationId to pass security rules
+      await updateDoc(doc(db, 'userSharing', invitation.fromUserId), {
+        invitationId
+      });
 
-              // Then update sharedWith array
-              await updateDoc(doc(db, 'userSharing', invitation.fromUserId), {
-                sharedWith: [...(senderData.sharedWith || []), {
-                  userId: currentUser.uid,
-                  email: currentUser.email
-                }]
-              });
+      // Verificar si el usuario ya está en sharedWith
+      const isAlreadySharedBySender = senderData.sharedWith.some(user => user.userId === currentUser.uid);
+      if (!isAlreadySharedBySender) {
+        // Then update sharedWith array
+        await updateDoc(doc(db, 'userSharing', invitation.fromUserId), {
+          sharedWith: [...(senderData.sharedWith || []), {
+            userId: currentUser.uid,
+            email: currentUser.email
+          }]
+        });
+      }
             } catch (error) {
               // If any update fails, try to clean up
               try {
