@@ -1,4 +1,5 @@
 import React from 'react';
+import './AutoDeleteSection.css';
 import {
   IonItem,
   IonLabel,
@@ -30,19 +31,20 @@ const AutoDeleteSection: React.FC = () => {
   return (
     <div className="auto-delete-section">
       <h2 className="settings-section-title">
+        <IonIcon icon={trashBin} className="title-icon" />
         {t('products.deleteExpired')}
       </h2>
-      <IonItem lines="none">
-        <IonIcon icon={trashBin} slot="start" color="danger" />
+      <IonItem lines="none" className="auto-delete-item">
         <IonLabel>
-          {t('settings.autoDeleteExpired')}
-          <IonNote className="ion-margin-top">
+          <IonNote className="description-note">
             {t('settings.autoDeleteExpiredDescription')}
           </IonNote>
         </IonLabel>
         <IonToggle
+          className="auto-delete-switch"
           checked={settings.autoDeleteExpired}
           onIonChange={e => handleAutoDeleteChange(e.detail.checked)}
+          slot="end"
         />
       </IonItem>
     </div>
