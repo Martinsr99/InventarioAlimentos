@@ -47,7 +47,7 @@ const Home: React.FC = () => {
 
   return (
     <IonPage>
-      <IonHeader>
+      <IonHeader className="header-hide-on-scroll">
         <IonToolbar>
           <IonTitle>{t('app.title')}</IonTitle>
           <IonButtons slot="end">
@@ -55,7 +55,25 @@ const Home: React.FC = () => {
           </IonButtons>
         </IonToolbar>
       </IonHeader>
-      <IonContent fullscreen>
+      <IonContent 
+        fullscreen 
+        scrollEvents={true}
+        onIonScroll={(e) => {
+          const header = document.querySelector('.header-hide-on-scroll');
+          if (header) {
+            const scrollTop = e.detail.scrollTop;
+            const deltaY = e.detail.deltaY;
+            
+            if (deltaY > 0 && scrollTop > 20) {
+              // Scrolling down
+              header.classList.add('header-hidden');
+            } else if (deltaY < 0) {
+              // Scrolling up
+              header.classList.remove('header-hidden');
+            }
+          }
+        }}
+      >
         <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
           <IonRefresherContent />
         </IonRefresher>

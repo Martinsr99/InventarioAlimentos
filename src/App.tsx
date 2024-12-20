@@ -15,7 +15,10 @@ import { auth } from './firebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';
 import Auth from './components/Authenticator/Auth';
 import { scheduleExpiryNotifications } from './services/NotificationService';
+import { LocalNotifications } from '@capacitor/local-notifications';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
+import { checkAndDeleteExpiredProducts } from './services/AutoDeleteService';
+import { useUserSettings } from './hooks/useUserSettings';
 import { Capacitor } from '@capacitor/core';
 import Home from './pages/Home';
 import EditProduct from './components/Products/EditProduct/EditProduct';
@@ -49,6 +52,7 @@ const AppContent: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
   const [showNotificationAlert, setShowNotificationAlert] = useState(false);
+  const { settings } = useUserSettings(auth.currentUser);
 
   useEffect(() => {
     auth.languageCode = language;
@@ -60,6 +64,26 @@ const AppContent: React.FC = () => {
       if (user) {
         try {
           await scheduleExpiryNotifications();
+
+          // Check for auto-deleted products if the setting is enabled
+          if (settings.autoDeleteExpired) {
+            const deletedProducts = await checkAndDeleteExpiredProducts(user);
+            if (deletedProducts.length > 0) {
+              // Show notification about deleted products
+              if (Capacitor.isNativePlatform()) {
+                await LocalNotifications.schedule({
+                  notifications: [{
+                    title: t('notifications.autoDeleteTitle'),
+                    body: t('notifications.autoDeleteBody', { count: deletedProducts.length }),
+                    id: Math.floor(Math.random() * 100000),
+                  }]
+                });
+              } else {
+                // For web, show a toast or alert
+                setError(t('notifications.autoDeleteBody', { count: deletedProducts.length }));
+              }
+            }
+          }
         } catch (error: any) {
           if (Capacitor.isNativePlatform()) {
             console.error('Error scheduling notifications:', error);

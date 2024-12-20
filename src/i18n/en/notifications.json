@@ -5,5 +5,7 @@
   "expired": "has expired",
   "checkProduct": "Check your product",
   "permissionRequired": "Notifications Permission Required",
-  "enableInSettings": "Please enable notifications in your device settings to receive expiry reminders"
+  "enableInSettings": "Please enable notifications in your device settings to receive expiry reminders",
+  "autoDeleteTitle": "Products Auto-Deleted",
+  "autoDeleteBody": "{{count}} expired products have been automatically deleted"
 }

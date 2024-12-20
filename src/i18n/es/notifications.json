@@ -5,5 +5,7 @@
   "expired": "ha caducado",
   "checkProduct": "Revisa tu producto",
   "permissionRequired": "Se requieren permisos de notificación",
-  "enableInSettings": "Por favor activa las notificaciones en la configuración de tu dispositivo para recibir recordatorios de caducidad"
+  "enableInSettings": "Por favor activa las notificaciones en la configuración de tu dispositivo para recibir recordatorios de caducidad",
+  "autoDeleteTitle": "Productos Eliminados Automáticamente",
+  "autoDeleteBody": "{{count}} productos caducados han sido eliminados automáticamente"
 }
