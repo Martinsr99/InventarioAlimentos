@@ -12,9 +12,10 @@
   "accept": "Accept",
   "reject": "Reject",
   "delete": "Delete Friend",
-  "deleteConfirm": "Delete Friend?",
-  "deleteConfirmMessage": "Are you sure you want to remove this user as a friend?",
+  "deleteConfirm": "Delete Friends?",
+  "deleteConfirmMessage": "Are you sure you want to remove the selected friends? This will remove shared product access.",
   "deleteSuccess": "Friend removed successfully",
+  "deleteMultipleSuccess": "Friends removed successfully",
   "noInvites": "No invitations",
   "alreadyInvited": "User already invited",
   "sharedProducts": "Shared Products",
@@ -27,5 +28,8 @@
   "selectUsers": "Select Users",
   "selectedUsers": "{{count}} users selected",
   "sortByStatus": "Status",
-  "sortByEmail": "Email"
+  "sortByEmail": "Email",
+  "selectAll": "Select All",
+  "deselectAll": "Deselect All",
+  "deleteSelected": "Delete Selected"
 }

@@ -9,6 +9,10 @@ import {
   IonAvatar,
   IonImg,
   IonBadge,
+  IonCheckbox,
+  IonToolbar,
+  IonButtons,
+  IonText,
 } from '@ionic/react';
 import {
   mailOutline,
@@ -19,7 +23,9 @@ import {
   checkmarkCircleOutline,
   closeCircleOutline,
   trashOutline,
-  arrowUp
+  arrowUp,
+  checkmarkOutline,
+  closeOutline
 } from 'ionicons/icons';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { ShareInvitation } from '../../services/types';
@@ -38,7 +44,11 @@ interface SharingSectionProps {
   onSendInvite: () => Promise<void>;
   onInvitationResponse: (invitationId: string, response: 'accepted' | 'rejected') => Promise<void>;
   onDeleteInvite: (invitationId: string) => void;
-  onDeleteFriend: (userId: string) => void;
+  selectedFriends: string[];
+  onToggleFriendSelection: (userId: string) => void;
+  onSelectAllFriends: () => void;
+  onDeselectAllFriends: () => void;
+  onDeleteFriends: () => void;
   onSortByChange: (sortBy: SortOption) => void;
   onSortDirectionChange: () => void;
 }
@@ -55,7 +65,11 @@ export const SharingSection: React.FC<SharingSectionProps> = ({
   onSendInvite,
   onInvitationResponse,
   onDeleteInvite,
-  onDeleteFriend,
+  selectedFriends,
+  onToggleFriendSelection,
+  onSelectAllFriends,
+  onDeselectAllFriends,
+  onDeleteFriends,
   onSortByChange,
   onSortDirectionChange
 }) => {
@@ -106,33 +120,71 @@ export const SharingSection: React.FC<SharingSectionProps> = ({
 
       <div className="friends-section">
         <div className="friends-section-header">
-          <IonIcon icon={peopleOutline} />
-          <h3>{t('sharing.friendsSection')}</h3>
-          <div className="friends-sort-controls">
-            <button 
-              className={`sort-button ${sortBy === 'status' ? 'active' : ''}`}
-              onClick={() => handleSortClick('status')}
-            >
-              {t('sharing.sortByStatus')}
-              {sortBy === 'status' && (
-                <IonIcon 
-                  icon={arrowUp} 
-                  className={sortDirection === 'desc' ? 'desc' : ''}
-                />
-              )}
-            </button>
-            <button 
-              className={`sort-button ${sortBy === 'email' ? 'active' : ''}`}
-              onClick={() => handleSortClick('email')}
-            >
-              {t('sharing.sortByEmail')}
-              {sortBy === 'email' && (
-                <IonIcon 
-                  icon={arrowUp} 
-                  className={sortDirection === 'desc' ? 'desc' : ''}
-                />
-              )}
-            </button>
+          <div className="friends-header-left">
+            <IonIcon icon={peopleOutline} />
+            <h3>{t('sharing.friendsSection')}</h3>
+          </div>
+          <div className="friends-header-right">
+            {friends.length > 0 && (
+              <div className="selection-controls">
+                {selectedFriends.length > 0 ? (
+                  <>
+                    <IonButton
+                      fill="clear"
+                      size="small"
+                      onClick={onDeselectAllFriends}
+                    >
+                      <IonIcon icon={closeOutline} slot="start" />
+                      {t('sharing.deselectAll')}
+                    </IonButton>
+                    <IonButton
+                      color="danger"
+                      size="small"
+                      onClick={onDeleteFriends}
+                      className="delete-selected-button"
+                    >
+                      <IonIcon icon={trashOutline} slot="start" />
+                      {t('sharing.deleteSelected')}
+                    </IonButton>
+                  </>
+                ) : (
+                  <IonButton
+                    fill="clear"
+                    size="small"
+                    onClick={onSelectAllFriends}
+                  >
+                    <IonIcon icon={checkmarkOutline} slot="start" />
+                    {t('sharing.selectAll')}
+                  </IonButton>
+                )}
+              </div>
+            )}
+            <div className="friends-sort-controls">
+              <button 
+                className={`sort-button ${sortBy === 'status' ? 'active' : ''}`}
+                onClick={() => handleSortClick('status')}
+              >
+                {t('sharing.sortByStatus')}
+                {sortBy === 'status' && (
+                  <IonIcon 
+                    icon={arrowUp} 
+                    className={sortDirection === 'desc' ? 'desc' : ''}
+                  />
+                )}
+              </button>
+              <button 
+                className={`sort-button ${sortBy === 'email' ? 'active' : ''}`}
+                onClick={() => handleSortClick('email')}
+              >
+                {t('sharing.sortByEmail')}
+                {sortBy === 'email' && (
+                  <IonIcon 
+                    icon={arrowUp} 
+                    className={sortDirection === 'desc' ? 'desc' : ''}
+                  />
+                )}
+              </button>
+            </div>
           </div>
         </div>
         
@@ -141,7 +193,12 @@ export const SharingSection: React.FC<SharingSectionProps> = ({
             {/* Accepted Friends */}
             {friends.map(friend => (
               <IonItem key={friend.userId} lines="none" className="friend-item">
-                <IonAvatar slot="start">
+                <IonCheckbox
+                  slot="start"
+                  checked={selectedFriends.includes(friend.userId)}
+                  onIonChange={() => onToggleFriendSelection(friend.userId)}
+                />
+                <IonAvatar>
                   <IonImg src="/images/profile/apple.png" alt="User" />
                 </IonAvatar>
                 <IonLabel>
@@ -149,17 +206,6 @@ export const SharingSection: React.FC<SharingSectionProps> = ({
                   <IonBadge color="success" className="friend-status accepted">
                     {t('sharing.inviteAccepted')}
                   </IonBadge>
-                  <div className="friend-actions">
-                    <IonButton
-                      color="danger"
-                      fill="clear"
-                      size="small"
-                      className="delete-button"
-                      onClick={() => onDeleteFriend(friend.userId)}
-                    >
-                      <IonIcon icon={trashOutline} slot="icon-only" />
-                    </IonButton>
-                  </div>
                 </IonLabel>
               </IonItem>
             ))}

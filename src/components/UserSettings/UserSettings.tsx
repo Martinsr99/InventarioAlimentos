@@ -57,22 +57,28 @@ const UserSettings: React.FC<UserSettingsProps> = ({ isOpen = false, onClose }) 
     error: sharingError,
     showDeleteConfirm,
     invitationToDelete,
-    friendToDelete,
+    selectedFriends,
     sortBy,
     sortDirection,
     handleEmailChange,
     handleSendInvite,
     handleInvitationResponse,
     handleDeleteInvitation,
-    handleDeleteFriend,
+    handleDeleteFriends,
+    toggleFriendSelection,
+    selectAllFriends,
+    deselectAllFriends,
     confirmDeleteInvitation,
-    confirmDeleteFriend,
+    confirmDeleteFriends,
     setShowDeleteConfirm,
     setInvitationToDelete,
-    setFriendToDelete,
     setError: setSharingError,
     setSortBy,
-    toggleSortDirection
+    toggleSortDirection,
+    setReceivedInvitations,
+    setSentInvitations,
+    setFriends,
+    setSelectedFriends
   } = useSharing(user, t);
 
   const isLoading = settingsLoading || sharingLoading;
@@ -80,6 +86,16 @@ const UserSettings: React.FC<UserSettingsProps> = ({ isOpen = false, onClose }) 
 
   const handleLogout = async () => {
     try {
+      // Clear all states before signing out
+      setReceivedInvitations([]);
+      setSentInvitations([]);
+      setFriends([]);
+      setSelectedFriends([]);
+      setInvitationToDelete('');
+      setShowDeleteConfirm(false);
+      setSharingError(null);
+      
+      // Sign out and close modal
       await signOut(auth);
       onClose?.();
     } catch (error) {
@@ -139,7 +155,11 @@ const UserSettings: React.FC<UserSettingsProps> = ({ isOpen = false, onClose }) 
                   onSendInvite={handleSendInvite}
                   onInvitationResponse={handleInvitationResponse}
                   onDeleteInvite={confirmDeleteInvitation}
-                  onDeleteFriend={confirmDeleteFriend}
+                  selectedFriends={selectedFriends}
+                  onToggleFriendSelection={toggleFriendSelection}
+                  onSelectAllFriends={selectAllFriends}
+                  onDeselectAllFriends={deselectAllFriends}
+                  onDeleteFriends={confirmDeleteFriends}
                   onSortByChange={setSortBy}
                   onSortDirectionChange={toggleSortDirection}
                 />
@@ -162,10 +182,9 @@ const UserSettings: React.FC<UserSettingsProps> = ({ isOpen = false, onClose }) 
         onDidDismiss={() => {
           setShowDeleteConfirm(false);
           setInvitationToDelete('');
-          setFriendToDelete('');
         }}
-        header={friendToDelete ? t('sharing.deleteConfirm') : t('sharing.deleteConfirm')}
-        message={friendToDelete ? t('sharing.deleteConfirmMessage') : t('sharing.deleteConfirmMessage')}
+        header={t('sharing.deleteConfirm')}
+        message={t('sharing.deleteConfirmMessage')}
         buttons={[
           {
             text: t('common.cancel'),
@@ -173,16 +192,15 @@ const UserSettings: React.FC<UserSettingsProps> = ({ isOpen = false, onClose }) 
             handler: () => {
               setShowDeleteConfirm(false);
               setInvitationToDelete('');
-              setFriendToDelete('');
             }
           },
           {
             text: t('common.delete'),
             role: 'destructive',
             handler: () => {
-              if (friendToDelete) {
-                handleDeleteFriend();
-              } else {
+              if (selectedFriends.length > 0) {
+                handleDeleteFriends();
+              } else if (invitationToDelete) {
                 handleDeleteInvitation();
               }
             }

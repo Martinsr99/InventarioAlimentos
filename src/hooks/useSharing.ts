@@ -11,7 +11,7 @@ import {
 } from '../services/InvitationService';
 import {
   getAcceptedShareUsers,
-  deleteFriend
+  deleteFriends
 } from '../services/FriendService';
 import { ShareInvitation } from '../services/types';
 
@@ -28,7 +28,7 @@ export const useSharing = (user: User | null, t: (key: string) => string) => {
   const [error, setError] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [invitationToDelete, setInvitationToDelete] = useState<string>('');
-  const [friendToDelete, setFriendToDelete] = useState<string>('');
+  const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<SortOption>('status');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
@@ -74,36 +74,61 @@ export const useSharing = (user: User | null, t: (key: string) => string) => {
     );
 
     // Suscribirse a cambios en invitaciones recibidas
-    const unsubscribeReceived = onSnapshot(receivedQuery, (snapshot) => {
-      const pendingInvitations = snapshot.docs
-        .map(doc => ({ id: doc.id, ...doc.data() } as ShareInvitation))
-        .filter(inv => inv.status === 'pending');
-      setReceivedInvitations(sortItems(pendingInvitations));
-      setIsLoading(false);
-    });
+    const unsubscribeReceived = onSnapshot(receivedQuery, 
+      (snapshot) => {
+        const pendingInvitations = snapshot.docs
+          .map(doc => ({ id: doc.id, ...doc.data() } as ShareInvitation))
+          .filter(inv => inv.status === 'pending');
+        setReceivedInvitations(sortItems(pendingInvitations));
+        setIsLoading(false);
+      },
+      (error) => {
+        // Silently handle permission errors on sign out
+        if (error.message.includes('Missing or insufficient permissions')) {
+          setReceivedInvitations([]);
+          setIsLoading(false);
+        }
+      }
+    );
 
     // Suscribirse a cambios en invitaciones enviadas
-    const unsubscribeSent = onSnapshot(sentQuery, async (snapshot) => {
-      const sentInvitations = snapshot.docs.map(doc => ({ 
-        id: doc.id, 
-        ...doc.data() 
-      } as ShareInvitation));
-      
-      // Solo mostrar invitaciones pendientes o rechazadas
-      const filteredInvitations = sentInvitations.filter(inv => 
-        inv.status !== 'accepted'
-      );
-      
-      setSentInvitations(sortItems(filteredInvitations));
-    });
+    const unsubscribeSent = onSnapshot(sentQuery, 
+      async (snapshot) => {
+        const sentInvitations = snapshot.docs.map(doc => ({ 
+          id: doc.id, 
+          ...doc.data() 
+        } as ShareInvitation));
+        
+        // Solo mostrar invitaciones pendientes o rechazadas
+        const filteredInvitations = sentInvitations.filter(inv => 
+          inv.status !== 'accepted'
+        );
+        
+        setSentInvitations(sortItems(filteredInvitations));
+      },
+      (error) => {
+        // Silently handle permission errors on sign out
+        if (error.message.includes('Missing or insufficient permissions')) {
+          setSentInvitations([]);
+        }
+      }
+    );
 
     // Suscribirse a cambios en amigos
-    const unsubscribeSharing = onSnapshot(userSharingQuery, async (snapshot) => {
-      if (!snapshot.empty) {
-        const userData = snapshot.docs[0].data();
-        setFriends(sortItems(userData.sharedWith || []));
+    const unsubscribeSharing = onSnapshot(userSharingQuery, 
+      async (snapshot) => {
+        if (!snapshot.empty) {
+          const userData = snapshot.docs[0].data();
+          setFriends(sortItems(userData.sharedWith || []));
+        }
+      },
+      (error) => {
+        // Silently handle permission errors on sign out
+        if (error.message.includes('Missing or insufficient permissions')) {
+          setFriends([]);
+        }
       }
-    });
+    );
 
     // Limpiar suscripciones al desmontar
     return () => {
@@ -112,7 +137,6 @@ export const useSharing = (user: User | null, t: (key: string) => string) => {
       unsubscribeSharing();
     };
   }, [user, sortItems]);
-
 
   const loadSharingData = async () => {
     if (!user) return;
@@ -139,7 +163,10 @@ export const useSharing = (user: User | null, t: (key: string) => string) => {
       setFriends(sortItems(acceptedUsers));
       setError(null);
     } catch (error) {
-      setError(t('errors.sharingLoad'));
+      // Silently handle permission errors on sign out
+      if (error instanceof Error && !error.message.includes('Missing or insufficient permissions')) {
+        setError(t('errors.sharingLoad'));
+      }
     } finally {
       setIsLoading(false);
     }
@@ -222,31 +249,46 @@ export const useSharing = (user: User | null, t: (key: string) => string) => {
     }
   };
 
-  const handleDeleteFriend = async () => {
-    if (!user || !friendToDelete) return;
+  const handleDeleteFriends = async () => {
+    if (!user || selectedFriends.length === 0) return;
 
     try {
       setIsLoading(true);
-      await deleteFriend(user, friendToDelete);
+      await deleteFriends(user, selectedFriends);
       await loadSharingData();
-      setError(t('sharing.deleteSuccess'));
+      setError(selectedFriends.length === 1 ? t('sharing.deleteSuccess') : t('sharing.deleteMultipleSuccess'));
     } catch (error) {
       setError(t('errors.invitationDelete'));
     } finally {
       setIsLoading(false);
       setShowDeleteConfirm(false);
-      setFriendToDelete('');
+      setSelectedFriends([]);
     }
+  };
+
+  const toggleFriendSelection = (userId: string) => {
+    setSelectedFriends(prev => 
+      prev.includes(userId) 
+        ? prev.filter(id => id !== userId)
+        : [...prev, userId]
+    );
+  };
+
+  const selectAllFriends = () => {
+    const allFriendIds = friends.map(friend => friend.userId);
+    setSelectedFriends(allFriendIds);
+  };
+
+  const deselectAllFriends = () => {
+    setSelectedFriends([]);
   };
 
   const confirmDeleteInvitation = (invitationId: string) => {
     setInvitationToDelete(invitationId);
-    setFriendToDelete('');
     setShowDeleteConfirm(true);
   };
 
-  const confirmDeleteFriend = (userId: string) => {
-    setFriendToDelete(userId);
+  const confirmDeleteFriends = () => {
     setInvitationToDelete('');
     setShowDeleteConfirm(true);
   };
@@ -265,22 +307,28 @@ export const useSharing = (user: User | null, t: (key: string) => string) => {
     error,
     showDeleteConfirm,
     invitationToDelete,
-    friendToDelete,
+    selectedFriends,
     sortBy,
     sortDirection,
     handleEmailChange,
     handleSendInvite,
     handleInvitationResponse,
     handleDeleteInvitation,
-    handleDeleteFriend,
+    handleDeleteFriends,
+    toggleFriendSelection,
+    selectAllFriends,
+    deselectAllFriends,
     confirmDeleteInvitation,
-    confirmDeleteFriend,
+    confirmDeleteFriends,
     setShowDeleteConfirm,
     setInvitationToDelete,
-    setFriendToDelete,
     setError,
     setSortBy,
     toggleSortDirection,
-    loadSharingData
+    loadSharingData,
+    setReceivedInvitations,
+    setSentInvitations,
+    setFriends,
+    setSelectedFriends
   };
 };

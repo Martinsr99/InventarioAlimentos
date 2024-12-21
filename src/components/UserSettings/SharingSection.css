@@ -33,26 +33,58 @@
 .friends-section-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   margin-bottom: 16px;
   color: var(--ion-color-medium);
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
-.friends-section-header ion-icon {
-  margin-right: 8px;
+.friends-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.friends-header-left ion-icon {
   font-size: 20px;
 }
 
-.friends-section-header h3 {
+.friends-header-left h3 {
   margin: 0;
   font-size: 16px;
   font-weight: 500;
+}
+
+.friends-header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.selection-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.selection-controls ion-button {
+  --padding-start: 8px;
+  --padding-end: 8px;
+  height: 32px;
+  font-size: 12px;
+  margin: 0;
+}
+
+.delete-selected-button {
+  --background: rgba(var(--ion-color-danger-rgb), 0.1);
+  --color: var(--ion-color-danger);
 }
 
 .friends-sort-controls {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-left: auto;
 }
 
 .sort-button {
@@ -111,6 +143,17 @@
 
 .friend-item ion-label {
   margin: 0;
+  margin-left: 12px;
+}
+
+.friend-item ion-checkbox {
+  margin: 0;
+  margin-right: 8px;
+  --size: 20px;
+  --checkbox-background-checked: var(--ion-color-primary);
+  --border-color: var(--ion-color-medium);
+  --border-color-checked: var(--ion-color-primary);
+  --checkmark-color: var(--ion-background-color);
 }
 
 .friend-item ion-label h2 {

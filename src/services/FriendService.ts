@@ -24,9 +24,9 @@ export const initializeUserSharing = async (user: User): Promise<void> => {
   }
 };
 
-export const getAcceptedShareUsers = async (currentUser: User): Promise<{ userId: string; email: string }[]> => {
-  if (!currentUser?.email) {
-    console.log('No user email available');
+export const getAcceptedShareUsers = async (currentUser: User | null): Promise<{ userId: string; email: string }[]> => {
+  // Return empty array if no user or no email (including after sign out)
+  if (!currentUser?.email || !currentUser?.uid) {
     return [];
   }
 
@@ -36,87 +36,116 @@ export const getAcceptedShareUsers = async (currentUser: User): Promise<{ userId
     const userSharingDoc = await getDoc(userSharingRef);
     
     if (!userSharingDoc.exists()) {
-      console.log('UserSharing document does not exist for user:', currentUser.uid);
-      // Try to initialize the document if it doesn't exist
-      await initializeUserSharing(currentUser);
       return [];
     }
 
     const userData = userSharingDoc.data() as UserSharing;
-    if (!userData.sharedWith) {
-      console.log('No sharedWith array in userSharing document');
+    return userData.sharedWith || [];
+  } catch (error) {
+    // Silently return empty array on permission errors (which occur after sign out)
+    if (error instanceof Error && error.message.includes('Missing or insufficient permissions')) {
       return [];
     }
-
-    return userData.sharedWith;
-  } catch (error) {
     console.error('Error getting accepted share users:', error);
-    // Try to initialize the document in case it failed during registration
-    try {
-      await initializeUserSharing(currentUser);
-    } catch (initError) {
-      console.error('Error initializing user sharing:', initError);
-    }
     return [];
   }
 };
 
-export const deleteFriend = async (currentUser: User, friendUserId: string): Promise<void> => {
+const BATCH_SIZE = 10; // Firestore allows up to 10 items in 'in' clauses
+
+export const deleteFriends = async (currentUser: User, friendUserIds: string[]): Promise<void> => {
   if (!currentUser?.uid) {
     throw new Error('No authenticated user');
   }
 
   try {
-    // Get both users' sharing documents
-    const [friendDoc, currentUserDoc] = await Promise.all([
-      getDoc(doc(db, 'userSharing', friendUserId)),
-      getDoc(doc(db, 'userSharing', currentUser.uid))
-    ]);
-
-    if (!friendDoc.exists() || !currentUserDoc.exists()) {
-      throw new Error('Friend not found');
+    // Process friends in batches
+    for (let i = 0; i < friendUserIds.length; i += BATCH_SIZE) {
+      const batch = friendUserIds.slice(i, i + BATCH_SIZE);
+      await deleteFriendsBatch(currentUser, batch);
     }
+  } catch (error) {
+    console.error('Error deleting friends:', error);
+    throw error;
+  }
+};
 
+const deleteFriendsBatch = async (currentUser: User, friendUserIds: string[]): Promise<void> => {
+  // Get all users' sharing documents
+  const [currentUserDoc, ...friendDocs] = await Promise.all([
+    getDoc(doc(db, 'userSharing', currentUser.uid)),
+    ...friendUserIds.map(id => getDoc(doc(db, 'userSharing', id)))
+  ]);
+
+  if (!currentUserDoc.exists() || friendDocs.some(doc => !doc.exists())) {
+    throw new Error('One or more friends not found');
+  }
+
+  const currentUserData = currentUserDoc.data() as UserSharing;
+  const updates: Promise<void>[] = [];
+
+  // Update current user's userSharing
+  const updatedCurrentUserSharedWith = currentUserData.sharedWith.filter(
+    user => !friendUserIds.includes(user.userId)
+  );
+  updates.push(updateDoc(doc(db, 'userSharing', currentUser.uid), {
+    sharedWith: updatedCurrentUserSharedWith,
+    invitationId: null
+  }));
+
+  // Update each friend's userSharing
+  friendDocs.forEach((friendDoc, index) => {
     const friendData = friendDoc.data() as UserSharing;
-    const currentUserData = currentUserDoc.data() as UserSharing;
-
-    // Prepare updates for both users
-    const updates: Promise<void>[] = [];
-
-    // Update current user's userSharing
-    const updatedCurrentUserSharedWith = currentUserData.sharedWith.filter(
-      user => user.userId !== friendUserId
-    );
-    updates.push(updateDoc(doc(db, 'userSharing', currentUser.uid), {
-      sharedWith: updatedCurrentUserSharedWith,
-      invitationId: null
-    }));
-
-    // Update friend's userSharing
     const updatedFriendSharedWith = friendData.sharedWith.filter(
       user => user.userId !== currentUser.uid
     );
-    updates.push(updateDoc(doc(db, 'userSharing', friendUserId), {
+    updates.push(updateDoc(doc(db, 'userSharing', friendUserIds[index]), {
       sharedWith: updatedFriendSharedWith,
       invitationId: null
     }));
+  });
 
-    // Delete the accepted invitation
+  // Process invitations in batches
+  const processInvitationsBatch = async (userIds: string[]) => {
     const invitationsQuery = query(
       collection(db, 'shareInvitations'),
       where('status', '==', 'accepted'),
-      where('fromUserId', 'in', [currentUser.uid, friendUserId]),
-      where('toUserId', 'in', [currentUser.uid, friendUserId])
+      where('fromUserId', 'in', [currentUser.uid, ...userIds]),
+      where('toUserId', 'in', [currentUser.uid, ...userIds])
     );
     
     const invitationsSnapshot = await getDocs(invitationsQuery);
     updates.push(...invitationsSnapshot.docs.map(doc => deleteDoc(doc.ref)));
+  };
 
-    // Execute all updates atomically
-    await Promise.all(updates);
+  // Process products in batches
+  const processProductsBatch = async (userIds: string[]) => {
+    const productsQuery = query(
+      collection(db, 'products'),
+      where('sharedWith', 'array-contains-any', userIds)
+    );
+    const productsSnapshot = await getDocs(productsQuery);
+    
+    productsSnapshot.docs.forEach(productDoc => {
+      const productData = productDoc.data();
+      if (productData.userId === currentUser.uid) {
+        const updatedSharedWith = productData.sharedWith.filter(
+          (userId: string) => !friendUserIds.includes(userId)
+        );
+        updates.push(updateDoc(doc(db, 'products', productDoc.id), {
+          sharedWith: updatedSharedWith
+        }));
+      }
+    });
+  };
 
-  } catch (error) {
-    console.error('Error deleting friend:', error);
-    throw error;
+  // Process invitations and products in batches
+  for (let i = 0; i < friendUserIds.length; i += BATCH_SIZE) {
+    const batch = friendUserIds.slice(i, i + BATCH_SIZE);
+    await processInvitationsBatch(batch);
+    await processProductsBatch(batch);
   }
+
+  // Execute all updates
+  await Promise.all(updates);
 };
