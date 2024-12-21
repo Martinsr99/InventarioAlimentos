@@ -17,7 +17,11 @@ service cloud.firestore {
       );
       allow update, delete: if request.auth != null && (
         request.auth.uid == resource.data.userId ||
-        request.auth.uid in resource.data.sharedWith
+        request.auth.uid in resource.data.sharedWith ||
+        // Allow removing self from sharedWith
+        (request.resource.data.sharedWith != null &&
+         !request.resource.data.sharedWith.hasAll([request.auth.uid]) &&
+         resource.data.sharedWith.hasAll([request.auth.uid]))
       );
     }
 
@@ -53,9 +57,13 @@ service cloud.firestore {
         // Own document
         request.auth.uid == userId ||
         
-        // Already shared
-        (request.resource.data.sharedWith != null && 
-         request.resource.data.sharedWith.hasAny([{'userId': request.auth.uid}])) ||
+        // Already shared or removing self from shared
+        (request.resource.data.sharedWith != null && (
+          request.resource.data.sharedWith.hasAny([{'userId': request.auth.uid}]) ||
+          (resource.data.sharedWith != null && 
+           resource.data.sharedWith.hasAny([{'userId': request.auth.uid}]) &&
+           !request.resource.data.sharedWith.hasAny([{'userId': request.auth.uid}]))
+        )) ||
         
         // Setting or cleaning up invitationId
         ((request.resource.data.invitationId == null ||

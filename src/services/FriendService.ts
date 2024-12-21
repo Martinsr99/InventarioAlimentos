@@ -120,20 +120,58 @@ const deleteFriendsBatch = async (currentUser: User, friendUserIds: string[]): P
 
   // Process products in batches
   const processProductsBatch = async (userIds: string[]) => {
+    // 1. Get all products where current user is involved (either as owner or shared)
     const productsQuery = query(
       collection(db, 'products'),
-      where('sharedWith', 'array-contains-any', userIds)
+      where('sharedWith', 'array-contains', currentUser.uid)
     );
     const productsSnapshot = await getDocs(productsQuery);
     
+    // Process products shared with current user
     productsSnapshot.docs.forEach(productDoc => {
       const productData = productDoc.data();
-      if (productData.userId === currentUser.uid) {
-        const updatedSharedWith = productData.sharedWith.filter(
-          (userId: string) => !friendUserIds.includes(userId)
-        );
+      if (friendUserIds.includes(productData.userId)) {
+        // If product owner is being removed as friend, remove current user from sharedWith
         updates.push(updateDoc(doc(db, 'products', productDoc.id), {
-          sharedWith: updatedSharedWith
+          sharedWith: productData.sharedWith.filter((id: string) => id !== currentUser.uid),
+          isShared: false
+        }));
+      }
+    });
+
+    // 2. Get all products owned by current user
+    const ownedProductsQuery = query(
+      collection(db, 'products'),
+      where('userId', '==', currentUser.uid)
+    );
+    const ownedProductsSnapshot = await getDocs(ownedProductsQuery);
+    
+    // Process products owned by current user
+    ownedProductsSnapshot.docs.forEach(productDoc => {
+      const productData = productDoc.data();
+      const updatedSharedWith = productData.sharedWith.filter(
+        (userId: string) => !friendUserIds.includes(userId)
+      );
+      updates.push(updateDoc(doc(db, 'products', productDoc.id), {
+        sharedWith: updatedSharedWith,
+        isShared: updatedSharedWith.length > 0
+      }));
+    });
+
+    // 3. Get all products owned by friends being removed
+    const friendsProductsQuery = query(
+      collection(db, 'products'),
+      where('userId', 'in', friendUserIds)
+    );
+    const friendsProductsSnapshot = await getDocs(friendsProductsQuery);
+    
+    // Process products owned by removed friends
+    friendsProductsSnapshot.docs.forEach(productDoc => {
+      const productData = productDoc.data();
+      if (productData.sharedWith.includes(currentUser.uid)) {
+        updates.push(updateDoc(doc(db, 'products', productDoc.id), {
+          sharedWith: productData.sharedWith.filter((id: string) => id !== currentUser.uid),
+          isShared: productData.sharedWith.filter((id: string) => id !== currentUser.uid).length > 0
         }));
       }
     });
