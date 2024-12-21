@@ -29,13 +29,8 @@ const checkUserExists = async (email: string): Promise<{ exists: boolean; userId
       return { exists: true, userId: sharingsSnapshot.docs[0].id };
     }
     
-    // If not found in either collection, check if the email format is valid
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return { exists: false };
-    }
-    
-    return { exists: true };
+    // If not found in either collection, the user doesn't exist
+    return { exists: false };
   } catch (error) {
     return { exists: false };
   }
@@ -52,16 +47,27 @@ export const sendShareInvitation = async (currentUser: User, toUserEmail: string
     throw new Error('user_not_found');
   }
 
-  // Check if an invitation already exists
+  // Check if a pending invitation already exists
   const existingInvitationsQuery = query(
     collection(db, 'shareInvitations'),
     where('fromUserId', '==', currentUser.uid),
-    where('toUserEmail', '==', toUserEmail)
+    where('toUserEmail', '==', toUserEmail),
+    where('status', '==', 'pending')
   );
   
   const existingInvitations = await getDocs(existingInvitationsQuery);
   if (!existingInvitations.empty) {
     throw new Error('invitation_exists');
+  }
+
+  // Also check if they're already friends
+  const userSharingRef = doc(db, 'userSharing', currentUser.uid);
+  const userSharingDoc = await getDoc(userSharingRef);
+  if (userSharingDoc.exists()) {
+    const userData = userSharingDoc.data() as UserSharing;
+    if (userData.sharedWith?.some(user => user.email === toUserEmail)) {
+      throw new Error('already_friends');
+    }
   }
 
   const invitationData = {
@@ -210,7 +216,8 @@ export const getReceivedInvitations = async (currentUser: User): Promise<ShareIn
   try {
     const invitationsQuery = query(
       collection(db, 'shareInvitations'),
-      where('toUserEmail', '==', currentUser.email)
+      where('toUserEmail', '==', currentUser.email),
+      where('status', '==', 'pending')
     );
     
     const querySnapshot = await getDocs(invitationsQuery);
@@ -229,7 +236,8 @@ export const getSentInvitations = async (currentUser: User): Promise<ShareInvita
   try {
     const invitationsQuery = query(
       collection(db, 'shareInvitations'),
-      where('fromUserId', '==', currentUser.uid)
+      where('fromUserId', '==', currentUser.uid),
+      where('status', '==', 'pending')
     );
     
     const querySnapshot = await getDocs(invitationsQuery);

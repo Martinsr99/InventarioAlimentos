@@ -58,13 +58,15 @@ export const useSharing = (user: User | null, t: (key: string) => string) => {
     // Query para invitaciones recibidas
     const receivedQuery = query(
       collection(db, 'shareInvitations'),
-      where('toUserEmail', '==', user.email)
+      where('toUserEmail', '==', user.email),
+      where('status', '==', 'pending')
     );
 
     // Query para invitaciones enviadas
     const sentQuery = query(
       collection(db, 'shareInvitations'),
-      where('fromUserId', '==', user.uid)
+      where('fromUserId', '==', user.uid),
+      where('status', '==', 'pending')
     );
 
     // Query para amigos aceptados
@@ -200,9 +202,15 @@ export const useSharing = (user: User | null, t: (key: string) => string) => {
       setIsEmailValid(false);
       setError(t('sharing.inviteSent'));
     } catch (error: any) {
-      setError(error.message === 'invitation_exists' 
-        ? t('sharing.alreadyInvited') 
-        : t('errors.invitationSend'));
+      if (error.message === 'invitation_exists') {
+        setError(t('errors.invitationExistsMessage'));
+      } else if (error.message === 'user_not_found') {
+        setError(t('errors.userNotFoundMessage'));
+      } else if (error.message === 'already_friends') {
+        setError(t('errors.alreadyFriendsMessage'));
+      } else {
+        setError(t('errors.invitationSend'));
+      }
     } finally {
       setIsLoading(false);
     }

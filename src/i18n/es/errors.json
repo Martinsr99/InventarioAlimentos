@@ -53,5 +53,11 @@
   "referenceError": "Error de referencia",
   "internalError": "Error interno",
   "sharingUpdate": "Error al actualizar los permisos de compartir",
-  "sharingLoad": "Error al cargar los datos compartidos"
+  "sharingLoad": "Error al cargar los datos compartidos",
+  "userNotFound": "Usuario no encontrado",
+  "userNotFoundMessage": "El usuario debe estar registrado para recibir invitaciones",
+  "invitationExists": "La invitación ya existe",
+  "invitationExistsMessage": "Ya has enviado una invitación a este usuario",
+  "alreadyFriends": "Ya estás compartiendo con este usuario",
+  "alreadyFriendsMessage": "Ya estás compartiendo tu inventario con este usuario"
 }

@@ -15,5 +15,7 @@
   "invitationExists": "Invitation already exists",
   "invitationExistsMessage": "You have already sent an invitation to this user",
   "sharingUpdate": "Error updating sharing permissions",
-  "sharingLoad": "Error loading sharing data"
+  "sharingLoad": "Error loading sharing data",
+  "alreadyFriends": "Already sharing with this user",
+  "alreadyFriendsMessage": "You are already sharing your inventory with this user"
 }
