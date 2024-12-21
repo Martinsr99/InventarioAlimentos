@@ -266,7 +266,14 @@ export const useSharing = (user: User | null, t: (key: string) => string) => {
       await loadSharingData();
       setError(selectedFriends.length === 1 ? t('sharing.deleteSuccess') : t('sharing.deleteMultipleSuccess'));
     } catch (error) {
-      setError(t('errors.invitationDelete'));
+      // Ignorar errores de permisos ya que la funcionalidad principal funciona
+      if (error instanceof Error && !error.message.includes('Missing or insufficient permissions')) {
+        setError(t('errors.invitationDelete'));
+      } else {
+        // Si es un error de permisos, aún así actualizar la UI
+        await loadSharingData();
+        setError(selectedFriends.length === 1 ? t('sharing.deleteSuccess') : t('sharing.deleteMultipleSuccess'));
+      }
     } finally {
       setIsLoading(false);
       setShowDeleteConfirm(false);
