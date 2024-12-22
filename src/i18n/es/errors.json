@@ -59,5 +59,7 @@
   "invitationExists": "La invitación ya existe",
   "invitationExistsMessage": "Ya has enviado una invitación a este usuario",
   "alreadyFriends": "Ya estás compartiendo con este usuario",
-  "alreadyFriendsMessage": "Ya estás compartiendo tu inventario con este usuario"
+  "alreadyFriendsMessage": "Ya estás compartiendo tu inventario con este usuario",
+  "scanError": "Error al escanear productos",
+  "batchScanError": "Error al procesar el escaneo por lotes"
 }

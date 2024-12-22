@@ -233,10 +233,10 @@ export const useDateDetection = (): UseDateDetectionResult => {
       const imageBase64 = canvas.toDataURL('image/jpeg', 1.0);
       setCurrentFrame(imageBase64);
       
-      const detectedDates = await ocrService.detectDates(imageBase64);
+      const { dates } = await ocrService.detectBatchDates(imageBase64);
       
-      if (detectedDates.length > 0) {
-        lastDetectedDatesRef.current = [...lastDetectedDatesRef.current, ...detectedDates].slice(-5);
+      if (dates.length > 0) {
+        lastDetectedDatesRef.current = [...lastDetectedDatesRef.current, ...dates].slice(-5);
         
         const dateFrequency = new Map<string, number>();
         lastDetectedDatesRef.current.forEach(date => {

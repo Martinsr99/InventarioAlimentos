@@ -46,7 +46,7 @@ export const useProductForm = (): {
     expiryDate: '',
     quantity: '1',
     category: 'other',
-    location: 'fridge',
+    location: 'other',
     notes: '',
     selectedSharedUsers: []
   });
@@ -145,7 +145,7 @@ export const useProductForm = (): {
       expiryDate: '',
       quantity: '1',
       category: 'other',
-      location: 'fridge',
+      location: 'other',
       notes: '',
       selectedSharedUsers: []
     });

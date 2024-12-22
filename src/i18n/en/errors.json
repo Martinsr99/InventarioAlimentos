@@ -17,5 +17,7 @@
   "sharingUpdate": "Error updating sharing permissions",
   "sharingLoad": "Error loading sharing data",
   "alreadyFriends": "Already sharing with this user",
-  "alreadyFriendsMessage": "You are already sharing your inventory with this user"
+  "alreadyFriendsMessage": "You are already sharing your inventory with this user",
+  "scanError": "Error scanning products",
+  "batchScanError": "Error processing batch scan"
 }

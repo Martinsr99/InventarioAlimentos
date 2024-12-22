@@ -13,7 +13,9 @@ import {
   IonText,
   IonAlert,
   AlertInput,
+  IonInput,
 } from '@ionic/react';
+import { ocrService } from '../services/OCRService';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getAcceptedShareUsers } from '../services/FriendService';
 import { submitProductForm, checkForDuplicateProduct } from '../services/ProductFormService';
@@ -27,8 +29,19 @@ import SharedUsersSelector from '../components/Products/AddProduct/SharedUsersSe
 import ProductSuggestions from '../components/Products/AddProduct/ProductSuggestions';
 import './AddProductForm.css';
 
+interface ScannedProduct {
+  date: string;
+  name?: string;
+}
+
 interface AddProductFormProps {
   onProductAdded?: () => void;
+}
+
+interface BatchScanState {
+  isScanning: boolean;
+  scannedProducts: ScannedProduct[];
+  currentIndex: number;
 }
 
 interface DuplicateDialogState {
@@ -50,6 +63,12 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
   const [sharedUsers, setSharedUsers] = useState<{ userId: string; email: string }[]>([]);
   const [duplicateDialog, setDuplicateDialog] = useState<DuplicateDialogState>({
     isOpen: false
+  });
+
+  const [batchScan, setBatchScan] = useState<BatchScanState>({
+    isScanning: false,
+    scannedProducts: [],
+    currentIndex: 0
   });
 
   const {
@@ -105,6 +124,67 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
         setSelectedDate(dateStr);
         setFormValue('expiryDate', formattedDate);
       }
+    }
+  };
+
+  const handleBatchScan = async (imageBase64: string): Promise<void> => {
+    try {
+      setIsLoading(true);
+      const { dates } = await ocrService.detectBatchDates(imageBase64);
+      
+      if (dates.length > 0) {
+        setBatchScan({
+          isScanning: true,
+          scannedProducts: dates.map((date: string) => ({ date })),
+          currentIndex: 0
+        });
+      }
+    } catch (error) {
+      console.error('Error in batch scan:', error);
+      setError(t('errors.scanError'));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleNameSubmit = async () => {
+    const currentProduct = batchScan.scannedProducts[batchScan.currentIndex];
+    if (!currentProduct || !currentProduct.name) return;
+
+    try {
+      setIsLoading(true);
+      await submitProductForm({
+        name: currentProduct.name,
+        expiryDate: currentProduct.date,
+        quantity: 1,
+        location: 'other',
+        notes: '',
+        category: 'other',
+        sharedWith: []
+      }, language);
+
+      if (batchScan.currentIndex < batchScan.scannedProducts.length - 1) {
+        setBatchScan(prev => ({
+          ...prev,
+          currentIndex: prev.currentIndex + 1
+        }));
+        resetForm();
+      } else {
+        setBatchScan({
+          isScanning: false,
+          scannedProducts: [],
+          currentIndex: 0
+        });
+        if (onProductAdded) {
+          onProductAdded();
+        }
+        setSuccess(true);
+      }
+    } catch (error) {
+      console.error('Error adding product:', error);
+      setError(t('errors.productAdd'));
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -307,18 +387,71 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
             />
           </IonItem>
 
-          <IonButton
-            expand="block"
-            type="submit"
-            className="ion-margin-top"
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <IonSpinner name="crescent" />
-            ) : (
-              t('products.save')
-            )}
-          </IonButton>
+          {batchScan.isScanning ? (
+            <>
+              <IonItem>
+                <IonLabel position="stacked">
+                  {t('products.name')} ({batchScan.currentIndex + 1}/{batchScan.scannedProducts.length})
+                </IonLabel>
+                <IonInput
+                  value={formState.name}
+                  placeholder={t('products.enterName')}
+                onIonInput={(e: CustomEvent) => handleInputChange('name', e.detail.value || '')}
+                />
+              </IonItem>
+              <IonButton
+                expand="block"
+                onClick={handleNameSubmit}
+                className="ion-margin-top"
+                disabled={isLoading || !formState.name}
+              >
+                {isLoading ? (
+                  <IonSpinner name="crescent" />
+                ) : (
+                  t('products.next')
+                )}
+              </IonButton>
+            </>
+          ) : (
+            <>
+              <IonButton
+                expand="block"
+                type="submit"
+                className="ion-margin-top"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <IonSpinner name="crescent" />
+                ) : (
+                  t('products.save')
+                )}
+              </IonButton>
+              <IonButton
+                expand="block"
+                className="ion-margin-top"
+                onClick={() => document.getElementById('batchScanInput')?.click()}
+                disabled={isLoading}
+              >
+                {t('products.batchScan')}
+              </IonButton>
+              <input
+                type="file"
+                id="batchScanInput"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                      handleBatchScan(reader.result as string);
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                }}
+              />
+            </>
+          )}
         </IonCardContent>
       </IonCard>
 

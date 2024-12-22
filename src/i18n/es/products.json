@@ -63,5 +63,8 @@
   "cameraStopped": "Cámara detenida",
   "scannerStopped": "Escáner detenido completamente",
   "dateDetected": "Fecha detectada: {{date}}",
-  "stoppingScanner": "Deteniendo escáner..."
+  "stoppingScanner": "Deteniendo escáner...",
+  "batchScan": "Escanear Múltiples Productos",
+  "next": "Siguiente Producto",
+  "scanningProduct": "Producto {{current}} de {{total}}"
 }

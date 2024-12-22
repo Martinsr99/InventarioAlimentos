@@ -6,10 +6,10 @@ interface ParsedDate {
 
 class DateParserService {
   private isValidDate(day: number, month: number, year: number): boolean {
-    const date = new Date(year, month - 1, day);
-    return date.getDate() === day &&
-           date.getMonth() === month - 1 &&
-           date.getFullYear() === year;
+    const date = new Date(Date.UTC(year, month - 1, day));
+    return date.getUTCDate() === day &&
+           date.getUTCMonth() === month - 1 &&
+           date.getUTCFullYear() === year;
   }
 
   private normalizeYear(year: number): number {
@@ -131,8 +131,8 @@ class DateParserService {
       const parsed = this.parseDate(dateStr);
       if (parsed) {
         const { year, month, day } = parsed;
-        // Aquí ya no restamos 1 al mes porque ya se hizo en isValidDate
-        const date = new Date(year, month, day);
+        // Crear la fecha usando UTC para evitar problemas con la zona horaria
+        const date = new Date(Date.UTC(year, month - 1, day));
         console.log('Fecha parseada:', this.formatDate(date));
         validDates.push(date);
       }
@@ -142,9 +142,9 @@ class DateParserService {
   }
 
   formatDate(date: Date): string {
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const year = date.getFullYear();
+    const day = date.getUTCDate().toString().padStart(2, '0');
+    const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
+    const year = date.getUTCFullYear();
     return `${day}/${month}/${year}`;
   }
 
@@ -155,11 +155,11 @@ class DateParserService {
 
     // Filtrar fechas pasadas y muy lejanas
     const now = new Date();
-    const maxDate = new Date();
-    maxDate.setFullYear(maxDate.getFullYear() + 5); // Máximo 5 años en el futuro
+    const nowUTC = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+    const maxDate = new Date(Date.UTC(now.getFullYear() + 5, now.getMonth(), now.getDate())); // Máximo 5 años en el futuro
 
     const validDates = dates.filter(date => 
-      date > now && date < maxDate
+      date > nowUTC && date < maxDate
     );
 
     if (validDates.length === 0) return null;

@@ -81,7 +81,7 @@ class OCRService {
     }
   }
 
-  async detectDates(imageBase64: string): Promise<string[]> {
+  async detectBatchDates(imageBase64: string): Promise<{ text: string; dates: string[] }> {
     try {
       const text = await this.detectText(imageBase64);
       
@@ -112,7 +112,7 @@ class OCRService {
         this.emitProgress('No se encontraron fechas en el texto');
       }
       
-      return dates;
+      return { text, dates };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Error al procesar fechas';
       this.emitProgress(`Error al procesar fechas: ${errorMessage}`);

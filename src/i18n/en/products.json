@@ -63,5 +63,8 @@
   "cameraStopped": "Camera stopped",
   "scannerStopped": "Scanner completely stopped",
   "dateDetected": "Date detected: {{date}}",
-  "stoppingScanner": "Stopping scanner..."
+  "stoppingScanner": "Stopping scanner...",
+  "batchScan": "Scan Multiple Products",
+  "next": "Next Product",
+  "scanningProduct": "Product {{current}} of {{total}}"
 }
