@@ -127,7 +127,7 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
     }
   };
 
-  const handleBatchScan = async (imageBase64: string): Promise<void> => {
+  const handleScan = async (imageBase64: string): Promise<void> => {
     try {
       setIsLoading(true);
       const { dates } = await ocrService.detectBatchDates(imageBase64);
@@ -135,12 +135,12 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
       if (dates.length > 0) {
         setBatchScan({
           isScanning: true,
-          scannedProducts: dates.map((date: string) => ({ date })),
+          scannedProducts: [{ date: dates[0] }], // Only take the first detected date
           currentIndex: 0
         });
       }
     } catch (error) {
-      console.error('Error in batch scan:', error);
+      console.error('Error scanning:', error);
       setError(t('errors.scanError'));
     } finally {
       setIsLoading(false);
@@ -429,22 +429,23 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onProductAdded }) => {
               <IonButton
                 expand="block"
                 className="ion-margin-top"
-                onClick={() => document.getElementById('batchScanInput')?.click()}
+                onClick={() => document.getElementById('scanInput')?.click()}
                 disabled={isLoading}
               >
-                {t('products.batchScan')}
+                {t('products.scan')}
               </IonButton>
               <input
                 type="file"
-                id="batchScanInput"
+                id="scanInput"
                 accept="image/*"
+                capture="environment"
                 style={{ display: 'none' }}
                 onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (file) {
                     const reader = new FileReader();
                     reader.onloadend = () => {
-                      handleBatchScan(reader.result as string);
+                      handleScan(reader.result as string);
                     };
                     reader.readAsDataURL(file);
                   }
