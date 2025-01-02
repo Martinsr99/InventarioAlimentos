@@ -109,7 +109,7 @@ const Home: React.FC = () => {
             />
           </div>
           <div style={{ display: selectedSegment === 'shopping' ? 'block' : 'none' }}>
-            <ShoppingList />
+            <ShoppingList onRefreshNeeded={loadProducts} />
           </div>
         </div>
       </IonContent>

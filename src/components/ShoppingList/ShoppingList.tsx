@@ -130,6 +130,7 @@ const ShoppingList: React.FC<ShoppingListProps> = React.memo(({ onRefreshNeeded 
               onDelete={setItemToDelete}
               onToggleCompletion={toggleItemCompletion}
               loadItems={loadItems}
+              onRefreshNeeded={onRefreshNeeded}
             />
           </IonCardContent>
         </IonCard>

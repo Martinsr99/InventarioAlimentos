@@ -27,6 +27,7 @@ interface ShoppingListContentProps {
   onDelete: (itemId: string) => void;
   onToggleCompletion: (itemId: string, completed: boolean) => void;
   loadItems: () => Promise<void>;
+  onRefreshNeeded?: () => void;
 }
 
 interface ShareAlertState {
@@ -46,6 +47,7 @@ const ShoppingListContent: React.FC<ShoppingListContentProps> = React.memo(({
   onDelete,
   onToggleCompletion,
   loadItems,
+  onRefreshNeeded,
 }) => {
   const { t } = useLanguage();
   const user = auth.currentUser;
@@ -101,8 +103,11 @@ const ShoppingListContent: React.FC<ShoppingListContentProps> = React.memo(({
         await ShoppingListService.deleteItem(saveToInventory.item.id);
       }
 
-      // Recargar la lista después de guardar
+      // Recargar ambas listas después de guardar
       await loadItems();
+      if (onRefreshNeeded) {
+        await onRefreshNeeded();
+      }
       setSaveToInventory({
         isOpen: false,
         item: null
