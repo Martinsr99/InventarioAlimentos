@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   IonCard,
   IonCardContent,
@@ -14,7 +14,7 @@ import {
 } from '@ionic/react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useShoppingList, SortOption, SortDirection } from '../../hooks/useShoppingList';
-import ShoppingListFilters from './ShoppingListFilters';
+import { ShoppingListFilters } from './ShoppingListFilters';
 import ShoppingListContent from './ShoppingListContent';
 import AddShoppingItem from './AddShoppingItem';
 import './ShoppingList.css';
@@ -45,6 +45,10 @@ const ShoppingList: React.FC<ShoppingListProps> = React.memo(({ onRefreshNeeded 
     filterAndSortItems,
     loadItems
   } = useShoppingList(onRefreshNeeded);
+
+  useEffect(() => {
+    loadItems();
+  }, [loadItems]);
 
   const handleRefresh = useCallback(async (event: CustomEvent<RefresherEventDetail>) => {
     try {
@@ -125,6 +129,7 @@ const ShoppingList: React.FC<ShoppingListProps> = React.memo(({ onRefreshNeeded 
               items={items}
               onDelete={setItemToDelete}
               onToggleCompletion={toggleItemCompletion}
+              loadItems={loadItems}
             />
           </IonCardContent>
         </IonCard>

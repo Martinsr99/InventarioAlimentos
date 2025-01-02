@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   IonContent,
   IonHeader,
@@ -25,9 +25,15 @@ import './Home.css';
 
 const Home: React.FC = () => {
   const { t } = useTranslation();
-  const { loadProducts } = useProductList();
+  const { loadProducts, products } = useProductList();
   const [updateTrigger, setUpdateTrigger] = useState(0);
   const [selectedSegment, setSelectedSegment] = useState<'inventory' | 'shopping'>('inventory');
+
+  useEffect(() => {
+    if (selectedSegment === 'inventory') {
+      loadProducts();
+    }
+  }, [selectedSegment, loadProducts]);
 
   const handleRefresh = async (event: CustomEvent<RefresherEventDetail>) => {
     try {
@@ -95,17 +101,16 @@ const Home: React.FC = () => {
             </IonSegmentButton>
           </IonSegment>
 
-          {selectedSegment === 'inventory' ? (
-            <>
-              <AddProductForm onProductAdded={handleProductAdded} />
-              <ProductList 
-                key={updateTrigger}
-                onRefreshNeeded={loadProducts}
-              />
-            </>
-          ) : (
+          <div style={{ display: selectedSegment === 'inventory' ? 'block' : 'none' }}>
+            <AddProductForm onProductAdded={handleProductAdded} />
+            <ProductList 
+              key={updateTrigger}
+              onRefreshNeeded={loadProducts}
+            />
+          </div>
+          <div style={{ display: selectedSegment === 'shopping' ? 'block' : 'none' }}>
             <ShoppingList />
-          )}
+          </div>
         </div>
       </IonContent>
     </IonPage>

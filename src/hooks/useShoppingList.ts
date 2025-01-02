@@ -106,7 +106,9 @@ export const useShoppingList = (onRefreshNeeded?: () => void) => {
           comparison = (a.category || '').localeCompare(b.category || '');
           break;
         case 'createdAt':
-          comparison = (a.createdAt as any) - (b.createdAt as any);
+          const dateA = a.createdAt instanceof Date ? a.createdAt : a.createdAt.toDate();
+          const dateB = b.createdAt instanceof Date ? b.createdAt : b.createdAt.toDate();
+          comparison = dateA.getTime() - dateB.getTime();
           break;
       }
       return sortDirection === 'asc' ? comparison : -comparison;

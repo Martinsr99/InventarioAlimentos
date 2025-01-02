@@ -1,136 +1,105 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import {
-  IonButton,
-  IonIcon,
   IonItem,
-  IonSpinner,
+  IonLabel,
+  IonInput,
+  IonButton,
+  IonSelect,
+  IonSelectOption,
+  IonToast,
 } from '@ionic/react';
-import { add } from 'ionicons/icons';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { useShoppingList } from '../../hooks/useShoppingList';
-import ProductSuggestions from '../Products/AddProduct/ProductSuggestions';
-import QuantitySelector from '../Products/AddProduct/QuantitySelector';
-import CategorySelector from '../Products/AddProduct/CategorySelector';
-import { PredefinedProduct, searchPredefinedProducts } from '../../services/PredefinedProductsService';
+import { ShoppingListService } from '../../services/ShoppingListService';
 
 interface AddShoppingItemProps {
-  onAdd?: () => void;
+  onAdd?: () => Promise<void>;
 }
 
 const AddShoppingItem: React.FC<AddShoppingItemProps> = ({ onAdd }) => {
   const [name, setName] = useState('');
-  const [quantity, setQuantity] = useState('1');
-  const [isCustomQuantity, setIsCustomQuantity] = useState(false);
-  const [category, setCategory] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [suggestions, setSuggestions] = useState<PredefinedProduct[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
-
+  const [quantity, setQuantity] = useState<number>(1);
+  const [category, setCategory] = useState<string>('');
+  const [showToast, setShowToast] = useState(false);
+  const [error, setError] = useState<string>('');
   const { t } = useLanguage();
-  const { addItem } = useShoppingList();
-
-  const handleNameChange = useCallback(async (value: string) => {
-    setName(value);
-    if (value.length >= 2) {
-      setLoadingSuggestions(true);
-      try {
-        const results = await searchPredefinedProducts(value, t('common.language'));
-        setSuggestions(results);
-        setShowSuggestions(true);
-      } catch (error) {
-        console.error('Error fetching suggestions:', error);
-      } finally {
-        setLoadingSuggestions(false);
-      }
-    } else {
-      setSuggestions([]);
-      setShowSuggestions(false);
-    }
-  }, []);
-
-  const handleSuggestionClick = useCallback((suggestion: PredefinedProduct) => {
-    setName(suggestion.name);
-    setCategory(suggestion.category);
-    setShowSuggestions(false);
-  }, []);
-
-  const handleQuantityChange = useCallback((value: string) => {
-    if (value === 'custom') {
-      setIsCustomQuantity(true);
-    } else {
-      setQuantity(value);
-      setIsCustomQuantity(false);
-    }
-  }, []);
-
-  const handleCustomQuantityChange = useCallback((value: string) => {
-    setQuantity(value);
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
 
-    setLoading(true);
+    if (!name.trim()) {
+      setError(t('validation.nameRequired'));
+      setShowToast(true);
+      return;
+    }
+
     try {
-      await addItem({
+      await ShoppingListService.addItem({
         name: name.trim(),
-        quantity: parseInt(quantity, 10),
+        quantity,
         category: category || undefined,
         completed: false,
       });
+
       setName('');
-      setQuantity('1');
+      setQuantity(1);
       setCategory('');
-      setIsCustomQuantity(false);
-      onAdd?.();
-    } catch (error) {
-      console.error('Error adding item:', error);
-    } finally {
-      setLoading(false);
+
+      if (onAdd) {
+        await onAdd();
+      }
+    } catch (err) {
+      setError(t('errors.addItem'));
+      setShowToast(true);
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="add-shopping-item">
-      <ProductSuggestions
-        name={name}
-        showSuggestions={showSuggestions}
-        suggestions={suggestions}
-        isLoading={loadingSuggestions}
-        onNameChange={handleNameChange}
-        onSuggestionClick={handleSuggestionClick}
-        onInputBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-        onInputFocus={() => name.length >= 2 && setShowSuggestions(true)}
-      />
+      <IonItem>
+        <IonLabel position="stacked">{t('shoppingList.itemName')}</IonLabel>
+        <IonInput
+          value={name}
+          onIonChange={e => setName(e.detail.value || '')}
+          placeholder={t('shoppingList.itemNamePlaceholder')}
+        />
+      </IonItem>
 
-      <QuantitySelector
-        quantity={quantity}
-        isCustomQuantity={isCustomQuantity}
-        onQuantityChange={handleQuantityChange}
-        onCustomQuantityChange={handleCustomQuantityChange}
-      />
+      <IonItem>
+        <IonLabel position="stacked">{t('shoppingList.quantity')}</IonLabel>
+        <IonInput
+          type="number"
+          value={quantity}
+          onIonChange={e => setQuantity(Number(e.detail.value))}
+          min={1}
+        />
+      </IonItem>
 
-      <CategorySelector
-        category={category}
-        onCategoryChange={setCategory}
-      />
+      <IonItem>
+        <IonLabel position="stacked">{t('shoppingList.category')}</IonLabel>
+        <IonSelect
+          value={category}
+          onIonChange={e => setCategory(e.detail.value)}
+          placeholder={t('shoppingList.selectCategory')}
+        >
+          {Object.keys(t('categories', { returnObjects: true })).map(cat => (
+            <IonSelectOption key={cat} value={cat}>
+              {t(`categories.${cat}`)}
+            </IonSelectOption>
+          ))}
+        </IonSelect>
+      </IonItem>
 
-      <IonButton
-        expand="block"
-        type="submit"
-        disabled={loading || !name.trim()}
-      >
-        {loading ? (
-          <IonSpinner name="crescent" />
-        ) : (
-          <>
-            <IonIcon slot="start" icon={add} />
-            {t('shoppingList.addItem')}
-          </>
-        )}
+      <IonButton expand="block" type="submit">
+        {t('shoppingList.addItem')}
       </IonButton>
+
+      <IonToast
+        isOpen={showToast}
+        onDidDismiss={() => setShowToast(false)}
+        message={error}
+        duration={3000}
+        color="danger"
+      />
     </form>
   );
 };

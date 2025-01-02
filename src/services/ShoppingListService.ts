@@ -1,5 +1,5 @@
 import { db, auth } from '../firebaseConfig';
-import { collection, addDoc, deleteDoc, doc, updateDoc, getDocs, query, where } from 'firebase/firestore';
+import { collection, addDoc, deleteDoc, doc, updateDoc, getDocs, query, where, Timestamp } from 'firebase/firestore';
 
 export interface ShoppingListItem {
   id: string;
@@ -8,7 +8,11 @@ export interface ShoppingListItem {
   category?: string;
   completed: boolean;
   userId: string;
-  createdAt: Date;
+  createdAt: Date | Timestamp;
+}
+
+interface FirestoreShoppingListItem extends Omit<ShoppingListItem, 'id' | 'createdAt'> {
+  createdAt: Timestamp;
 }
 
 export class ShoppingListService {
@@ -18,10 +22,10 @@ export class ShoppingListService {
     const user = auth.currentUser;
     if (!user) throw new Error('User not authenticated');
 
-    const itemData = {
+    const itemData: FirestoreShoppingListItem = {
       ...item,
       userId: user.uid,
-      createdAt: new Date(),
+      createdAt: Timestamp.fromDate(new Date()),
       completed: false
     };
 
@@ -33,8 +37,15 @@ export class ShoppingListService {
     await deleteDoc(doc(db, this.COLLECTION_NAME, itemId));
   }
 
+  // Alias para mantener consistencia con el nombre usado en el componente
+  static deleteShoppingItem = ShoppingListService.deleteItem;
+
   static async updateItem(itemId: string, updates: Partial<ShoppingListItem>) {
-    await updateDoc(doc(db, this.COLLECTION_NAME, itemId), updates);
+    const updateData = { ...updates };
+    if (updates.createdAt && updates.createdAt instanceof Date) {
+      updateData.createdAt = Timestamp.fromDate(updates.createdAt);
+    }
+    await updateDoc(doc(db, this.COLLECTION_NAME, itemId), updateData);
   }
 
   static async toggleItemCompletion(itemId: string, completed: boolean) {
@@ -51,10 +62,14 @@ export class ShoppingListService {
     );
 
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    })) as ShoppingListItem[];
+    return querySnapshot.docs.map(doc => {
+      const data = doc.data() as FirestoreShoppingListItem;
+      return {
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.toDate() || new Date()
+      } as ShoppingListItem;
+    });
   }
 
   static async deleteCompletedItems() {
