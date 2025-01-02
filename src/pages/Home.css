@@ -50,3 +50,25 @@ ion-toolbar {
   --padding-top: 0;
   --padding-bottom: 0;
 }
+
+/* Segment control styling */
+.segment-control {
+  margin-bottom: 1rem;
+  --background: var(--ion-card-background);
+  border-radius: 8px;
+}
+
+.segment-control ion-segment-button {
+  --background-checked: var(--ion-color-primary);
+  --color-checked: var(--ion-color-primary-contrast);
+  --color: var(--ion-text-color);
+  --indicator-color: var(--ion-color-primary);
+  min-height: 40px;
+  text-transform: none;
+  font-weight: 500;
+}
+
+.segment-control ion-label {
+  margin: 0;
+  font-size: 14px;
+}

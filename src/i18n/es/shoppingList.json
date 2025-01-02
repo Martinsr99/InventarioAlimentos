@@ -1,0 +1,21 @@
+{
+  "title": "Lista de la Compra",
+  "searchPlaceholder": "Buscar productos...",
+  "sortBy": "Ordenar por",
+  "sortByDate": "Fecha añadido",
+  "sortByName": "Nombre",
+  "sortByCategory": "Categoría",
+  "showCompleted": "Mostrar elementos completados",
+  "hideCompleted": "Ocultar elementos completados",
+  "deleteCompleted": "Eliminar elementos completados",
+  "emptyList": "Tu lista de la compra está vacía",
+  "quantity": "Cantidad: {{quantity}}",
+  "confirmDelete": "Eliminar Producto",
+  "confirmDeleteMessage": "¿Estás seguro de que quieres eliminar este producto?",
+  "confirmDeleteCompleted": "Eliminar Productos Completados",
+  "confirmDeleteCompletedMessage": "¿Estás seguro de que quieres eliminar todos los productos completados?",
+  "addItem": "Añadir Producto",
+  "addItemPlaceholder": "Introduce el nombre del producto",
+  "selectCategory": "Selecciona categoría",
+  "enterQuantity": "Introduce cantidad"
+}

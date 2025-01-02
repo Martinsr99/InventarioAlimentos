@@ -1,4 +1,6 @@
 {
   "title": "Food Inventory",
-  "logout": "Logout"
+  "logout": "Logout",
+  "inventory": "Inventory",
+  "shoppingList": "Shopping List"
 }

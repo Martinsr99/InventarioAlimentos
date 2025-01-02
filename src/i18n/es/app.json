@@ -1,4 +1,6 @@
 {
   "title": "Inventario de Alimentos",
-  "logout": "Cerrar sesión"
+  "logout": "Cerrar sesión",
+  "inventory": "Inventario",
+  "shoppingList": "Lista de la Compra"
 }

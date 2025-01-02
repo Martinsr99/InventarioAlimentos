@@ -10,19 +10,24 @@ import {
   IonIcon,
   IonRefresher,
   IonRefresherContent,
-  RefresherEventDetail
+  RefresherEventDetail,
+  IonSegment,
+  IonSegmentButton,
+  IonLabel
 } from '@ionic/react';
 import { useTranslation } from 'react-i18next';
 import AddProductForm from '../forms/AddProductForm';
 import ProductList from '../components/Products/ProductList';
 import ProfileButton from '../components/common/ProfileButton';
 import { useProductList } from '../hooks/useProductList';
+import ShoppingList from '../components/ShoppingList/ShoppingList';
 import './Home.css';
 
 const Home: React.FC = () => {
   const { t } = useTranslation();
   const { loadProducts } = useProductList();
   const [updateTrigger, setUpdateTrigger] = useState(0);
+  const [selectedSegment, setSelectedSegment] = useState<'inventory' | 'shopping'>('inventory');
 
   const handleRefresh = async (event: CustomEvent<RefresherEventDetail>) => {
     try {
@@ -77,11 +82,30 @@ const Home: React.FC = () => {
           <IonRefresherContent />
         </IonRefresher>
         <div className="page-content">
-          <AddProductForm onProductAdded={handleProductAdded} />
-          <ProductList 
-            key={updateTrigger}
-            onRefreshNeeded={loadProducts}
-          />
+          <IonSegment 
+            value={selectedSegment} 
+            onIonChange={e => setSelectedSegment(e.detail.value as 'inventory' | 'shopping')}
+            className="segment-control"
+          >
+            <IonSegmentButton value="inventory">
+              <IonLabel>{t('app.inventory')}</IonLabel>
+            </IonSegmentButton>
+            <IonSegmentButton value="shopping">
+              <IonLabel>{t('app.shoppingList')}</IonLabel>
+            </IonSegmentButton>
+          </IonSegment>
+
+          {selectedSegment === 'inventory' ? (
+            <>
+              <AddProductForm onProductAdded={handleProductAdded} />
+              <ProductList 
+                key={updateTrigger}
+                onRefreshNeeded={loadProducts}
+              />
+            </>
+          ) : (
+            <ShoppingList />
+          )}
         </div>
       </IonContent>
     </IonPage>

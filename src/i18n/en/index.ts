@@ -10,6 +10,7 @@ import profile from './profile.json';
 import settings from './settings.json';
 import sharing from './sharing.json';
 import validation from './validation.json';
+import shoppingList from './shoppingList.json';
 
 const translations = {
   app,
@@ -24,6 +25,7 @@ const translations = {
   settings,
   sharing,
   validation,
+  shoppingList,
 };
 
 export default translations;

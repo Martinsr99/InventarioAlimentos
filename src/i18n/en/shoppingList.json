@@ -1,0 +1,21 @@
+{
+  "title": "Shopping List",
+  "searchPlaceholder": "Search items...",
+  "sortBy": "Sort by",
+  "sortByDate": "Date added",
+  "sortByName": "Name",
+  "sortByCategory": "Category",
+  "showCompleted": "Show completed items",
+  "hideCompleted": "Hide completed items",
+  "deleteCompleted": "Delete completed items",
+  "emptyList": "Your shopping list is empty",
+  "quantity": "Quantity: {{quantity}}",
+  "confirmDelete": "Delete Item",
+  "confirmDeleteMessage": "Are you sure you want to delete this item?",
+  "confirmDeleteCompleted": "Delete Completed Items",
+  "confirmDeleteCompletedMessage": "Are you sure you want to delete all completed items?",
+  "addItem": "Add Item",
+  "addItemPlaceholder": "Enter item name",
+  "selectCategory": "Select category",
+  "enterQuantity": "Enter quantity"
+}
