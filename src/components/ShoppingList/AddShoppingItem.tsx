@@ -13,6 +13,7 @@ import {
 import { useLanguage } from '../../contexts/LanguageContext';
 import { ShoppingListService } from '../../services/ShoppingListService';
 import { searchPredefinedProducts, PredefinedProduct } from '../../services/PredefinedProductsService';
+import { addUserProduct } from '../../services/UserProductsService';
 import './AddShoppingItem.css';
 
 const QUANTITIES = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
@@ -64,12 +65,29 @@ const AddShoppingItem: React.FC<AddShoppingItemProps> = ({ onAdd }) => {
     }
 
     try {
+      const trimmedName = name.trim();
+      
+      // Buscar si el producto ya existe en los predefinidos
+      const predefinedProducts = await searchPredefinedProducts(trimmedName, t('language'));
+      const exactMatch = predefinedProducts.find(p => 
+        p.name.toLowerCase() === trimmedName.toLowerCase()
+      );
+
+      // Si no existe en predefinidos y tiene categoría, guardarlo como producto personalizado
+      if (!exactMatch && category) {
+        await addUserProduct({
+          name: trimmedName,
+          category: category
+        });
+      }
+
+      // Añadir a la lista de compras
       await ShoppingListService.addItem({
-        name: name.trim(),
+        name: trimmedName,
         quantity: Number(quantity),
         category: category || undefined,
         completed: false,
-      });
+      }, t('language'));
 
       setName('');
       setQuantity('1');

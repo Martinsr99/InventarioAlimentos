@@ -1,5 +1,7 @@
 import { db, auth } from '../firebaseConfig';
 import { collection, addDoc, deleteDoc, doc, updateDoc, getDocs, query, where, Timestamp } from 'firebase/firestore';
+import { addUserProduct } from './UserProductsService';
+import { searchPredefinedProducts } from './PredefinedProductsService';
 
 export interface ShoppingListItem {
   id: string;
@@ -18,19 +20,39 @@ interface FirestoreShoppingListItem extends Omit<ShoppingListItem, 'id' | 'creat
 export class ShoppingListService {
   private static COLLECTION_NAME = 'shoppingList';
 
-  static async addItem(item: Omit<ShoppingListItem, 'id' | 'userId' | 'createdAt'>) {
+  static async addItem(item: Omit<ShoppingListItem, 'id' | 'userId' | 'createdAt'>, language: string) {
     const user = auth.currentUser;
     if (!user) throw new Error('User not authenticated');
 
-    const itemData: FirestoreShoppingListItem = {
-      ...item,
-      userId: user.uid,
-      createdAt: Timestamp.fromDate(new Date()),
-      completed: false
-    };
+    try {
+      // Verificar si el producto ya existe en los predefinidos
+      const predefinedProducts = await searchPredefinedProducts(item.name, language);
+      const exactMatch = predefinedProducts.find(p => 
+        p.name.toLowerCase() === item.name.toLowerCase()
+      );
 
-    const docRef = await addDoc(collection(db, this.COLLECTION_NAME), itemData);
-    return docRef.id;
+      // Si no existe en predefinidos y tiene categoría, guardarlo como producto personalizado
+      if (!exactMatch && item.category) {
+        await addUserProduct({
+          name: item.name,
+          category: item.category
+        }, language);
+      }
+
+      // Guardar en la lista de compras
+      const itemData: FirestoreShoppingListItem = {
+        ...item,
+        userId: user.uid,
+        createdAt: Timestamp.fromDate(new Date()),
+        completed: false
+      };
+
+      const docRef = await addDoc(collection(db, this.COLLECTION_NAME), itemData);
+      return docRef.id;
+    } catch (error) {
+      console.error('Error adding shopping list item:', error);
+      throw error;
+    }
   }
 
   static async deleteItem(itemId: string) {

@@ -24,6 +24,7 @@ import { SharingSection } from './SharingSection';
 import { LogoutSection } from './LogoutSection';
 import AutoDeleteSection from './AutoDeleteSection';
 import DeleteAccountSection from './DeleteAccountSection';
+import CustomProductsSection from './CustomProductsSection';
 import './UserSettings.css';
 
 interface UserSettingsProps {
@@ -171,8 +172,9 @@ const UserSettings: React.FC<UserSettingsProps> = ({ isOpen = false, onClose }) 
 
               <div className="settings-divider"></div>
 
-              <DeleteAccountSection />
-            </div>
+      <CustomProductsSection />
+      <DeleteAccountSection />
+    </div>
           </div>
         )}
       </IonContent>

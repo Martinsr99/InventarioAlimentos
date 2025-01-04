@@ -1,15 +1,14 @@
 import { db, auth } from '../firebaseConfig';
-import { collection, addDoc, getDocs, query, where } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, deleteDoc } from 'firebase/firestore';
 import { PredefinedProduct } from './PredefinedProductsService';
 
 interface UserProduct {
   name: string;
   category: string;
   userId: string;
-  language: string;
 }
 
-export const addUserProduct = async (product: { name: string; category: string }, language: string): Promise<void> => {
+export const addUserProduct = async (product: { name: string; category: string }): Promise<void> => {
   if (!auth.currentUser) {
     throw new Error('No authenticated user');
   }
@@ -18,8 +17,7 @@ export const addUserProduct = async (product: { name: string; category: string }
     // Get all user products to check for duplicates
     const q = query(
       collection(db, 'userProducts'),
-      where('userId', '==', auth.currentUser.uid),
-      where('language', '==', language)
+      where('userId', '==', auth.currentUser.uid)
     );
     const querySnapshot = await getDocs(q);
     
@@ -33,7 +31,6 @@ export const addUserProduct = async (product: { name: string; category: string }
       const newProduct = {
         ...product,
         userId: auth.currentUser.uid,
-        language,
         name: product.name.trim(),
         category: product.category
       };
@@ -45,17 +42,16 @@ export const addUserProduct = async (product: { name: string; category: string }
   }
 };
 
-export const getUserProducts = async (language: string): Promise<PredefinedProduct[]> => {
+export const getUserProducts = async (): Promise<PredefinedProduct[]> => {
   if (!auth.currentUser) {
     throw new Error('No authenticated user');
   }
 
   try {
-    // Query user products by userId and language
+    // Query user products by userId only
     const q = query(
       collection(db, 'userProducts'),
-      where('userId', '==', auth.currentUser.uid),
-      where('language', '==', language)
+      where('userId', '==', auth.currentUser.uid)
     );
     const querySnapshot = await getDocs(q);
     
@@ -69,10 +65,34 @@ export const getUserProducts = async (language: string): Promise<PredefinedProdu
   }
 };
 
-// Helper function to search user products (used by PredefinedProductsService)
-export const searchUserProducts = async (query: string, language: string): Promise<PredefinedProduct[]> => {
+export const deleteUserProduct = async (productName: string): Promise<void> => {
+  if (!auth.currentUser) {
+    throw new Error('No authenticated user');
+  }
+
   try {
-    const products = await getUserProducts(language);
+    const q = query(
+      collection(db, 'userProducts'),
+      where('userId', '==', auth.currentUser.uid),
+      where('name', '==', productName)
+    );
+    
+    const querySnapshot = await getDocs(q);
+    
+    if (!querySnapshot.empty) {
+      const docRef = querySnapshot.docs[0].ref;
+      await deleteDoc(docRef);
+    }
+  } catch (error) {
+    console.error('Error deleting user product:', error);
+    throw error;
+  }
+};
+
+// Helper function to search user products (used by PredefinedProductsService)
+export const searchUserProducts = async (query: string): Promise<PredefinedProduct[]> => {
+  try {
+    const products = await getUserProducts();
     const searchQuery = query.toLowerCase().trim();
     
     return products.filter(product => 

@@ -89,7 +89,7 @@ export const submitProductForm = async (
         await addUserProduct({
           name: formData.name.trim(),
           category: formData.category
-        }, language);
+        });
       }
     }
   } catch (error) {

@@ -1,4 +1,6 @@
 {
+  "customProducts": "Custom Products",
+  "noCustomProducts": "You haven't added any custom products yet",
   "autoDeleteExpired": "Auto-Delete Expired Products",
   "autoDeleteExpiredDescription": "Automatically remove products from your list when they expire",
   "deleteAccount": "Delete Account",

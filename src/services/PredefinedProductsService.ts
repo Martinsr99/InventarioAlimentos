@@ -15,7 +15,7 @@ export const getPredefinedProducts = async (language: string): Promise<ProductsC
   const defaultProducts = language === 'es' ? productsEs : productsEn;
   try {
     // Get user-specific products
-    const userProducts = await searchUserProducts('', language);
+    const userProducts = await searchUserProducts('');
     
     // Group user products by category
     const userProductsByCategory = userProducts.reduce<ProductsCollection>((acc, product) => {
@@ -56,7 +56,7 @@ export const searchPredefinedProducts = async (query: string, language: string):
       .filter(product => product.name.toLowerCase().includes(query.toLowerCase()));
 
     // Get user products that match the query
-    const userMatches = await searchUserProducts(query, language);
+    const userMatches = await searchUserProducts(query);
 
     // Combine and remove duplicates
     const allMatches = [...predefinedMatches];
