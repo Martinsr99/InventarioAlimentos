@@ -21,5 +21,6 @@
   "deleteCompleted": "Eliminar Completados",
   "saveToInventory": "Guardar en Inventario",
   "share": "Compartir",
-  "shareWith": "Compartir con"
+  "shareWith": "Compartir con",
+  "addSuccess": "Producto añadido correctamente"
 }

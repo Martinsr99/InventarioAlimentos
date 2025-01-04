@@ -21,5 +21,6 @@
   "deleteCompleted": "Delete Completed",
   "saveToInventory": "Save to Inventory",
   "share": "Share",
-  "shareWith": "Share with"
+  "shareWith": "Share with",
+  "addSuccess": "Item added successfully"
 }

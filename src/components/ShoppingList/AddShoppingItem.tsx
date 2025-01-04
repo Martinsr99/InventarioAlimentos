@@ -4,8 +4,6 @@ import {
   IonLabel,
   IonInput,
   IonButton,
-  IonSelect,
-  IonSelectOption,
   IonToast,
   IonActionSheet,
   IonSpinner,
@@ -14,6 +12,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { ShoppingListService } from '../../services/ShoppingListService';
 import { searchPredefinedProducts, PredefinedProduct } from '../../services/PredefinedProductsService';
 import { addUserProduct } from '../../services/UserProductsService';
+import CategorySelector from '../Products/AddProduct/CategorySelector';
 import './AddShoppingItem.css';
 
 const QUANTITIES = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
@@ -26,8 +25,9 @@ const AddShoppingItem: React.FC<AddShoppingItemProps> = ({ onAdd }) => {
   const [name, setName] = useState('');
   const [quantity, setQuantity] = useState('1');
   const [isCustomQuantity, setIsCustomQuantity] = useState(false);
-  const [category, setCategory] = useState<string>('');
+  const [category, setCategory] = useState<string>('other');
   const [showToast, setShowToast] = useState(false);
+  const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string>('');
   const [showQuantityActionSheet, setShowQuantityActionSheet] = useState(false);
   const [suggestions, setSuggestions] = useState<PredefinedProduct[]>([]);
@@ -94,6 +94,7 @@ const AddShoppingItem: React.FC<AddShoppingItemProps> = ({ onAdd }) => {
       setCategory('');
       setIsCustomQuantity(false);
 
+      setSuccess(true);
       if (onAdd) {
         await onAdd();
       }
@@ -171,20 +172,10 @@ const AddShoppingItem: React.FC<AddShoppingItemProps> = ({ onAdd }) => {
         )}
       </IonItem>
 
-      <IonItem>
-        <IonLabel position="stacked">{t('shoppingList.category')}</IonLabel>
-        <IonSelect
-          value={category}
-          onIonChange={e => setCategory(e.detail.value)}
-          placeholder={t('shoppingList.selectCategory')}
-        >
-          {Object.keys(t('categories', { returnObjects: true })).map(cat => (
-            <IonSelectOption key={cat} value={cat}>
-              {t(`categories.${cat}`)}
-            </IonSelectOption>
-          ))}
-        </IonSelect>
-      </IonItem>
+      <CategorySelector
+        category={category}
+        onCategoryChange={value => setCategory(value)}
+      />
 
       <IonButton expand="block" type="submit" className="submit-button">
         {t('shoppingList.addItem')}
@@ -222,6 +213,14 @@ const AddShoppingItem: React.FC<AddShoppingItemProps> = ({ onAdd }) => {
         message={error}
         duration={3000}
         color="danger"
+      />
+
+      <IonToast
+        isOpen={success}
+        message={t('shoppingList.addSuccess')}
+        duration={2000}
+        color="success"
+        onDidDismiss={() => setSuccess(false)}
       />
     </form>
   );
