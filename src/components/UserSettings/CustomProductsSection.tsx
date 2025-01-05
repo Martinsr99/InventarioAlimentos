@@ -5,12 +5,13 @@ import {
   IonList,
   IonButton,
   IonIcon,
-  IonItemSliding,
-  IonItemOptions,
-  IonItemOption,
   IonSpinner,
+  IonSearchbar,
+  IonToolbar,
+  IonButtons,
+  IonAlert,
 } from '@ionic/react';
-import { trash } from 'ionicons/icons';
+import { trash, chevronDown, chevronUp, arrowUp, arrowDown } from 'ionicons/icons';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { getUserProducts, deleteUserProduct } from '../../services/UserProductsService';
 import './CustomProductsSection.css';
@@ -20,9 +21,15 @@ interface CustomProduct {
   category: string;
 }
 
+type SortDirection = 'asc' | 'desc';
+
 const CustomProductsSection: React.FC = () => {
   const [products, setProducts] = useState<CustomProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(true);
+  const [searchText, setSearchText] = useState('');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [productToDelete, setProductToDelete] = useState<string | null>(null);
   const { t } = useLanguage();
 
   const loadProducts = async () => {
@@ -40,12 +47,19 @@ const CustomProductsSection: React.FC = () => {
     loadProducts();
   }, [t]);
 
-  const handleDelete = async (productName: string) => {
-    try {
-      await deleteUserProduct(productName);
-      await loadProducts(); // Recargar la lista después de eliminar
-    } catch (error) {
-      console.error('Error deleting custom product:', error);
+  const confirmDelete = (productName: string) => {
+    setProductToDelete(productName);
+  };
+
+  const handleDelete = async () => {
+    if (productToDelete) {
+      try {
+        await deleteUserProduct(productToDelete);
+        await loadProducts(); // Recargar la lista después de eliminar
+      } catch (error) {
+        console.error('Error deleting custom product:', error);
+      }
+      setProductToDelete(null);
     }
   };
 
@@ -57,30 +71,92 @@ const CustomProductsSection: React.FC = () => {
     );
   }
 
+  const toggleSort = () => {
+    setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+  };
+
+  const filteredAndSortedProducts = products
+    .filter(product => 
+      product.name.toLowerCase().includes(searchText.toLowerCase())
+    )
+    .sort((a, b) => {
+      const comparison = a.name.localeCompare(b.name);
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+
   return (
     <div className="custom-products-section">
-      <h2>{t('settings.customProducts')}</h2>
-      {products.length === 0 ? (
-        <p>{t('settings.noCustomProducts')}</p>
-      ) : (
-        <IonList>
-          {products.map((product, index) => (
-            <IonItemSliding key={index}>
-              <IonItem>
-                <IonLabel>
-                  <h2>{product.name}</h2>
-                  <p>{t(`categories.${product.category}`)}</p>
-                </IonLabel>
-              </IonItem>
-              <IonItemOptions side="end">
-                <IonItemOption color="danger" onClick={() => handleDelete(product.name)}>
-                  <IonIcon slot="icon-only" icon={trash} />
-                </IonItemOption>
-              </IonItemOptions>
-            </IonItemSliding>
-          ))}
-        </IonList>
+      <div className="section-header">
+        <IonToolbar>
+          <IonButtons slot="start">
+            <IonButton onClick={() => setIsExpanded(!isExpanded)}>
+              <IonIcon icon={isExpanded ? chevronUp : chevronDown} />
+            </IonButton>
+          </IonButtons>
+          <h2>{t('settings.customProducts')}</h2>
+          {isExpanded && (
+            <IonButtons slot="end">
+              <IonButton onClick={toggleSort} className="sort-button">
+                <span className="sort-label">{t(`settings.${sortDirection === 'asc' ? 'sortAscending' : 'sortDescending'}`)}</span>
+                <IonIcon icon={sortDirection === 'asc' ? arrowUp : arrowDown} />
+              </IonButton>
+            </IonButtons>
+          )}
+        </IonToolbar>
+      </div>
+
+      {isExpanded && (
+        <>
+          <IonSearchbar
+            value={searchText}
+            onIonInput={e => setSearchText(e.detail.value || '')}
+            placeholder={t('settings.searchProducts')}
+            className="custom-products-searchbar"
+          />
+
+          {filteredAndSortedProducts.length === 0 ? (
+            <p>{searchText ? t('common.noResults') : t('settings.noCustomProducts')}</p>
+          ) : (
+            <IonList>
+              {filteredAndSortedProducts.map((product, index) => (
+                <IonItem key={index}>
+                  <IonLabel>
+                    <h2>{product.name}</h2>
+                    <p>{t(`categories.${product.category}`)}</p>
+                  </IonLabel>
+                  <IonButton 
+                    slot="end" 
+                    fill="clear" 
+                    color="danger"
+                    onClick={() => confirmDelete(product.name)}
+                  >
+                    <IonIcon slot="icon-only" icon={trash} />
+                  </IonButton>
+                </IonItem>
+              ))}
+            </IonList>
+          )}
+        </>
       )}
+
+      <IonAlert
+        isOpen={!!productToDelete}
+        onDidDismiss={() => setProductToDelete(null)}
+        header={t('settings.deleteCustomProduct')}
+        message={t('settings.deleteCustomProductConfirm')}
+        buttons={[
+          {
+            text: t('common.cancel'),
+            role: 'cancel',
+            handler: () => setProductToDelete(null)
+          },
+          {
+            text: t('common.delete'),
+            role: 'destructive',
+            handler: handleDelete
+          }
+        ]}
+      />
     </div>
   );
 };

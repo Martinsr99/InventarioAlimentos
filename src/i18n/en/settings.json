@@ -1,6 +1,13 @@
 {
   "customProducts": "Custom Products",
   "noCustomProducts": "You haven't added any custom products yet",
+  "searchProducts": "Search products",
+  "expandList": "Expand list",
+  "collapseList": "Collapse list",
+  "sortAscending": "Sort A-Z",
+  "sortDescending": "Sort Z-A",
+  "deleteCustomProduct": "Delete Custom Product",
+  "deleteCustomProductConfirm": "Are you sure you want to delete this custom product? It will no longer appear in suggestions.",
   "autoDeleteExpired": "Auto-Delete Expired Products",
   "autoDeleteExpiredDescription": "Automatically remove products from your list when they expire",
   "deleteAccount": "Delete Account",

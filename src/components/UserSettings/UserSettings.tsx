@@ -168,13 +168,16 @@ const UserSettings: React.FC<UserSettingsProps> = ({ isOpen = false, onClose }) 
 
               <div className="settings-divider"></div>
 
+              <CustomProductsSection />
+
+              <div className="settings-divider"></div>
+
               <LogoutSection onLogout={handleLogout} />
 
               <div className="settings-divider"></div>
 
-      <CustomProductsSection />
-      <DeleteAccountSection />
-    </div>
+              <DeleteAccountSection />
+            </div>
           </div>
         )}
       </IonContent>

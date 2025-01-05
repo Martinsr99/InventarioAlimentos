@@ -1,6 +1,13 @@
 {
   "customProducts": "Productos Personalizados",
   "noCustomProducts": "Aún no has añadido ningún producto personalizado",
+  "searchProducts": "Buscar productos",
+  "expandList": "Expandir lista",
+  "collapseList": "Contraer lista",
+  "sortAscending": "Ordenar A-Z",
+  "sortDescending": "Ordenar Z-A",
+  "deleteCustomProduct": "Eliminar Producto Personalizado",
+  "deleteCustomProductConfirm": "¿Estás seguro de que quieres eliminar este producto personalizado? Ya no aparecerá en las sugerencias.",
   "autoDeleteExpired": "Auto-eliminar Productos Caducados",
   "autoDeleteExpiredDescription": "Eliminar automáticamente los productos de tu lista cuando caduquen",
   "deleteAccount": "Eliminar Cuenta",
