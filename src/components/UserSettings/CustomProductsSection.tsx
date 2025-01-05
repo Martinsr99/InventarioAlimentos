@@ -88,20 +88,20 @@ const CustomProductsSection: React.FC = () => {
     <div className="custom-products-section">
       <div className="section-header">
         <IonToolbar>
-          <IonButtons slot="start">
-            <IonButton onClick={() => setIsExpanded(!isExpanded)}>
-              <IonIcon icon={isExpanded ? chevronUp : chevronDown} />
-            </IonButton>
-          </IonButtons>
-          <h2>{t('settings.customProducts')}</h2>
-          {isExpanded && (
-            <IonButtons slot="end">
-              <IonButton onClick={toggleSort} className="sort-button">
+          <div className="header-content">
+            <div className="header-left">
+              <IonButton onClick={() => setIsExpanded(!isExpanded)} fill="clear" className="expand-button">
+                <IonIcon icon={isExpanded ? chevronUp : chevronDown} />
+              </IonButton>
+              <h2>{t('settings.customProducts')}</h2>
+            </div>
+            {isExpanded && (
+              <IonButton onClick={toggleSort} className="sort-button" fill="clear">
                 <span className="sort-label">{t(`settings.${sortDirection === 'asc' ? 'sortAscending' : 'sortDescending'}`)}</span>
                 <IonIcon icon={sortDirection === 'asc' ? arrowUp : arrowDown} />
               </IonButton>
-            </IonButtons>
-          )}
+            )}
+          </div>
         </IonToolbar>
       </div>
 
@@ -119,7 +119,7 @@ const CustomProductsSection: React.FC = () => {
           ) : (
             <IonList>
               {filteredAndSortedProducts.map((product, index) => (
-                <IonItem key={index}>
+                <IonItem key={index} lines="full">
                   <IonLabel>
                     <h2>{product.name}</h2>
                     <p>{t(`categories.${product.category}`)}</p>
@@ -129,6 +129,7 @@ const CustomProductsSection: React.FC = () => {
                     fill="clear" 
                     color="danger"
                     onClick={() => confirmDelete(product.name)}
+                    style={{ margin: 0 }}
                   >
                     <IonIcon slot="icon-only" icon={trash} />
                   </IonButton>

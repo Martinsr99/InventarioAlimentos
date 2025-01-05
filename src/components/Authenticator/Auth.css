@@ -257,7 +257,6 @@ ion-label {
 
 /* Button styles */
 ion-button {
-    --background: rgba(255, 255, 255, 0.1) !important;
     --background-hover: rgba(255, 255, 255, 0.15) !important;
     --background-activated: rgba(255, 255, 255, 0.2) !important;
     --color: #ffffff !important;
