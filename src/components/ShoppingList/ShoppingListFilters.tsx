@@ -1,14 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   IonSearchbar,
-  IonButton,
+  IonSegment,
+  IonSegmentButton,
   IonIcon,
-  IonItem,
   IonLabel,
-  IonSelect,
-  IonSelectOption,
+  IonButton,
 } from '@ionic/react';
-import {
+import { 
+  text,
+  time,
   arrowUp,
   arrowDown,
   checkmarkCircle,
@@ -41,43 +42,93 @@ const ShoppingListFilters: React.FC<ShoppingListFiltersProps> = ({
   onDeleteCompleted,
 }) => {
   const { t } = useLanguage();
+  const [nameDirection, setNameDirection] = useState<'asc' | 'desc'>('asc');
+  const [dateDirection, setDateDirection] = useState<'asc' | 'desc'>('asc');
+
+  const handleSegmentClick = (newSortBy: SortOption) => {
+    if (newSortBy === sortBy) {
+      onSortDirectionChange();
+      if (newSortBy === 'name') {
+        setNameDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+      } else {
+        setDateDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+      }
+    } else {
+      onSortByChange(newSortBy);
+      if (newSortBy === 'name') {
+        if (sortDirection !== nameDirection) {
+          onSortDirectionChange();
+        }
+      } else {
+        if (sortDirection !== dateDirection) {
+          onSortDirectionChange();
+        }
+      }
+    }
+  };
+
+  const getDirectionIcon = (option: SortOption) => {
+    if (option === sortBy) {
+      return sortDirection === 'asc' ? arrowUp : arrowDown;
+    }
+    return option === 'name' ? 
+      (nameDirection === 'asc' ? arrowUp : arrowDown) :
+      (dateDirection === 'asc' ? arrowUp : arrowDown);
+  };
 
   return (
-    <div className="shopping-list-filters">
+    <div className="filters-container">
       <IonSearchbar
         value={searchText}
-        onIonChange={e => onSearchChange(e.detail.value || '')}
+        onIonInput={e => onSearchChange(e.detail.value || '')}
         placeholder={t('shoppingList.searchPlaceholder')}
+        className="product-searchbar"
+        debounce={0}
+        animated={false}
       />
-
-      <div className="filter-controls">
-        <IonItem>
-          <IonLabel>{t('shoppingList.sortBy')}</IonLabel>
-          <IonSelect
-            value={sortBy}
-            onIonChange={e => onSortByChange(e.detail.value)}
-            interface="popover"
+      <div className="sort-controls">
+        <IonSegment value={sortBy} className="sort-segment">
+          <IonSegmentButton 
+            value="name" 
+            className="sort-segment-button"
+            onClick={() => handleSegmentClick('name')}
           >
-            <IonSelectOption value="createdAt">{t('shoppingList.sortByDate')}</IonSelectOption>
-            <IonSelectOption value="name">{t('shoppingList.sortByName')}</IonSelectOption>
-            <IonSelectOption value="category">{t('shoppingList.sortByCategory')}</IonSelectOption>
-          </IonSelect>
-          <IonButton fill="clear" onClick={onSortDirectionChange}>
-            <IonIcon slot="icon-only" icon={sortDirection === 'asc' ? arrowUp : arrowDown} />
-          </IonButton>
-        </IonItem>
+            <div className="sort-button-content">
+              <IonIcon icon={text} />
+              <IonLabel>{t('shoppingList.sortByName')}</IonLabel>
+              <IonIcon 
+                icon={getDirectionIcon('name')} 
+                className="sort-direction-icon"
+              />
+            </div>
+          </IonSegmentButton>
+          <IonSegmentButton 
+            value="createdAt" 
+            className="sort-segment-button"
+            onClick={() => handleSegmentClick('createdAt')}
+          >
+            <div className="sort-button-content">
+              <IonIcon icon={time} />
+              <IonLabel>{t('shoppingList.sortByDate')}</IonLabel>
+              <IonIcon 
+                icon={getDirectionIcon('createdAt')} 
+                className="sort-direction-icon"
+              />
+            </div>
+          </IonSegmentButton>
+        </IonSegment>
+      </div>
 
-        <div className="filter-buttons">
-          <IonButton fill="clear" onClick={onShowCompletedChange}>
-            <IonIcon slot="start" icon={checkmarkCircle} />
-            {showCompleted ? t('shoppingList.hideCompleted') : t('shoppingList.showCompleted')}
-          </IonButton>
+      <div className="filter-buttons">
+        <IonButton fill="clear" onClick={onShowCompletedChange}>
+          <IonIcon slot="start" icon={checkmarkCircle} />
+          {showCompleted ? t('shoppingList.hideCompleted') : t('shoppingList.showCompleted')}
+        </IonButton>
 
-          <IonButton fill="clear" color="danger" onClick={onDeleteCompleted}>
-            <IonIcon slot="start" icon={trash} />
-            {t('shoppingList.deleteCompleted')}
-          </IonButton>
-        </div>
+        <IonButton fill="clear" color="danger" onClick={onDeleteCompleted}>
+          <IonIcon slot="start" icon={trash} />
+          {t('shoppingList.deleteCompleted')}
+        </IonButton>
       </div>
     </div>
   );

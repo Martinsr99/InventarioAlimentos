@@ -14,16 +14,67 @@
   margin-bottom: 1rem;
 }
 
-
-
-.shopping-list-filters {
-  margin: 0 16px 1rem 16px;
+/* Filtros y ordenamiento */
+.filters-container {
+  margin-bottom: 8px;
+  background: transparent;
+  padding: 12px;
 }
 
-.filter-controls {
+.product-searchbar {
+  padding: 0;
+  --background: var(--ion-color-step-50);
+  --border-radius: 8px;
+  --box-shadow: none;
+  --placeholder-color: var(--ion-color-medium);
+  --color: var(--ion-text-color);
+  margin-bottom: 12px;
+}
+
+.sort-controls {
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+}
+
+.sort-segment {
+  flex-grow: 1;
+  min-width: 0;
+  background: var(--ion-color-step-50);
+  border-radius: 8px;
+  --background: var(--ion-color-step-50);
+}
+
+.sort-segment-button {
+  --background-checked: var(--ion-color-primary);
+  --color: var(--ion-text-color);
+  --color-checked: var(--ion-color-primary-contrast);
+  --indicator-color: transparent;
+  --border-radius: 6px;
+  --margin-top: 2px;
+  --margin-bottom: 2px;
+  --margin-start: 2px;
+  --margin-end: 2px;
+  font-size: 0.9rem;
+  min-height: 40px;
+}
+
+.sort-button-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 4px 8px;
+}
+
+.sort-button-content ion-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  min-height: 20px;
 }
 
 .filter-buttons {
@@ -31,6 +82,7 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 0.5rem;
+  margin-top: 12px;
 }
 
 .completed-item {
@@ -51,35 +103,10 @@ ion-item-options {
   border-radius: 4px;
 }
 
-.shopping-list-card ion-card-header {
-  padding-bottom: 0;
-}
-
-.shopping-list-card ion-searchbar {
-  padding: 0;
-  --background: var(--ion-color-light);
-  --border-radius: 8px;
-}
-
-.filter-controls ion-item {
-  --padding-start: 16px;
-  --inner-padding-end: 0;
-}
-
-.filter-controls ion-select {
-  max-width: 100%;
-  width: 100%;
-}
-
 @media (min-width: 768px) {
   .shopping-list-container {
     max-width: 768px;
     margin: 0 auto;
-  }
-
-  .filter-controls {
-    flex-direction: row;
-    align-items: center;
   }
 
   .filter-buttons {
