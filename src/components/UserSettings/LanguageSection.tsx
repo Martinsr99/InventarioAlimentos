@@ -1,4 +1,5 @@
 import React from 'react';
+import './LanguageSection.css';
 import {
   IonItem,
   IonIcon,

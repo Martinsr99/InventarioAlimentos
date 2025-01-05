@@ -65,10 +65,10 @@ html.ios .custom-products-section .section-header .toolbar-container {
 }
 
 .custom-products-section ion-item {
-  --padding-start: 0;
-  --padding-end: 0;
+  --padding-start: 16px;
+  --padding-end: 8px;
   --border-color: var(--ion-color-step-150);
-  --inner-padding-end: 0;
+  --inner-padding-end: 8px;
   --min-height: 60px;
 }
 

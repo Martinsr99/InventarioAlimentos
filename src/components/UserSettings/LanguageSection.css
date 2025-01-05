@@ -1,22 +1,14 @@
-.auto-delete-section {
+.language-section {
   width: 100%;
 }
 
-.auto-delete-section .settings-section-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.language-section .settings-section-title {
   margin-bottom: 12px;
   color: var(--ion-text-color);
   padding: 0;
 }
 
-.auto-delete-section .settings-section-title .title-icon {
-  color: var(--ion-color-danger);
-  font-size: 1.2em;
-}
-
-.auto-delete-section .auto-delete-item {
+.language-section .language-item {
   --background: transparent;
   --border-color: transparent;
   --padding-start: 16px;
@@ -26,14 +18,19 @@
   margin: 0;
 }
 
-.auto-delete-section .description-note {
-  font-size: 0.85rem;
-  font-weight: normal;
-  color: var(--ion-color-medium);
-  white-space: normal;
+.language-section .language-icon {
+  color: var(--ion-color-primary);
+  font-size: 1.2em;
+  margin-right: 8px;
 }
 
-.auto-delete-section .auto-delete-switch {
+.language-section .language-label {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: normal;
+}
+
+.language-section .language-switch {
   --background: var(--ion-color-step-200);
   --background-checked: var(--ion-color-primary);
   --handle-background: var(--ion-color-light);
@@ -45,19 +42,15 @@
 }
 
 @media (max-width: 576px) {
-  .auto-delete-section .auto-delete-item {
+  .language-section .language-item {
     --min-height: 3rem;
   }
 
-  .auto-delete-section .settings-section-title {
+  .language-section .language-label {
     font-size: 0.95rem;
   }
 
-  .auto-delete-section .settings-section-title .title-icon {
+  .language-section .language-icon {
     font-size: 1.1rem;
-  }
-
-  .auto-delete-section .description-note {
-    font-size: 0.8rem;
   }
 }
