@@ -1,0 +1,66 @@
+/* Estilos globales para los modales de alerta */
+.alert-wrapper {
+  --background: var(--ion-background-color);
+  --backdrop-opacity: 0.6;
+}
+
+.alert-head {
+  background: var(--ion-background-color);
+}
+
+.alert-title {
+  color: var(--ion-text-color) !important;
+  font-size: 1.2rem !important;
+  font-weight: 600 !important;
+}
+
+.alert-sub-title {
+  color: var(--ion-text-color) !important;
+  opacity: 0.9;
+}
+
+.alert-message {
+  color: var(--ion-text-color) !important;
+  opacity: 0.9;
+  font-size: 1rem !important;
+  line-height: 1.4 !important;
+  padding: 16px !important;
+}
+
+.alert-button {
+  font-size: 1rem !important;
+  font-weight: 500 !important;
+  text-transform: none !important;
+  height: 44px !important;
+}
+
+/* Estilos específicos para botones de confirmación de eliminación */
+.alert-button.delete-confirm {
+  color: var(--ion-color-danger) !important;
+  font-weight: 600 !important;
+  opacity: 1 !important;
+}
+
+.alert-button.delete-cancel {
+  color: var(--ion-color-medium) !important;
+  opacity: 0.9 !important;
+}
+
+/* Ajustes para modo oscuro */
+.dark-theme .alert-wrapper {
+  --background: var(--ion-background-color);
+}
+
+.dark-theme .alert-title,
+.dark-theme .alert-sub-title,
+.dark-theme .alert-message {
+  color: var(--ion-text-color) !important;
+}
+
+.dark-theme .alert-button.delete-confirm {
+  color: var(--ion-color-danger) !important;
+}
+
+.dark-theme .alert-button.delete-cancel {
+  color: var(--ion-color-medium-tint) !important;
+}

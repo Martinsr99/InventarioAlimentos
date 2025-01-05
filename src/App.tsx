@@ -41,6 +41,7 @@ import '@ionic/react/css/flex-utils.css';
 import '@ionic/react/css/display.css';
 
 import './theme/variables.css';
+import './styles/AlertStyles.css';
 import './styles/Header.css';
 
 setupIonicReact({

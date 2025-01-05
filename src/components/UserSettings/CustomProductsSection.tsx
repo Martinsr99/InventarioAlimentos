@@ -149,11 +149,13 @@ const CustomProductsSection: React.FC = () => {
           {
             text: t('common.cancel'),
             role: 'cancel',
+            cssClass: 'delete-cancel',
             handler: () => setProductToDelete(null)
           },
           {
             text: t('common.delete'),
             role: 'destructive',
+            cssClass: 'delete-confirm',
             handler: handleDelete
           }
         ]}
