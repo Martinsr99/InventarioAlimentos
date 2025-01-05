@@ -50,6 +50,10 @@ const ShoppingList: React.FC<ShoppingListProps> = React.memo(({ onRefreshNeeded 
     loadItems();
   }, [loadItems]);
 
+  useEffect(() => {
+    filterAndSortItems(searchText, sortBy, sortDirection, showCompleted);
+  }, [filterAndSortItems, searchText, sortBy, sortDirection, showCompleted]);
+
   const handleRefresh = useCallback(async (event: CustomEvent<RefresherEventDetail>) => {
     try {
       await loadItems();
@@ -126,7 +130,7 @@ const ShoppingList: React.FC<ShoppingListProps> = React.memo(({ onRefreshNeeded 
             />
             <ShoppingListContent
               loading={loading}
-              items={items}
+              items={items.filter(item => showCompleted || !item.completed)}
               onDelete={setItemToDelete}
               onToggleCompletion={toggleItemCompletion}
               loadItems={loadItems}

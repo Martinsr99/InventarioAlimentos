@@ -12,7 +12,26 @@ export type ProductsCollection = {
 };
 
 export const getPredefinedProducts = async (language: string): Promise<ProductsCollection> => {
-  const defaultProducts = language === 'es' ? productsEs : productsEn;
+  // Combine products from both languages
+  const defaultProducts: ProductsCollection = {};
+  
+  // Add Spanish products
+  Object.entries(productsEs).forEach(([category, products]) => {
+    defaultProducts[category] = [...products];
+  });
+  
+  // Add English products, avoiding duplicates
+  Object.entries(productsEn).forEach(([category, products]) => {
+    if (!defaultProducts[category]) {
+      defaultProducts[category] = [];
+    }
+    products.forEach(product => {
+      if (!defaultProducts[category].some(p => p.name.toLowerCase() === product.name.toLowerCase())) {
+        defaultProducts[category].push(product);
+      }
+    });
+  });
+
   try {
     // Get user-specific products
     const userProducts = await searchUserProducts('');
@@ -26,7 +45,7 @@ export const getPredefinedProducts = async (language: string): Promise<ProductsC
       return acc;
     }, {});
 
-    // Merge default and user products
+    // Merge user products with combined default products
     const mergedProducts: ProductsCollection = { ...defaultProducts };
     Object.entries(userProductsByCategory).forEach(([category, products]) => {
       if (!mergedProducts[category]) {
@@ -49,20 +68,32 @@ export const getPredefinedProducts = async (language: string): Promise<ProductsC
 
 export const searchPredefinedProducts = async (query: string, language: string): Promise<PredefinedProduct[]> => {
   try {
-    // Get predefined products that match the query
-    const defaultProducts = language === 'es' ? productsEs : productsEn;
-    const predefinedMatches = Object.values(defaultProducts)
+    // Get user products that match the query first
+    const userMatches = await searchUserProducts(query);
+    
+    // Get predefined products from both languages that match the query
+    const esMatches = Object.values(productsEs)
+      .flat()
+      .filter(product => product.name.toLowerCase().includes(query.toLowerCase()));
+    
+    const enMatches = Object.values(productsEn)
       .flat()
       .filter(product => product.name.toLowerCase().includes(query.toLowerCase()));
 
-    // Get user products that match the query
-    const userMatches = await searchUserProducts(query);
-
-    // Combine and remove duplicates
-    const allMatches = [...predefinedMatches];
-    userMatches.forEach(userProduct => {
-      if (!allMatches.some(p => p.name.toLowerCase() === userProduct.name.toLowerCase())) {
-        allMatches.push(userProduct);
+    // Combine all matches, starting with user products
+    const allMatches = [...userMatches];
+    
+    // Add Spanish matches if not already included
+    esMatches.forEach(product => {
+      if (!allMatches.some(p => p.name.toLowerCase() === product.name.toLowerCase())) {
+        allMatches.push(product);
+      }
+    });
+    
+    // Add English matches if not already included
+    enMatches.forEach(product => {
+      if (!allMatches.some(p => p.name.toLowerCase() === product.name.toLowerCase())) {
+        allMatches.push(product);
       }
     });
 
