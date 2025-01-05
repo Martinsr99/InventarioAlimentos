@@ -52,7 +52,6 @@
 /* Input container styles */
 .product-name-container {
   position: relative;
-  margin-bottom: 1rem;
   z-index: 1001;
 }
 
