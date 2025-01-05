@@ -1,5 +1,5 @@
 .shopping-list-container {
-  padding: 1rem;
+  padding: 0 1rem 1rem 1rem;
 }
 
 .shopping-list-card {
@@ -64,7 +64,7 @@ ion-item-options {
 }
 
 .filter-controls ion-item {
-  --padding-start: 0;
+  --padding-start: 16px;
   --inner-padding-end: 0;
 }
 
