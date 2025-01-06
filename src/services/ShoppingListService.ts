@@ -31,12 +31,12 @@ export class ShoppingListService {
         p.name.toLowerCase() === item.name.toLowerCase()
       );
 
-      // Si no existe en predefinidos y tiene categoría, guardarlo como producto personalizado
+      // Si no existe en predefinidos y tiene categoría, guardarlo como producto personalizado sin idioma
       if (!exactMatch && item.category) {
         await addUserProduct({
           name: item.name,
           category: item.category
-        }, language);
+        });
       }
 
       // Guardar en la lista de compras

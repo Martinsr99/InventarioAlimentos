@@ -29,9 +29,9 @@ export const useShoppingList = (onRefreshNeeded?: () => void) => {
     loadItems();
   }, [loadItems]);
 
-  const addItem = useCallback(async (item: Omit<ShoppingListItem, 'id' | 'userId' | 'createdAt'>) => {
+  const addItem = useCallback(async (item: Omit<ShoppingListItem, 'id' | 'userId' | 'createdAt'>, language: string) => {
     try {
-      await ShoppingListService.addItem(item);
+      await ShoppingListService.addItem(item, language);
       await loadItems();
       onRefreshNeeded?.();
     } catch (err) {
