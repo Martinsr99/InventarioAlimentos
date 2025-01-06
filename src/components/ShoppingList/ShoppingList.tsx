@@ -117,6 +117,7 @@ const ShoppingList: React.FC<ShoppingListProps> = React.memo(({ onRefreshNeeded 
           </IonCardHeader>
           <IonCardContent className="shopping-list-content">
             <AddShoppingItem onAdd={loadItems} />
+            <IonCardTitle className="ion-margin-start">{t('shoppingList.pendingItemsTitle')}</IonCardTitle>                
             <ShoppingListFilters
               searchText={searchText}
               onSearchChange={handleSearchChange}

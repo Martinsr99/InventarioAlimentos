@@ -1,5 +1,6 @@
 {
   "title": "Shopping List",
+  "pendingItemsTitle": "Pending Items",
   "itemName": "Item Name",
   "itemNamePlaceholder": "Enter item name",
   "quantity": "Quantity",

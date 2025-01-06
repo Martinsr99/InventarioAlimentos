@@ -1,5 +1,6 @@
 {
   "title": "Lista de la Compra",
+  "pendingItemsTitle": "Productos Pendientes",
   "itemName": "Nombre del Producto",
   "itemNamePlaceholder": "Introduce el nombre del producto",
   "quantity": "Cantidad",

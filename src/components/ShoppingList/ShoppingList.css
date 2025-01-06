@@ -22,8 +22,8 @@
 ion-item {
   --padding-start: 16px;
   --padding-end: 16px;
-  --padding-top: 12px;
-  --padding-bottom: 12px;
+  --padding-top: 16px;
+  --padding-bottom: 16px;
   --inner-padding-end: 0;
   --background: transparent !important;
   --background-hover: transparent !important;
