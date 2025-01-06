@@ -13,8 +13,14 @@ import {
   RefresherEventDetail,
   IonSegment,
   IonSegmentButton,
-  IonLabel
+  IonLabel,
 } from '@ionic/react';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Swiper as SwiperType } from 'swiper';
+import { Keyboard, Mousewheel } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/keyboard';
+import 'swiper/css/mousewheel';
 import { useTranslation } from 'react-i18next';
 import AddProductForm from '../forms/AddProductForm';
 import ProductList from '../components/Products/ProductList';
@@ -28,12 +34,27 @@ const Home: React.FC = () => {
   const { loadProducts, products } = useProductList();
   const [updateTrigger, setUpdateTrigger] = useState(0);
   const [selectedSegment, setSelectedSegment] = useState<'inventory' | 'shopping'>('inventory');
+  const [swiper, setSwiper] = useState<SwiperType | null>(null);
 
   useEffect(() => {
     if (selectedSegment === 'inventory') {
       loadProducts();
     }
   }, [selectedSegment, loadProducts]);
+
+  const handleSlideChange = () => {
+    if (swiper) {
+      setSelectedSegment(swiper.activeIndex === 0 ? 'inventory' : 'shopping');
+    }
+  };
+
+  const handleSegmentChange = (e: CustomEvent) => {
+    const newValue = e.detail.value as 'inventory' | 'shopping';
+    setSelectedSegment(newValue);
+    if (swiper) {
+      swiper.slideTo(newValue === 'inventory' ? 0 : 1);
+    }
+  };
 
   const handleRefresh = async (event: CustomEvent<RefresherEventDetail>) => {
     try {
@@ -90,7 +111,7 @@ const Home: React.FC = () => {
         <div className="page-content">
           <IonSegment 
             value={selectedSegment} 
-            onIonChange={e => setSelectedSegment(e.detail.value as 'inventory' | 'shopping')}
+            onIonChange={handleSegmentChange}
             className="segment-control"
           >
             <IonSegmentButton value="inventory">
@@ -101,16 +122,41 @@ const Home: React.FC = () => {
             </IonSegmentButton>
           </IonSegment>
 
-          <div style={{ display: selectedSegment === 'inventory' ? 'block' : 'none' }}>
-            <AddProductForm onProductAdded={handleProductAdded} />
-            <ProductList 
-              key={updateTrigger}
-              onRefreshNeeded={loadProducts}
-            />
-          </div>
-          <div style={{ display: selectedSegment === 'shopping' ? 'block' : 'none' }}>
-            <ShoppingList onRefreshNeeded={loadProducts} />
-          </div>
+          <Swiper
+            modules={[Keyboard, Mousewheel]}
+            onSwiper={setSwiper}
+            onSlideChange={handleSlideChange}
+            initialSlide={0}
+            speed={300}
+            style={{ width: '100%', height: 'calc(100% - 48px)' }}
+            allowTouchMove={true}
+            touchStartPreventDefault={false}
+            resistance={true}
+            resistanceRatio={0.85}
+            threshold={5}
+            touchRatio={1}
+            touchAngle={45}
+            longSwipes={true}
+            longSwipesRatio={0.5}
+            followFinger={true}
+            keyboard={{ enabled: true }}
+            mousewheel={true}
+          >
+            <SwiperSlide>
+              <div className="slide-content">
+                <AddProductForm onProductAdded={handleProductAdded} />
+                <ProductList 
+                  key={updateTrigger}
+                  onRefreshNeeded={loadProducts}
+                />
+              </div>
+            </SwiperSlide>
+            <SwiperSlide>
+              <div className="slide-content">
+                <ShoppingList onRefreshNeeded={loadProducts} />
+              </div>
+            </SwiperSlide>
+          </Swiper>
         </div>
       </IonContent>
     </IonPage>
