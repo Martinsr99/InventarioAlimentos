@@ -53,7 +53,6 @@ ion-content {
 /* Content spacing */
 ion-content {
   --padding-top: 0;
-  --padding-bottom: var(--ion-safe-area-bottom, 0);
   --offset-top: 0;
   --offset-bottom: 0;
 }

@@ -10,11 +10,13 @@ import {
 import { trashBin } from 'ionicons/icons';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useUserSettings } from '../../hooks/useUserSettings';
+import { useProductList } from '../../hooks/useProductList';
 import { auth } from '../../firebaseConfig';
 
 const AutoDeleteSection: React.FC = () => {
   const { t } = useLanguage();
   const { settings, updateSettings } = useUserSettings(auth.currentUser);
+  const { loadProducts } = useProductList();
 
   const handleAutoDeleteChange = async (checked: boolean) => {
     if (!auth.currentUser) return;
@@ -23,6 +25,11 @@ const AutoDeleteSection: React.FC = () => {
       await updateSettings({
         autoDeleteExpired: checked
       });
+      
+      if (checked) {
+        // Refresh product list to apply auto-delete
+        await loadProducts();
+      }
     } catch (error) {
       console.error('Error updating auto-delete setting:', error);
     }
