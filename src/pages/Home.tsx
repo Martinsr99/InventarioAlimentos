@@ -35,6 +35,9 @@ const Home: React.FC = () => {
   const [updateTrigger, setUpdateTrigger] = useState(0);
   const [selectedSegment, setSelectedSegment] = useState<'inventory' | 'shopping'>('inventory');
   const [swiper, setSwiper] = useState<SwiperType | null>(null);
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+  const [scrollDirection, setScrollDirection] = useState<'up' | 'down'>('up');
 
   useEffect(() => {
     if (selectedSegment === 'inventory') {
@@ -78,9 +81,9 @@ const Home: React.FC = () => {
 
   return (
     <IonPage>
-      <IonHeader className="header-hide-on-scroll">
+      <IonHeader collapse="condense">
         <IonToolbar>
-          <IonTitle>{t('app.title')}</IonTitle>
+          <IonTitle size="large">{t('app.title')}</IonTitle>
           <IonButtons slot="end">
             <ProfileButton />
           </IonButtons>
@@ -90,17 +93,18 @@ const Home: React.FC = () => {
         fullscreen 
         scrollEvents={true}
         onIonScroll={(e) => {
-          const header = document.querySelector('.header-hide-on-scroll');
-          if (header) {
-            const scrollTop = e.detail.scrollTop;
-            const deltaY = e.detail.deltaY;
-            
-            if (deltaY > 0 && scrollTop > 20) {
-              // Scrolling down
-              header.classList.add('header-hidden');
-            } else if (deltaY < 0) {
-              // Scrolling up
-              header.classList.remove('header-hidden');
+          const scrollTop = e.detail.scrollTop;
+          const segmentContainer = document.querySelector('.segment-control-container');
+          
+          if (segmentContainer) {
+            if (scrollTop > 50) {
+              requestAnimationFrame(() => {
+                segmentContainer.classList.add('segment-hidden');
+              });
+            } else {
+              requestAnimationFrame(() => {
+                segmentContainer.classList.remove('segment-hidden');
+              });
             }
           }
         }}
@@ -109,18 +113,20 @@ const Home: React.FC = () => {
           <IonRefresherContent />
         </IonRefresher>
         <div className="page-content">
-          <IonSegment 
-            value={selectedSegment} 
-            onIonChange={handleSegmentChange}
-            className="segment-control"
-          >
-            <IonSegmentButton value="inventory">
-              <IonLabel>{t('app.inventory')}</IonLabel>
-            </IonSegmentButton>
-            <IonSegmentButton value="shopping">
-              <IonLabel>{t('app.shoppingList')}</IonLabel>
-            </IonSegmentButton>
-          </IonSegment>
+          <div className="segment-control-container">
+            <IonSegment 
+              value={selectedSegment} 
+              onIonChange={handleSegmentChange}
+              className="segment-control"
+            >
+              <IonSegmentButton value="inventory">
+                <IonLabel>{t('app.inventory')}</IonLabel>
+              </IonSegmentButton>
+              <IonSegmentButton value="shopping">
+                <IonLabel>{t('app.shoppingList')}</IonLabel>
+              </IonSegmentButton>
+            </IonSegment>
+          </div>
 
           <Swiper
             modules={[Keyboard, Mousewheel]}

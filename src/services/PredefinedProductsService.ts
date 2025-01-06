@@ -12,24 +12,13 @@ export type ProductsCollection = {
 };
 
 export const getPredefinedProducts = async (language: string): Promise<ProductsCollection> => {
-  // Combine products from both languages
+  // Get products only from the current language
+  const currentLanguageProducts = language === 'es' ? productsEs : productsEn;
   const defaultProducts: ProductsCollection = {};
   
-  // Add Spanish products
-  Object.entries(productsEs).forEach(([category, products]) => {
+  // Add current language products
+  Object.entries(currentLanguageProducts).forEach(([category, products]) => {
     defaultProducts[category] = [...products];
-  });
-  
-  // Add English products, avoiding duplicates
-  Object.entries(productsEn).forEach(([category, products]) => {
-    if (!defaultProducts[category]) {
-      defaultProducts[category] = [];
-    }
-    products.forEach(product => {
-      if (!defaultProducts[category].some(p => p.name.toLowerCase() === product.name.toLowerCase())) {
-        defaultProducts[category].push(product);
-      }
-    });
   });
 
   try {
@@ -71,27 +60,17 @@ export const searchPredefinedProducts = async (query: string, language: string):
     // Get user products that match the query first
     const userMatches = await searchUserProducts(query);
     
-    // Get predefined products from both languages that match the query
-    const esMatches = Object.values(productsEs)
-      .flat()
-      .filter(product => product.name.toLowerCase().includes(query.toLowerCase()));
-    
-    const enMatches = Object.values(productsEn)
+    // Get predefined products only from the current language
+    const currentLanguageProducts = language === 'es' ? productsEs : productsEn;
+    const languageMatches = Object.values(currentLanguageProducts)
       .flat()
       .filter(product => product.name.toLowerCase().includes(query.toLowerCase()));
 
-    // Combine all matches, starting with user products
+    // Combine matches, starting with user products
     const allMatches = [...userMatches];
     
-    // Add Spanish matches if not already included
-    esMatches.forEach(product => {
-      if (!allMatches.some(p => p.name.toLowerCase() === product.name.toLowerCase())) {
-        allMatches.push(product);
-      }
-    });
-    
-    // Add English matches if not already included
-    enMatches.forEach(product => {
+    // Add language-specific matches if not already included
+    languageMatches.forEach(product => {
       if (!allMatches.some(p => p.name.toLowerCase() === product.name.toLowerCase())) {
         allMatches.push(product);
       }
