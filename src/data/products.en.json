@@ -1,456 +1,725 @@
 {
-  "dairy": [
+    "dairy": [
       {
-          "name": "Milk",
-          "category": "dairy"
+        "name": "Milk",
+        "category": "dairy"
       },
       {
-          "name": "Cheese",
-          "category": "dairy"
+        "name": "Cheese",
+        "category": "dairy"
       },
       {
-          "name": "Yogurt",
-          "category": "dairy"
+        "name": "Yogurt",
+        "category": "dairy"
       },
       {
-          "name": "Butter",
-          "category": "dairy"
+        "name": "Butter",
+        "category": "dairy"
       },
       {
-          "name": "Eggs",
-          "category": "dairy"
+        "name": "Eggs",
+        "category": "dairy"
       },
       {
-          "name": "Cream",
-          "category": "dairy"
+        "name": "Cream",
+        "category": "dairy"
       },
       {
-          "name": "Ice Cream",
-          "category": "dairy"
+        "name": "Ice Cream",
+        "category": "dairy"
       },
       {
-          "name": "Condensed Milk",
-          "category": "dairy"
+        "name": "Condensed Milk",
+        "category": "dairy"
       },
       {
-          "name": "Cream Cheese",
-          "category": "dairy"
+        "name": "Cream Cheese",
+        "category": "dairy"
+      },
+      {
+        "name": "Whole Milk",
+        "category": "dairy"
+      },
+      {
+        "name": "Skim Milk",
+        "category": "dairy"
+      },
+      {
+        "name": "Low-fat Milk",
+        "category": "dairy"
+      },
+      {
+        "name": "Fresh Cheese",
+        "category": "dairy"
+      },
+      {
+        "name": "Goat Cheese",
+        "category": "dairy"
+      },
+      {
+        "name": "Whipping Cream",
+        "category": "dairy"
+      },
+      {
+        "name": "Manchego Cheese",
+        "category": "dairy"
       }
-  ],
-  "meat": [
+    ],
+    "meat": [
       {
-          "name": "Chicken",
-          "category": "meat"
+        "name": "Chicken",
+        "category": "meat"
       },
       {
-          "name": "Beef",
-          "category": "meat"
+        "name": "Beef",
+        "category": "meat"
       },
       {
-          "name": "Pork",
-          "category": "meat"
+        "name": "Pork",
+        "category": "meat"
       },
       {
-          "name": "Fish",
-          "category": "meat"
+        "name": "Fish",
+        "category": "meat"
       },
       {
-          "name": "Turkey",
-          "category": "meat"
+        "name": "Turkey",
+        "category": "meat"
       },
       {
-          "name": "Ground Meat",
-          "category": "meat"
+        "name": "Ground Meat",
+        "category": "meat"
       },
       {
-          "name": "Sausage",
-          "category": "meat"
+        "name": "Sausage",
+        "category": "meat"
       },
       {
-          "name": "Hot Dogs",
-          "category": "meat"
+        "name": "Hot Dogs",
+        "category": "meat"
       },
       {
-          "name": "Ham",
-          "category": "meat"
+        "name": "Ham",
+        "category": "meat"
       },
       {
-          "name": "Bacon",
-          "category": "meat"
+        "name": "Bacon",
+        "category": "meat"
+      },
+      {
+        "name": "Serrano Ham",
+        "category": "meat"
+      },
+      {
+        "name": "Ibérico Ham",
+        "category": "meat"
+      },
+      {
+        "name": "Salchichón (Cured Sausage)",
+        "category": "meat"
+      },
+      {
+        "name": "Sobrasada (Cured Spreadable Sausage)",
+        "category": "meat"
+      },
+      {
+        "name": "Pork Chops",
+        "category": "meat"
+      },
+      {
+        "name": "Veal Steaks",
+        "category": "meat"
+      },
+      {
+        "name": "Chicken Wings",
+        "category": "meat"
+      },
+      {
+        "name": "Blood Sausage",
+        "category": "meat"
       }
-  ],
-  "vegetables": [
+    ],
+    "vegetables": [
       {
-          "name": "Carrot",
-          "category": "vegetables"
+        "name": "Carrot",
+        "category": "vegetables"
       },
       {
-          "name": "Tomato",
-          "category": "vegetables"
+        "name": "Tomato",
+        "category": "vegetables"
       },
       {
-          "name": "Potato",
-          "category": "vegetables"
+        "name": "Potato",
+        "category": "vegetables"
       },
       {
-          "name": "Onion",
-          "category": "vegetables"
+        "name": "Onion",
+        "category": "vegetables"
       },
       {
-          "name": "Lettuce",
-          "category": "vegetables"
+        "name": "Lettuce",
+        "category": "vegetables"
       },
       {
-          "name": "Broccoli",
-          "category": "vegetables"
+        "name": "Broccoli",
+        "category": "vegetables"
       },
       {
-          "name": "Spinach",
-          "category": "vegetables"
+        "name": "Spinach",
+        "category": "vegetables"
       },
       {
-          "name": "Cauliflower",
-          "category": "vegetables"
+        "name": "Cauliflower",
+        "category": "vegetables"
       },
       {
-          "name": "Zucchini",
-          "category": "vegetables"
+        "name": "Zucchini",
+        "category": "vegetables"
       },
       {
-          "name": "Bell Pepper",
-          "category": "vegetables"
+        "name": "Bell Pepper",
+        "category": "vegetables"
+      },
+      {
+        "name": "Leek",
+        "category": "vegetables"
+      },
+      {
+        "name": "Cucumber",
+        "category": "vegetables"
+      },
+      {
+        "name": "Eggplant",
+        "category": "vegetables"
+      },
+      {
+        "name": "Mushrooms",
+        "category": "vegetables"
+      },
+      {
+        "name": "Garlic",
+        "category": "vegetables"
+      },
+      {
+        "name": "Celery",
+        "category": "vegetables"
+      },
+      {
+        "name": "Asparagus",
+        "category": "vegetables"
       }
-  ],
-  "fruits": [
+    ],
+    "fruits": [
       {
-          "name": "Apple",
-          "category": "fruits"
+        "name": "Apple",
+        "category": "fruits"
       },
       {
-          "name": "Banana",
-          "category": "fruits"
+        "name": "Banana",
+        "category": "fruits"
       },
       {
-          "name": "Orange",
-          "category": "fruits"
+        "name": "Orange",
+        "category": "fruits"
       },
       {
-          "name": "Strawberry",
-          "category": "fruits"
+        "name": "Strawberry",
+        "category": "fruits"
       },
       {
-          "name": "Grape",
-          "category": "fruits"
+        "name": "Grape",
+        "category": "fruits"
       },
       {
-          "name": "Kiwi",
-          "category": "fruits"
+        "name": "Kiwi",
+        "category": "fruits"
       },
       {
-          "name": "Melon",
-          "category": "fruits"
+        "name": "Melon",
+        "category": "fruits"
       },
       {
-          "name": "Watermelon",
-          "category": "fruits"
+        "name": "Watermelon",
+        "category": "fruits"
       },
       {
-          "name": "Mango",
-          "category": "fruits"
+        "name": "Mango",
+        "category": "fruits"
       },
       {
-          "name": "Cherry",
-          "category": "fruits"
+        "name": "Cherry",
+        "category": "fruits"
+      },
+      {
+        "name": "Pear",
+        "category": "fruits"
+      },
+      {
+        "name": "Peach",
+        "category": "fruits"
+      },
+      {
+        "name": "Apricot",
+        "category": "fruits"
+      },
+      {
+        "name": "Plum",
+        "category": "fruits"
+      },
+      {
+        "name": "Mandarin",
+        "category": "fruits"
+      },
+      {
+        "name": "Pineapple",
+        "category": "fruits"
+      },
+      {
+        "name": "Lemon",
+        "category": "fruits"
       }
-  ],
-  "grains": [
+    ],
+    "grains": [
       {
-          "name": "Rice",
-          "category": "grains"
+        "name": "Rice",
+        "category": "grains"
       },
       {
-          "name": "Pasta",
-          "category": "grains"
+        "name": "Pasta",
+        "category": "grains"
       },
       {
-          "name": "Flour",
-          "category": "grains"
+        "name": "Flour",
+        "category": "grains"
       },
       {
-          "name": "Oats",
-          "category": "grains"
+        "name": "Oats",
+        "category": "grains"
       },
       {
-          "name": "Quinoa",
-          "category": "grains"
+        "name": "Quinoa",
+        "category": "grains"
       },
       {
-          "name": "Bread",
-          "category": "grains"
+        "name": "Bread",
+        "category": "grains"
       },
       {
-          "name": "Tortillas",
-          "category": "grains"
+        "name": "Tortillas",
+        "category": "grains"
       },
       {
-          "name": "Couscous",
-          "category": "grains"
+        "name": "Couscous",
+        "category": "grains"
       },
       {
-          "name": "Millet",
-          "category": "grains"
+        "name": "Millet",
+        "category": "grains"
       },
       {
-          "name": "Chia Seeds",
-          "category": "grains"
+        "name": "Chia Seeds",
+        "category": "grains"
+      },
+      {
+        "name": "Bomba Rice",
+        "category": "grains"
+      },
+      {
+        "name": "Breadcrumbs",
+        "category": "grains"
+      },
+      {
+        "name": "Noodles",
+        "category": "grains"
+      },
+      {
+        "name": "Whole Wheat Bread",
+        "category": "grains"
+      },
+      {
+        "name": "Panko",
+        "category": "grains"
       }
-  ],
-  "beverages": [
+    ],
+    "beverages": [
       {
-          "name": "Water",
-          "category": "beverages"
+        "name": "Water",
+        "category": "beverages"
       },
       {
-          "name": "Coffee",
-          "category": "beverages"
+        "name": "Coffee",
+        "category": "beverages"
       },
       {
-          "name": "Tea",
-          "category": "beverages"
+        "name": "Tea",
+        "category": "beverages"
       },
       {
-          "name": "Juice",
-          "category": "beverages"
+        "name": "Juice",
+        "category": "beverages"
       },
       {
-          "name": "Soda",
-          "category": "beverages"
+        "name": "Soda",
+        "category": "beverages"
       },
       {
-          "name": "Beer",
-          "category": "beverages"
+        "name": "Beer",
+        "category": "beverages"
       },
       {
-          "name": "Wine",
-          "category": "beverages"
+        "name": "Wine",
+        "category": "beverages"
       },
       {
-          "name": "Almond Milk",
-          "category": "beverages"
+        "name": "Almond Milk",
+        "category": "beverages"
       },
       {
-          "name": "Soy Milk",
-          "category": "beverages"
+        "name": "Soy Milk",
+        "category": "beverages"
       },
       {
-          "name": "Smoothies",
-          "category": "beverages"
+        "name": "Smoothies",
+        "category": "beverages"
+      },
+      {
+        "name": "Horchata",
+        "category": "beverages"
+      },
+      {
+        "name": "Pineapple Juice",
+        "category": "beverages"
+      },
+      {
+        "name": "Peach Juice",
+        "category": "beverages"
+      },
+      {
+        "name": "Sangria",
+        "category": "beverages"
+      },
+      {
+        "name": "Tinto de Verano",
+        "category": "beverages"
       }
-  ],
-  "snacks": [
+    ],
+    "snacks": [
       {
-          "name": "Chips",
-          "category": "snacks"
+        "name": "Chips",
+        "category": "snacks"
       },
       {
-          "name": "Cookies",
-          "category": "snacks"
+        "name": "Cookies",
+        "category": "snacks"
       },
       {
-          "name": "Crackers",
-          "category": "snacks"
+        "name": "Crackers",
+        "category": "snacks"
       },
       {
-          "name": "Nuts",
-          "category": "snacks"
+        "name": "Nuts",
+        "category": "snacks"
       },
       {
-          "name": "Chocolate",
-          "category": "snacks"
+        "name": "Chocolate",
+        "category": "snacks"
       },
       {
-          "name": "Energy Bars",
-          "category": "snacks"
+        "name": "Energy Bars",
+        "category": "snacks"
       },
       {
-          "name": "Popcorn",
-          "category": "snacks"
+        "name": "Popcorn",
+        "category": "snacks"
       },
       {
-          "name": "Candy",
-          "category": "snacks"
+        "name": "Candy",
+        "category": "snacks"
       },
       {
-          "name": "Nougat",
-          "category": "snacks"
+        "name": "Nougat",
+        "category": "snacks"
       },
       {
-          "name": "Chewing Gum",
-          "category": "snacks"
+        "name": "Chewing Gum",
+        "category": "snacks"
+      },
+      {
+        "name": "Olives",
+        "category": "snacks"
+      },
+      {
+        "name": "Sunflower Seeds",
+        "category": "snacks"
+      },
+      {
+        "name": "Peanuts",
+        "category": "snacks"
+      },
+      {
+        "name": "Pistachios",
+        "category": "snacks"
+      },
+      {
+        "name": "Gummy Candies",
+        "category": "snacks"
       }
-  ],
-  "condiments": [
+    ],
+    "condiments": [
       {
-          "name": "Ketchup",
-          "category": "condiments"
+        "name": "Ketchup",
+        "category": "condiments"
       },
       {
-          "name": "Mayonnaise",
-          "category": "condiments"
+        "name": "Mayonnaise",
+        "category": "condiments"
       },
       {
-          "name": "Mustard",
-          "category": "condiments"
+        "name": "Mustard",
+        "category": "condiments"
       },
       {
-          "name": "Oil",
-          "category": "condiments"
+        "name": "Oil",
+        "category": "condiments"
       },
       {
-          "name": "Vinegar",
-          "category": "condiments"
+        "name": "Vinegar",
+        "category": "condiments"
       },
       {
-          "name": "Tomato Sauce",
-          "category": "condiments"
+        "name": "Tomato Sauce",
+        "category": "condiments"
       },
       {
-          "name": "Soy Sauce",
-          "category": "condiments"
+        "name": "Soy Sauce",
+        "category": "condiments"
       },
       {
-          "name": "BBQ Sauce",
-          "category": "condiments"
+        "name": "BBQ Sauce",
+        "category": "condiments"
       },
       {
-          "name": "Dried Herbs",
-          "category": "condiments"
+        "name": "Dried Herbs",
+        "category": "condiments"
       },
       {
-          "name": "Parsley",
-          "category": "condiments"
+        "name": "Parsley",
+        "category": "condiments"
+      },
+      {
+        "name": "Alioli Sauce",
+        "category": "condiments"
+      },
+      {
+        "name": "Brava Sauce",
+        "category": "condiments"
+      },
+      {
+        "name": "Pizza Sauce",
+        "category": "condiments"
+      },
+      {
+        "name": "Jam",
+        "category": "condiments"
+      },
+      {
+        "name": "Honey",
+        "category": "condiments"
+      },
+      {
+        "name": "Paprika",
+        "category": "condiments"
+      },
+      {
+        "name": "Cumin",
+        "category": "condiments"
+      },
+      {
+        "name": "Curry",
+        "category": "condiments"
       }
-  ],
-  "others": [
+    ],
+    "others": [
       {
-          "name": "Salt",
-          "category": "others"
+        "name": "Salt",
+        "category": "others"
       },
       {
-          "name": "Sugar",
-          "category": "others"
+        "name": "Sugar",
+        "category": "others"
       },
       {
-          "name": "Pepper",
-          "category": "others"
+        "name": "Pepper",
+        "category": "others"
       },
       {
-          "name": "Cinnamon",
-          "category": "others"
+        "name": "Cinnamon",
+        "category": "others"
       },
       {
-          "name": "Garlic Powder",
-          "category": "others"
+        "name": "Garlic Powder",
+        "category": "others"
       },
       {
-          "name": "Yeast",
-          "category": "others"
+        "name": "Yeast",
+        "category": "others"
       },
       {
-          "name": "Gelatin",
-          "category": "others"
+        "name": "Gelatin",
+        "category": "others"
       },
       {
-          "name": "Almond Flour",
-          "category": "others"
+        "name": "Almond Flour",
+        "category": "others"
       },
       {
-          "name": "Sesame Seeds",
-          "category": "others"
+        "name": "Sesame Seeds",
+        "category": "others"
       },
       {
-          "name": "Cocoa Powder",
-          "category": "others"
+        "name": "Cocoa Powder",
+        "category": "others"
+      },
+      {
+        "name": "Baking Soda",
+        "category": "others"
+      },
+      {
+        "name": "Chicken Broth",
+        "category": "others"
+      },
+      {
+        "name": "Vegetable Broth",
+        "category": "others"
+      },
+      {
+        "name": "Chili Pepper",
+        "category": "others"
       }
-  ],
-  "frozen": [
+    ],
+    "frozen": [
       {
-          "name": "Frozen Pizza",
-          "category": "frozen"
+        "name": "Frozen Pizza",
+        "category": "frozen"
       },
       {
-          "name": "Frozen Vegetables",
-          "category": "frozen"
+        "name": "Frozen Vegetables",
+        "category": "frozen"
       },
       {
-          "name": "Ice Cream",
-          "category": "frozen"
+        "name": "Ice Cream",
+        "category": "frozen"
       },
       {
-          "name": "Frozen Bread",
-          "category": "frozen"
+        "name": "Frozen Bread",
+        "category": "frozen"
       },
       {
-          "name": "Frozen Meat",
-          "category": "frozen"
+        "name": "Frozen Meat",
+        "category": "frozen"
       },
       {
-          "name": "Frozen Fish",
-          "category": "frozen"
+        "name": "Frozen Fish",
+        "category": "frozen"
       },
       {
-          "name": "Frozen Seafood",
-          "category": "frozen"
+        "name": "Frozen Seafood",
+        "category": "frozen"
       },
       {
-          "name": "Frozen Croquettes",
-          "category": "frozen"
+        "name": "Frozen Croquettes",
+        "category": "frozen"
       },
       {
-          "name": "Frozen Desserts",
-          "category": "frozen"
+        "name": "Frozen Desserts",
+        "category": "frozen"
+      },
+      {
+        "name": "Ham Croquettes",
+        "category": "frozen"
+      },
+      {
+        "name": "Hake Sticks",
+        "category": "frozen"
+      },
+      {
+        "name": "Frozen Churros",
+        "category": "frozen"
+      },
+      {
+        "name": "Frozen Empanadillas",
+        "category": "frozen"
+      },
+      {
+        "name": "Vegetable Nuggets",
+        "category": "frozen"
       }
-  ],
-  "prepared_food": [
+    ],
+    "prepared_food": [
       {
-          "name": "Lasagna",
-          "category": "prepared_food"
+        "name": "Lasagna",
+        "category": "prepared_food"
       },
       {
-          "name": "Croquettes",
-          "category": "prepared_food"
+        "name": "Croquettes",
+        "category": "prepared_food"
       },
       {
-          "name": "Chicken Nuggets",
-          "category": "prepared_food"
+        "name": "Chicken Nuggets",
+        "category": "prepared_food"
       },
       {
-          "name": "Instant Soup",
-          "category": "prepared_food"
+        "name": "Instant Soup",
+        "category": "prepared_food"
       },
       {
-          "name": "Pre-cooked Rice",
-          "category": "prepared_food"
+        "name": "Pre-cooked Rice",
+        "category": "prepared_food"
       },
       {
-          "name": "Empanadas",
-          "category": "prepared_food"
+        "name": "Empanadas",
+        "category": "prepared_food"
       },
       {
-          "name": "Pre-cooked Pizza",
-          "category": "prepared_food"
+        "name": "Pre-cooked Pizza",
+        "category": "prepared_food"
       },
       {
-          "name": "Savory Pies",
-          "category": "prepared_food"
+        "name": "Savory Pies",
+        "category": "prepared_food"
       },
       {
-          "name": "Frozen Meals",
-          "category": "prepared_food"
+        "name": "Frozen Meals",
+        "category": "prepared_food"
       },
       {
-          "name": "Wraps",
-          "category": "prepared_food"
+        "name": "Wraps",
+        "category": "prepared_food"
+      },
+      {
+        "name": "Spanish Omelette",
+        "category": "prepared_food"
+      },
+      {
+        "name": "Pre-cooked Paella",
+        "category": "prepared_food"
+      },
+      {
+        "name": "Bottled Gazpacho",
+        "category": "prepared_food"
+      },
+      {
+        "name": "Bottled Salmorejo",
+        "category": "prepared_food"
+      },
+      {
+        "name": "Meatballs in Sauce",
+        "category": "prepared_food"
+      },
+      {
+        "name": "Russian Salad",
+        "category": "prepared_food"
       }
-  ]
-}
+    ]
+  }
+  
