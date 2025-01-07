@@ -8,6 +8,7 @@ import {
   IonActionSheet,
   IonSpinner,
 } from '@ionic/react';
+import ProductSuggestions from '../Products/AddProduct/ProductSuggestions';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { ShoppingListService } from '../../services/ShoppingListService';
 import { searchPredefinedProducts, PredefinedProduct } from '../../services/PredefinedProductsService';
@@ -33,14 +34,14 @@ const AddShoppingItem: React.FC<AddShoppingItemProps> = ({ onAdd }) => {
   const [suggestions, setSuggestions] = useState<PredefinedProduct[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   useEffect(() => {
     const loadSuggestions = async () => {
       if (name.trim().length > 0) {
         setIsLoading(true);
         try {
-          const results = await searchPredefinedProducts(name.trim(), t('language'));
+          const results = await searchPredefinedProducts(name.trim(), language);
           setSuggestions(results);
         } catch (error) {
           console.error('Error loading suggestions:', error);
@@ -67,14 +68,21 @@ const AddShoppingItem: React.FC<AddShoppingItemProps> = ({ onAdd }) => {
     try {
       const trimmedName = name.trim();
       
-      // Buscar si el producto ya existe en los predefinidos
-      const predefinedProducts = await searchPredefinedProducts(trimmedName, t('language'));
+      // Buscamos si existe en los predefinidos del idioma actual
+      const predefinedProducts = await searchPredefinedProducts(trimmedName, language);
       const exactMatch = predefinedProducts.find(p => 
         p.name.toLowerCase() === trimmedName.toLowerCase()
       );
 
-      // Si no existe en predefinidos y tiene categoría, guardarlo como producto personalizado
-      if (!exactMatch && category) {
+      let nameToUse = trimmedName;
+      let categoryToUse = category;
+
+      if (exactMatch) {
+        // Si existe en predefinidos, usamos el nombre exacto y su categoría
+        nameToUse = exactMatch.name;
+        categoryToUse = exactMatch.category;
+      } else if (category) {
+        // Si no existe en predefinidos y tiene categoría, lo guardamos como producto personalizado
         await addUserProduct({
           name: trimmedName,
           category: category
@@ -83,11 +91,11 @@ const AddShoppingItem: React.FC<AddShoppingItemProps> = ({ onAdd }) => {
 
       // Añadir a la lista de compras
       await ShoppingListService.addItem({
-        name: trimmedName,
+        name: nameToUse,
         quantity: Number(quantity),
-        category: category || undefined,
+        category: categoryToUse || undefined,
         completed: false,
-      }, t('language'));
+      }, language);
 
       setName('');
       setQuantity('1');
@@ -122,40 +130,16 @@ const AddShoppingItem: React.FC<AddShoppingItemProps> = ({ onAdd }) => {
 
   return (
     <form onSubmit={handleSubmit} className="add-shopping-item">
-      <div className="product-name-container">
-        <IonItem>
-          <IonLabel position="stacked">{t('shoppingList.itemName')}</IonLabel>
-          <IonInput
-            value={name}
-            onIonInput={e => setName(e.detail.value || '')}
-            placeholder={t('shoppingList.itemNamePlaceholder')}
-            onIonFocus={() => setShowSuggestions(true)}
-            onIonBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-          />
-          {isLoading && (
-            <div className="suggestions-loading">
-              <IonSpinner name="crescent" />
-            </div>
-          )}
-        </IonItem>
-        
-        {showSuggestions && suggestions.length > 0 && (
-          <div className="suggestions-list">
-            {suggestions.map((suggestion, index) => (
-              <div
-                key={index}
-                className="suggestion-item"
-                onClick={() => handleSuggestionClick(suggestion)}
-              >
-                <div className="suggestion-name">{suggestion.name}</div>
-                <IonLabel color="medium" className="suggestion-category">
-                  {t(`categories.${suggestion.category}`)}
-                </IonLabel>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      <ProductSuggestions
+        name={name}
+        showSuggestions={showSuggestions}
+        suggestions={suggestions}
+        isLoading={isLoading}
+        onNameChange={value => setName(value)}
+        onSuggestionClick={handleSuggestionClick}
+        onInputBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+        onInputFocus={() => setShowSuggestions(true)}
+      />
 
       <IonItem onClick={() => !isCustomQuantity && setShowQuantityActionSheet(true)} button={!isCustomQuantity}>
         <IonLabel position="stacked">{t('shoppingList.quantity')}</IonLabel>
@@ -166,7 +150,7 @@ const AddShoppingItem: React.FC<AddShoppingItemProps> = ({ onAdd }) => {
             type="number"
             value={quantity}
             placeholder={t('shoppingList.enterQuantity')}
-            onIonInput={e => setQuantity(e.detail.value || '1')}
+            onIonInput={(e: CustomEvent) => setQuantity(e.detail.value || '1')}
             min="1"
           />
         )}
