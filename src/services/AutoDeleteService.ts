@@ -8,7 +8,7 @@ interface DeletedProduct {
   deletedAt: string;
 }
 
-export const checkAndDeleteExpiredProducts = async (user: User): Promise<DeletedProduct[]> => {
+export const checkAndDeleteExpiredProducts = async (user: User, onProductsDeleted?: () => void): Promise<DeletedProduct[]> => {
   try {
     const today = new Date().toISOString().split('T')[0];
     const productsRef = collection(db, 'products');
@@ -48,6 +48,11 @@ export const checkAndDeleteExpiredProducts = async (user: User): Promise<Deleted
 
     // Execute all deletions
     await batch.commit();
+
+    // Notify that products were deleted
+    if (deletedProducts.length > 0 && onProductsDeleted) {
+      onProductsDeleted();
+    }
 
     return deletedProducts;
   } catch (error) {

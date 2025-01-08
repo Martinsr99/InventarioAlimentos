@@ -4,6 +4,7 @@ import { getAcceptedShareUsers } from '../services/FriendService';
 import { auth } from '../firebaseConfig';
 import { getProducts, deleteProduct, deleteProducts as deleteProductsBatch } from '../services/InventoryService';
 import { getUserSettings } from '../services/UserSettingsService';
+import { checkAndDeleteExpiredProducts } from '../services/AutoDeleteService';
 import { Product } from '../services/types';
 
 export type SortOption = 'expiryDate' | 'name' | 'quantity';
@@ -48,19 +49,10 @@ export const useProductList = (onRefreshNeeded?: () => void) => {
       let currentProducts = await getProducts();
 
       if (settings.autoDeleteExpired) {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
-        const expiredProducts = currentProducts.filter(product => {
-          const expiryDate = new Date(product.expiryDate);
-          expiryDate.setHours(0, 0, 0, 0);
-          return expiryDate < today;
-        });
-
-        if (expiredProducts.length > 0) {
-          await deleteProductsBatch(expiredProducts.map(p => p.id));
+        await checkAndDeleteExpiredProducts(auth.currentUser, async () => {
           currentProducts = await getProducts();
-        }
+          setProducts(currentProducts);
+        });
       }
 
       setProducts(currentProducts);
