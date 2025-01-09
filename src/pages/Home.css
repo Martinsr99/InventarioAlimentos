@@ -64,8 +64,8 @@ ion-content {
 }
 
 /* Ensure content fills slide */
-.slide-content > * {
-  min-height: 100%;
+.slide-content > .product-list-container {
+  height: auto;
 }
 
 
