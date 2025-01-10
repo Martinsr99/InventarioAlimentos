@@ -10,17 +10,22 @@ export interface ShoppingListItem {
   category?: string;
   completed: boolean;
   userId: string;
+  sharedWith?: string[];
   createdAt: Date | Timestamp;
 }
 
 interface FirestoreShoppingListItem extends Omit<ShoppingListItem, 'id' | 'createdAt'> {
   createdAt: Timestamp;
+  sharedWith?: string[];
 }
 
 export class ShoppingListService {
   private static COLLECTION_NAME = 'shoppingList';
 
-  static async addItem(item: Omit<ShoppingListItem, 'id' | 'userId' | 'createdAt'>, language: string) {
+  static async addItem(
+    item: Omit<ShoppingListItem, 'id' | 'userId' | 'createdAt'> & { sharedWith?: string[] }, 
+    language: string
+  ) {
     const user = auth.currentUser;
     if (!user) throw new Error('User not authenticated');
 
@@ -43,11 +48,14 @@ export class ShoppingListService {
       const itemData: FirestoreShoppingListItem = {
         ...item,
         userId: user.uid,
+        sharedWith: item.sharedWith || [],
         createdAt: Timestamp.fromDate(new Date()),
         completed: false
       };
 
+      console.log('Adding shopping list item:', itemData);
       const docRef = await addDoc(collection(db, this.COLLECTION_NAME), itemData);
+      console.log('Added shopping list item with ID:', docRef.id);
       return docRef.id;
     } catch (error) {
       console.error('Error adding shopping list item:', error);
@@ -78,20 +86,41 @@ export class ShoppingListService {
     const user = auth.currentUser;
     if (!user) throw new Error('User not authenticated');
 
-    const q = query(
-      collection(db, this.COLLECTION_NAME),
-      where('userId', '==', user.uid)
-    );
+    try {
+      console.log('Getting shopping list items for user:', user.uid);
+      
+      // Get items where user is owner or shared with
+      const [ownedItems, sharedItems] = await Promise.all([
+        getDocs(query(
+          collection(db, this.COLLECTION_NAME),
+          where('userId', '==', user.uid)
+        )),
+        getDocs(query(
+          collection(db, this.COLLECTION_NAME),
+          where('sharedWith', 'array-contains', user.uid)
+        ))
+      ]);
 
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => {
-      const data = doc.data() as FirestoreShoppingListItem;
-      return {
-        id: doc.id,
-        ...data,
-        createdAt: data.createdAt?.toDate() || new Date()
-      } as ShoppingListItem;
-    });
+      console.log('Owned items:', ownedItems.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      console.log('Shared items:', sharedItems.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+
+      const allItems = [...ownedItems.docs, ...sharedItems.docs];
+      const mappedItems = allItems.map(doc => {
+        const data = doc.data() as FirestoreShoppingListItem;
+        return {
+          id: doc.id,
+          ...data,
+          createdAt: data.createdAt?.toDate() || new Date(),
+          sharedWith: data.sharedWith || []
+        } as ShoppingListItem;
+      });
+
+      console.log('Mapped items:', mappedItems);
+      return mappedItems;
+    } catch (error) {
+      console.error('Error getting shopping list items:', error);
+      throw error;
+    }
   }
 
   static async deleteCompletedItems() {

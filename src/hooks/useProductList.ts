@@ -49,12 +49,11 @@ export const useProductList = (onRefreshNeeded?: () => void) => {
       let currentProducts = await getProducts();
 
       if (settings.autoDeleteExpired) {
-        await checkAndDeleteExpiredProducts(auth.currentUser, async () => {
-          currentProducts = await getProducts();
-          setProducts(currentProducts);
-        });
+        await checkAndDeleteExpiredProducts(auth.currentUser);
+        // Reload products after deletion
+        currentProducts = await getProducts();
       }
-
+      
       setProducts(currentProducts);
       if (onRefreshNeeded) {
         onRefreshNeeded();

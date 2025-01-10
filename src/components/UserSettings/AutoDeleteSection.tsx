@@ -22,14 +22,13 @@ const AutoDeleteSection: React.FC = () => {
     if (!auth.currentUser) return;
 
     try {
+      // First update the setting
       await updateSettings({
         autoDeleteExpired: checked
       });
       
-      if (checked) {
-        // Refresh product list to apply auto-delete
-        await loadProducts();
-      }
+      // Always refresh the product list to ensure UI is in sync
+      await loadProducts();
     } catch (error) {
       console.error('Error updating auto-delete setting:', error);
     }

@@ -31,5 +31,6 @@
   "sortByEmail": "Correo",
   "selectAll": "Seleccionar Todos",
   "deselectAll": "Deseleccionar Todos",
-  "deleteSelected": "Eliminar Seleccionados"
+  "deleteSelected": "Eliminar Seleccionados",
+  "sharedWithCount": "Compartido con {{count}} usuarios"
 }

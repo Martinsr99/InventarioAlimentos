@@ -1,5 +1,7 @@
 {
   "title": "Lista de la Compra",
+  "myItems": "Mis Items",
+  "sharedItems": "Items Compartidos",
   "pendingItemsTitle": "Productos Pendientes",
   "itemName": "Nombre del Producto",
   "itemNamePlaceholder": "Introduce el nombre del producto",

@@ -1,13 +1,16 @@
 import { useState, useCallback, useEffect } from 'react';
 import { ShoppingListService, ShoppingListItem } from '../services/ShoppingListService';
+import { auth } from '../firebaseConfig';
 
 export type SortOption = 'createdAt' | 'name' | 'category';
 export type SortDirection = 'asc' | 'desc';
 export type { ShoppingListItem } from '../services/ShoppingListService';
 
 export const useShoppingList = (onRefreshNeeded?: () => void) => {
-  const [items, setItems] = useState<ShoppingListItem[]>([]);
-  const [filteredItems, setFilteredItems] = useState<ShoppingListItem[]>([]);
+  const [myItems, setMyItems] = useState<ShoppingListItem[]>([]);
+  const [sharedItems, setSharedItems] = useState<ShoppingListItem[]>([]);
+  const [filteredMyItems, setFilteredMyItems] = useState<ShoppingListItem[]>([]);
+  const [filteredSharedItems, setFilteredSharedItems] = useState<ShoppingListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -15,8 +18,14 @@ export const useShoppingList = (onRefreshNeeded?: () => void) => {
     try {
       setLoading(true);
       const loadedItems = await ShoppingListService.getUserItems();
-      setItems(loadedItems);
-      setFilteredItems(loadedItems);
+      const currentUserId = auth.currentUser?.uid;
+      const myItems = loadedItems.filter(item => item.userId === currentUserId);
+      const sharedItems = loadedItems.filter(item => item.userId !== currentUserId);
+      
+      setMyItems(myItems);
+      setSharedItems(sharedItems);
+      setFilteredMyItems(myItems);
+      setFilteredSharedItems(sharedItems);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error loading shopping list');
@@ -90,13 +99,16 @@ export const useShoppingList = (onRefreshNeeded?: () => void) => {
     sortDirection: SortDirection,
     showCompleted: boolean
   ) => {
-    let filtered = items.filter(item => 
-      (showCompleted || !item.completed) &&
-      (item.name.toLowerCase().includes(searchText.toLowerCase()) ||
-       (item.category?.toLowerCase().includes(searchText.toLowerCase()) ?? false))
-    );
+    console.log('Filtering items:', { myItems, sharedItems });
 
-    filtered.sort((a, b) => {
+    const filterItems = (items: ShoppingListItem[]) => items.filter(item => {
+      const matchesSearch = item.name.toLowerCase().includes(searchText.toLowerCase()) ||
+                          (item.category?.toLowerCase().includes(searchText.toLowerCase()) ?? false);
+      const matchesCompleted = showCompleted || !item.completed;
+      return matchesSearch && matchesCompleted;
+    });
+
+    const sortItems = (items: ShoppingListItem[]) => [...items].sort((a, b) => {
       let comparison = 0;
       switch (sortBy) {
         case 'name':
@@ -114,11 +126,18 @@ export const useShoppingList = (onRefreshNeeded?: () => void) => {
       return sortDirection === 'asc' ? comparison : -comparison;
     });
 
-    setFilteredItems(filtered);
-  }, [items]);
+    const filteredMy = filterItems(myItems);
+    const filteredShared = filterItems(sharedItems);
+
+    console.log('Filtered items:', { filteredMy, filteredShared });
+
+    setFilteredMyItems(sortItems(filteredMy));
+    setFilteredSharedItems(sortItems(filteredShared));
+  }, [myItems, sharedItems]);
 
   return {
-    items: filteredItems,
+    myItems: filteredMyItems,
+    sharedItems: filteredSharedItems,
     loading,
     error,
     addItem,

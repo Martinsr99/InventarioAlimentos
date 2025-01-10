@@ -2,6 +2,36 @@
   padding: 0 1rem 1rem 1rem;
 }
 
+.section {
+  margin-top: 1.5rem;
+  background: var(--ion-color-light);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.section-title {
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: var(--ion-color-medium);
+  margin: 0 0 1rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--ion-color-medium-tint);
+}
+
+.section ion-list {
+  background: transparent;
+}
+
+.section ion-item {
+  --background: var(--ion-color-light-shade);
+  margin-bottom: 0.5rem;
+  border-radius: 4px;
+}
+
+.section ion-item:last-child {
+  margin-bottom: 0;
+}
+
 .shopping-list-card {
   margin: 0;
   border-radius: 12px;
@@ -187,6 +217,16 @@ ion-item-options {
   --background: transparent !important;
   --ion-item-background: transparent !important;
   background: transparent !important;
+}
+
+/* Action Sheet Styles */
+.shopping-list-action-sheet .selected-user {
+  --button-color: var(--ion-color-primary);
+  font-weight: 500;
+}
+
+.shopping-list-action-sheet .action-sheet-button.selected-user ion-icon {
+  color: var(--ion-color-primary);
 }
 
 @media (min-width: 768px) {

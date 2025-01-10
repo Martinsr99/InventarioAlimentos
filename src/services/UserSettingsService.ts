@@ -41,20 +41,21 @@ export const getUserSettings = async (user: User): Promise<UserSettings> => {
     const settingsDoc = await getDoc(userSettingsRef);
     
     if (!settingsDoc.exists()) {
-      // Si no hay configuraciones, usar el idioma almacenado o el del navegador
+      // Si no hay configuraciones, crear las iniciales
       const storedLang = localStorage.getItem('language');
       const defaultLanguage = (storedLang === 'es' || storedLang === 'en') 
         ? storedLang 
         : getBrowserLanguage();
       
-      const initialSettings = {
+      const initialSettings: UserSettings = {
         ...DEFAULT_SETTINGS,
         language: defaultLanguage,
-        email: user.email || ''
+        email: user.email || '',
+        autoDeleteExpired: false
       };
       
       // Guardar las configuraciones iniciales
-      await setDoc(userSettingsRef, initialSettings);
+      await setDoc(userSettingsRef, initialSettings, { merge: true });
       return initialSettings;
     }
     

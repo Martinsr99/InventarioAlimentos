@@ -10,31 +10,64 @@ interface DeletedProduct {
 
 export const checkAndDeleteExpiredProducts = async (user: User, onProductsDeleted?: () => void): Promise<DeletedProduct[]> => {
   try {
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     const productsRef = collection(db, 'products');
+    // Get both owned and shared products
     const q = query(
       productsRef,
-      where('userId', '==', user.uid),
-      where('expiryDate', '<', today)
+      where('userId', '==', user.uid)
     );
 
-    const querySnapshot = await getDocs(q);
-    if (querySnapshot.empty) {
+    const sharedQ = query(
+      productsRef,
+      where('sharedWith', 'array-contains', user.uid)
+    );
+
+    const [ownedSnapshot, sharedSnapshot] = await Promise.all([
+      getDocs(q),
+      getDocs(sharedQ)
+    ]);
+
+    if (ownedSnapshot.empty && sharedSnapshot.empty) {
       return [];
     }
 
     const batch = writeBatch(db);
     const deletedProducts: DeletedProduct[] = [];
 
-    // Collect products to delete
-    querySnapshot.docs.forEach(doc => {
+    // Process owned products
+    ownedSnapshot.docs.forEach(doc => {
       const product = doc.data();
-      batch.delete(doc.ref);
-      deletedProducts.push({
-        name: product.name,
-        expiryDate: product.expiryDate,
-        deletedAt: new Date().toISOString()
-      });
+      const expiryDate = new Date(product.expiryDate);
+      expiryDate.setHours(0, 0, 0, 0);
+
+      if (expiryDate < today) {
+        batch.delete(doc.ref);
+        deletedProducts.push({
+          name: product.name,
+          expiryDate: product.expiryDate,
+          deletedAt: new Date().toISOString()
+        });
+      }
+    });
+
+    // Process shared products - only delete if we're the owner
+    sharedSnapshot.docs.forEach(doc => {
+      const product = doc.data();
+      const expiryDate = new Date(product.expiryDate);
+      expiryDate.setHours(0, 0, 0, 0);
+
+      // Only delete if we're the owner
+      if (expiryDate < today && product.userId === user.uid) {
+        batch.delete(doc.ref);
+        deletedProducts.push({
+          name: product.name,
+          expiryDate: product.expiryDate,
+          deletedAt: new Date().toISOString()
+        });
+      }
     });
 
     // Store deletion record

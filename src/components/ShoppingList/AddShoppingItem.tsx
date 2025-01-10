@@ -10,10 +10,13 @@ import {
 } from '@ionic/react';
 import ProductSuggestions from '../Products/AddProduct/ProductSuggestions';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { auth } from '../../firebaseConfig';
 import { ShoppingListService } from '../../services/ShoppingListService';
 import { searchPredefinedProducts, PredefinedProduct } from '../../services/PredefinedProductsService';
 import { addUserProduct } from '../../services/UserProductsService';
 import CategorySelector from '../Products/AddProduct/CategorySelector';
+import SharedUsersSelector from '../Products/AddProduct/SharedUsersSelector';
+import { useSharing } from '../../hooks/useSharing';
 import './AddShoppingItem.css';
 
 const QUANTITIES = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
@@ -27,6 +30,7 @@ const AddShoppingItem: React.FC<AddShoppingItemProps> = ({ onAdd }) => {
   const [quantity, setQuantity] = useState('1');
   const [isCustomQuantity, setIsCustomQuantity] = useState(false);
   const [category, setCategory] = useState<string>('other');
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [showToast, setShowToast] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string>('');
@@ -35,6 +39,7 @@ const AddShoppingItem: React.FC<AddShoppingItemProps> = ({ onAdd }) => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { t, language } = useLanguage();
+  const { friends } = useSharing(auth.currentUser, t);
 
   useEffect(() => {
     const loadSuggestions = async () => {
@@ -90,16 +95,27 @@ const AddShoppingItem: React.FC<AddShoppingItemProps> = ({ onAdd }) => {
       }
 
       // Añadir a la lista de compras
+      console.log('Adding shopping list item:', {
+        name: nameToUse,
+        quantity: Number(quantity),
+        category: categoryToUse,
+        sharedWith: selectedUsers
+      });
+
       await ShoppingListService.addItem({
         name: nameToUse,
         quantity: Number(quantity),
         category: categoryToUse || undefined,
         completed: false,
+        sharedWith: selectedUsers
       }, language);
+
+      console.log('Item added successfully');
 
       setName('');
       setQuantity('1');
-      setCategory('');
+      setCategory('other');
+      setSelectedUsers([]);
       setIsCustomQuantity(false);
 
       setSuccess(true);
@@ -160,6 +176,14 @@ const AddShoppingItem: React.FC<AddShoppingItemProps> = ({ onAdd }) => {
         category={category}
         onCategoryChange={value => setCategory(value)}
       />
+
+      {friends.length > 0 && (
+        <SharedUsersSelector
+          users={friends}
+          selectedUsers={selectedUsers}
+          onUsersChange={setSelectedUsers}
+        />
+      )}
 
       <IonButton expand="block" type="submit" className="submit-button">
         {t('shoppingList.addItem')}

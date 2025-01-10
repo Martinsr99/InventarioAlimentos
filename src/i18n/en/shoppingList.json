@@ -1,5 +1,7 @@
 {
   "title": "Shopping List",
+  "myItems": "My Items",
+  "sharedItems": "Shared Items",
   "pendingItemsTitle": "Pending Items",
   "itemName": "Item Name",
   "itemNamePlaceholder": "Enter item name",

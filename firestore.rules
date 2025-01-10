@@ -16,22 +16,26 @@ service cloud.firestore {
     }
 
     match /products/{productId} {
-      allow read: if request.auth != null && (
-        request.auth.uid == resource.data.userId || 
-        request.auth.uid in resource.data.sharedWith
-      );
+      function getSharedWith() {
+        return 'sharedWith' in resource.data ? resource.data.sharedWith : [];
+      }
+
+      function getUserId() {
+        return resource.data.userId;
+      }
+
+      function hasAccess(uid) {
+        return getUserId() == uid || getSharedWith().hasAny([uid]);
+      }
+
+      allow read: if request.auth != null && hasAccess(request.auth.uid);
+
       allow create: if request.auth != null && (
         request.auth.uid == request.resource.data.userId ||
-        request.auth.uid in request.resource.data.sharedWith
+        request.auth.uid in (request.resource.data.sharedWith || [])
       );
-      allow update, delete: if request.auth != null && (
-        request.auth.uid == resource.data.userId ||
-        request.auth.uid in resource.data.sharedWith ||
-        // Allow removing self from sharedWith
-        (request.resource.data.sharedWith != null &&
-         !request.resource.data.sharedWith.hasAll([request.auth.uid]) &&
-         resource.data.sharedWith.hasAll([request.auth.uid]))
-      );
+
+      allow update, delete: if request.auth != null && hasAccess(request.auth.uid);
     }
 
     match /userProducts/{productId} {
@@ -50,17 +54,28 @@ service cloud.firestore {
     }
 
     match /shoppingList/{itemId} {
-      // Allow reading user's own shopping list items
-      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      function getSharedWith() {
+        return resource.data.sharedWith || [];
+      }
+
+      function getUserId() {
+        return resource.data.userId;
+      }
+
+      function hasAccess(uid) {
+        return getUserId() == uid || uid in getSharedWith();
+      }
+
+      // Allow reading items that are either owned or shared with the user
+      allow read: if request.auth != null && hasAccess(request.auth.uid);
       
       // Allow creating items in user's shopping list
       allow create: if request.auth != null && 
                    request.resource.data.userId == request.auth.uid &&
                    request.resource.data.name is string;
       
-      // Allow updating and deleting own shopping list items
-      allow update, delete: if request.auth != null && 
-                          resource.data.userId == request.auth.uid;
+      // Allow updating and deleting items if user is owner or shared with
+      allow update, delete: if request.auth != null && hasAccess(request.auth.uid);
     }
 
     match /userSettings/{userId} {
@@ -124,6 +139,13 @@ service cloud.firestore {
       allow create: if request.auth != null;
       // No read/update/delete needed for mail queue
       allow read, update, delete: if false;
+    }
+
+    match /deletedProducts/{recordId} {
+      // Allow read/write of deleted products records for the owner
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
   }
 }

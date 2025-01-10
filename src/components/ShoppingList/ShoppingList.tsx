@@ -10,6 +10,7 @@ import {
   IonToast,
   IonRefresher,
   IonRefresherContent,
+  IonSpinner,
   RefresherEventDetail,
 } from '@ionic/react';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -36,7 +37,8 @@ const ShoppingList: React.FC<ShoppingListProps> = React.memo(({ onRefreshNeeded 
   const { t } = useLanguage();
 
   const {
-    items,
+    myItems,
+    sharedItems,
     loading,
     error,
     deleteItem,
@@ -51,8 +53,11 @@ const ShoppingList: React.FC<ShoppingListProps> = React.memo(({ onRefreshNeeded 
   }, [loadItems]);
 
   useEffect(() => {
-    filterAndSortItems(searchText, sortBy, sortDirection, showCompleted);
-  }, [filterAndSortItems, searchText, sortBy, sortDirection, showCompleted]);
+    if (myItems.length > 0 || sharedItems.length > 0) {
+      console.log('Filtering items after load:', { myItems, sharedItems });
+      filterAndSortItems(searchText, sortBy, sortDirection, showCompleted);
+    }
+  }, [filterAndSortItems, searchText, sortBy, sortDirection, showCompleted, myItems, sharedItems]);
 
   const handleRefresh = useCallback(async (event: CustomEvent<RefresherEventDetail>) => {
     try {
@@ -129,14 +134,21 @@ const ShoppingList: React.FC<ShoppingListProps> = React.memo(({ onRefreshNeeded 
               onShowCompletedChange={handleShowCompletedChange}
               onDeleteCompleted={() => setShowDeleteCompletedConfirm(true)}
             />
-            <ShoppingListContent
-              loading={loading}
-              items={items.filter(item => showCompleted || !item.completed)}
-              onDelete={setItemToDelete}
-              onToggleCompletion={toggleItemCompletion}
-              loadItems={loadItems}
-              onRefreshNeeded={onRefreshNeeded}
-            />
+            {loading ? (
+              <div className="ion-text-center ion-padding">
+                <IonSpinner />
+              </div>
+            ) : (
+              <ShoppingListContent
+                loading={false}
+                myItems={myItems}
+                sharedItems={sharedItems}
+                onDelete={setItemToDelete}
+                onToggleCompletion={toggleItemCompletion}
+                loadItems={loadItems}
+                onRefreshNeeded={onRefreshNeeded}
+              />
+            )}
           </IonCardContent>
         </IonCard>
       </div>

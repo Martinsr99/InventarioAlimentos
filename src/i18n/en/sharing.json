@@ -31,5 +31,6 @@
   "sortByEmail": "Email",
   "selectAll": "Select All",
   "deselectAll": "Deselect All",
-  "deleteSelected": "Delete Selected"
+  "deleteSelected": "Delete Selected",
+  "sharedWithCount": "Shared with {{count}} users"
 }

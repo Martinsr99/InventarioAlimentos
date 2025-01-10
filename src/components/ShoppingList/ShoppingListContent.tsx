@@ -23,7 +23,8 @@ import { SaveToInventoryModal } from './SaveToInventoryModal';
 
 interface ShoppingListContentProps {
   loading: boolean;
-  items: ShoppingListItem[];
+  myItems: ShoppingListItem[];
+  sharedItems: ShoppingListItem[];
   onDelete: (itemId: string) => void;
   onToggleCompletion: (itemId: string, completed: boolean) => void;
   loadItems: () => Promise<void>;
@@ -43,7 +44,8 @@ interface SaveToInventoryState {
 
 const ShoppingListContent: React.FC<ShoppingListContentProps> = React.memo(({
   loading,
-  items,
+  myItems,
+  sharedItems,
   onDelete,
   onToggleCompletion,
   loadItems,
@@ -121,15 +123,13 @@ const ShoppingListContent: React.FC<ShoppingListContentProps> = React.memo(({
     if (!shareAlert.item) return;
 
     try {
-      await addProduct({
-        name: shareAlert.item.name,
-        quantity: shareAlert.item.quantity,
-        category: shareAlert.item.category || '',
-        expiryDate: new Date().toISOString(),
-        location: '',
-        notes: '',
+      await ShoppingListService.updateItem(shareAlert.item.id, {
         sharedWith: selectedFriendIds
       });
+      await loadItems();
+      if (onRefreshNeeded) {
+        await onRefreshNeeded();
+      }
     } catch (error) {
       console.error('Error sharing item:', error);
     }
@@ -149,7 +149,7 @@ const ShoppingListContent: React.FC<ShoppingListContentProps> = React.memo(({
     );
   }
 
-  if (items.length === 0) {
+  if (myItems.length === 0 && sharedItems.length === 0) {
     return (
       <div className="ion-text-center ion-padding">
         <IonText color="medium">{t('shoppingList.emptyList')}</IonText>
@@ -157,54 +157,78 @@ const ShoppingListContent: React.FC<ShoppingListContentProps> = React.memo(({
     );
   }
 
+  const renderItems = (items: ShoppingListItem[]) => (
+    items.map(item => (
+      <IonItemSliding key={item.id}>
+        <IonItemOptions side="start">
+          <IonItemOption color="success" onClick={() => handleSaveToInventoryClick(item)}>
+            <IonIcon slot="icon-only" icon={archive} />
+          </IonItemOption>
+        </IonItemOptions>
+
+        <IonItem className={item.completed ? 'completed-item' : ''}>
+          <IonButton
+            fill="clear"
+            slot="start"
+            onClick={() => onToggleCompletion(item.id, !item.completed)}
+          >
+            <IonIcon
+              slot="icon-only"
+              icon={item.completed ? checkmarkCircle : checkmarkCircleOutline}
+              color={item.completed ? 'success' : 'medium'}
+            />
+          </IonButton>
+          <IonLabel className={item.completed ? 'completed-text' : ''}>
+            <h2>{item.name}</h2>
+            <p>{t('shoppingList.quantity', { quantity: item.quantity })}</p>
+            {item.category && (
+              <p>{t(`categories.${item.category}`)}</p>
+            )}
+            {item.sharedWith && item.sharedWith.length > 0 && (
+              <p>
+                <IonIcon icon={share} size="small" style={{ verticalAlign: 'middle', marginRight: '5px' }} />
+                {t('sharing.sharedWithCount', { count: item.sharedWith.length })}
+              </p>
+            )}
+          </IonLabel>
+          <IonButton
+            fill="clear"
+            slot="end"
+            onClick={() => onDelete(item.id)}
+            color="danger"
+          >
+            <IonIcon slot="icon-only" icon={trash} />
+          </IonButton>
+        </IonItem>
+
+        <IonItemOptions side="end">
+          <IonItemOption color="primary" onClick={() => handleShare(item)}>
+            <IonIcon slot="icon-only" icon={share} />
+          </IonItemOption>
+        </IonItemOptions>
+      </IonItemSliding>
+    ))
+  );
+
   return (
     <>
-      <IonList>
-        {items.map(item => (
-          <IonItemSliding key={item.id}>
-            <IonItemOptions side="start">
-              <IonItemOption color="success" onClick={() => handleSaveToInventoryClick(item)}>
-                <IonIcon slot="icon-only" icon={archive} />
-              </IonItemOption>
-            </IonItemOptions>
+      {myItems.length > 0 && (
+        <div className="section">
+          <h2 className="section-title">{t('shoppingList.myItems')}</h2>
+          <IonList>
+            {renderItems(myItems)}
+          </IonList>
+        </div>
+      )}
 
-            <IonItem className={item.completed ? 'completed-item' : ''}>
-              <IonButton
-                fill="clear"
-                slot="start"
-                onClick={() => onToggleCompletion(item.id, !item.completed)}
-              >
-                <IonIcon
-                  slot="icon-only"
-                  icon={item.completed ? checkmarkCircle : checkmarkCircleOutline}
-                  color={item.completed ? 'success' : 'medium'}
-                />
-              </IonButton>
-              <IonLabel className={item.completed ? 'completed-text' : ''}>
-                <h2>{item.name}</h2>
-                <p>{t('shoppingList.quantity', { quantity: item.quantity })}</p>
-                {item.category && (
-                  <p>{t(`categories.${item.category}`)}</p>
-                )}
-              </IonLabel>
-              <IonButton
-                fill="clear"
-                slot="end"
-                onClick={() => onDelete(item.id)}
-                color="danger"
-              >
-                <IonIcon slot="icon-only" icon={trash} />
-              </IonButton>
-            </IonItem>
-
-            <IonItemOptions side="end">
-              <IonItemOption color="primary" onClick={() => handleShare(item)}>
-                <IonIcon slot="icon-only" icon={share} />
-              </IonItemOption>
-            </IonItemOptions>
-          </IonItemSliding>
-        ))}
-      </IonList>
+      {sharedItems.length > 0 && (
+        <div className="section">
+          <h2 className="section-title">{t('shoppingList.sharedItems')}</h2>
+          <IonList>
+            {renderItems(sharedItems)}
+          </IonList>
+        </div>
+      )}
 
       <IonAlert
         isOpen={showNoFriendsAlert}
