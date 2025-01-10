@@ -64,7 +64,7 @@ const ShoppingListContent: React.FC<ShoppingListContentProps> = React.memo(({
     item: null
   });
 
-  const handleShare = async (item: ShoppingListItem) => {
+  const handleShare = React.useCallback(async (item: ShoppingListItem) => {
     if (!user) return;
 
     const friends = await getAcceptedShareUsers(user);
@@ -78,16 +78,16 @@ const ShoppingListContent: React.FC<ShoppingListContentProps> = React.memo(({
       item,
       friends
     });
-  };
+  }, [user]);
 
-  const handleSaveToInventoryClick = (item: ShoppingListItem) => {
+  const handleSaveToInventoryClick = React.useCallback((item: ShoppingListItem) => {
     setSaveToInventory({
       isOpen: true,
       item
     });
-  };
+  }, []);
 
-  const handleSaveToInventory = async (expiryDate: string, location: string) => {
+  const handleSaveToInventory = React.useCallback(async (expiryDate: string, location: string) => {
     if (!saveToInventory.item) return;
 
     try {
@@ -100,16 +100,11 @@ const ShoppingListContent: React.FC<ShoppingListContentProps> = React.memo(({
         notes: '',
       });
 
-      // Eliminar el item de la lista de la compra
       if (saveToInventory.item.id) {
         await ShoppingListService.deleteItem(saveToInventory.item.id);
       }
 
-      // Recargar ambas listas después de guardar
       await loadItems();
-      if (onRefreshNeeded) {
-        await onRefreshNeeded();
-      }
       setSaveToInventory({
         isOpen: false,
         item: null
@@ -117,9 +112,9 @@ const ShoppingListContent: React.FC<ShoppingListContentProps> = React.memo(({
     } catch (error) {
       console.error('Error saving to inventory:', error);
     }
-  };
+  }, [saveToInventory.item, loadItems]);
 
-  const handleShareConfirm = async (selectedFriendIds: string[]) => {
+  const handleShareConfirm = React.useCallback(async (selectedFriendIds: string[]) => {
     if (!shareAlert.item) return;
 
     try {
@@ -127,9 +122,6 @@ const ShoppingListContent: React.FC<ShoppingListContentProps> = React.memo(({
         sharedWith: selectedFriendIds
       });
       await loadItems();
-      if (onRefreshNeeded) {
-        await onRefreshNeeded();
-      }
     } catch (error) {
       console.error('Error sharing item:', error);
     }
@@ -139,25 +131,9 @@ const ShoppingListContent: React.FC<ShoppingListContentProps> = React.memo(({
       item: null,
       friends: []
     });
-  };
+  }, [shareAlert.item, loadItems]);
 
-  if (loading) {
-    return (
-      <div className="ion-text-center ion-padding">
-        <IonSpinner />
-      </div>
-    );
-  }
-
-  if (myItems.length === 0 && sharedItems.length === 0) {
-    return (
-      <div className="ion-text-center ion-padding">
-        <IonText color="medium">{t('shoppingList.emptyList')}</IonText>
-      </div>
-    );
-  }
-
-  const renderItems = (items: ShoppingListItem[]) => (
+  const renderItems = React.useCallback((items: ShoppingListItem[]) => (
     items.map(item => (
       <IonItemSliding key={item.id}>
         <IonItemOptions side="start">
@@ -208,7 +184,23 @@ const ShoppingListContent: React.FC<ShoppingListContentProps> = React.memo(({
         </IonItemOptions>
       </IonItemSliding>
     ))
-  );
+  ), [handleSaveToInventoryClick, handleShare, onDelete, onToggleCompletion, t]);
+
+  if (loading) {
+    return (
+      <div className="ion-text-center ion-padding">
+        <IonSpinner />
+      </div>
+    );
+  }
+
+  if (myItems.length === 0 && sharedItems.length === 0) {
+    return (
+      <div className="ion-text-center ion-padding">
+        <IonText color="medium">{t('shoppingList.emptyList')}</IonText>
+      </div>
+    );
+  }
 
   return (
     <>

@@ -55,7 +55,7 @@ service cloud.firestore {
 
     match /shoppingList/{itemId} {
       function getSharedWith() {
-        return resource.data.sharedWith || [];
+        return 'sharedWith' in resource.data ? resource.data.sharedWith : [];
       }
 
       function getUserId() {
@@ -63,7 +63,7 @@ service cloud.firestore {
       }
 
       function hasAccess(uid) {
-        return getUserId() == uid || uid in getSharedWith();
+        return getUserId() == uid || getSharedWith().hasAny([uid]);
       }
 
       // Allow reading items that are either owned or shared with the user
@@ -72,10 +72,16 @@ service cloud.firestore {
       // Allow creating items in user's shopping list
       allow create: if request.auth != null && 
                    request.resource.data.userId == request.auth.uid &&
-                   request.resource.data.name is string;
+                   request.resource.data.name is string &&
+                   (!('sharedWith' in request.resource.data) || 
+                    request.resource.data.sharedWith is list);
       
       // Allow updating and deleting items if user is owner or shared with
-      allow update, delete: if request.auth != null && hasAccess(request.auth.uid);
+      allow update: if request.auth != null && hasAccess(request.auth.uid) &&
+                   (!('sharedWith' in request.resource.data) || 
+                    request.resource.data.sharedWith is list);
+      
+      allow delete: if request.auth != null && hasAccess(request.auth.uid);
     }
 
     match /userSettings/{userId} {

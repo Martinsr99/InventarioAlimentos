@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { ShoppingListService, ShoppingListItem } from '../services/ShoppingListService';
 import { auth } from '../firebaseConfig';
 
@@ -13,6 +13,10 @@ export const useShoppingList = (onRefreshNeeded?: () => void) => {
   const [filteredSharedItems, setFilteredSharedItems] = useState<ShoppingListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchText, setSearchText] = useState('');
+  const [sortBy, setSortBy] = useState<SortOption>('createdAt');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [showCompleted, setShowCompleted] = useState(false);
 
   const loadItems = useCallback(async () => {
     try {
@@ -24,8 +28,6 @@ export const useShoppingList = (onRefreshNeeded?: () => void) => {
       
       setMyItems(myItems);
       setSharedItems(sharedItems);
-      setFilteredMyItems(myItems);
-      setFilteredSharedItems(sharedItems);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error loading shopping list');
@@ -34,9 +36,47 @@ export const useShoppingList = (onRefreshNeeded?: () => void) => {
     }
   }, []);
 
+  const mountedRef = useRef(false);
+
   useEffect(() => {
-    loadItems();
+    if (!mountedRef.current) {
+      mountedRef.current = true;
+      loadItems();
+    }
   }, [loadItems]);
+
+  useEffect(() => {
+    const filterItems = (items: ShoppingListItem[]) => items.filter(item => {
+      const matchesSearch = item.name.toLowerCase().includes(searchText.toLowerCase()) ||
+                          (item.category?.toLowerCase().includes(searchText.toLowerCase()) ?? false);
+      const matchesCompleted = showCompleted || !item.completed;
+      return matchesSearch && matchesCompleted;
+    });
+
+    const sortItems = (items: ShoppingListItem[]) => [...items].sort((a, b) => {
+      let comparison = 0;
+      switch (sortBy) {
+        case 'name':
+          comparison = a.name.localeCompare(b.name);
+          break;
+        case 'category':
+          comparison = (a.category || '').localeCompare(b.category || '');
+          break;
+        case 'createdAt':
+          const dateA = a.createdAt instanceof Date ? a.createdAt : a.createdAt.toDate();
+          const dateB = b.createdAt instanceof Date ? b.createdAt : b.createdAt.toDate();
+          comparison = dateA.getTime() - dateB.getTime();
+          break;
+      }
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+
+    const filteredMy = filterItems(myItems);
+    const filteredShared = filterItems(sharedItems);
+
+    setFilteredMyItems(sortItems(filteredMy));
+    setFilteredSharedItems(sortItems(filteredShared));
+  }, [myItems, sharedItems, searchText, sortBy, sortDirection, showCompleted]);
 
   const addItem = useCallback(async (item: Omit<ShoppingListItem, 'id' | 'userId' | 'createdAt'>, language: string) => {
     try {
@@ -94,46 +134,16 @@ export const useShoppingList = (onRefreshNeeded?: () => void) => {
   }, [loadItems, onRefreshNeeded]);
 
   const filterAndSortItems = useCallback((
-    searchText: string,
-    sortBy: SortOption,
-    sortDirection: SortDirection,
-    showCompleted: boolean
+    newSearchText: string,
+    newSortBy: SortOption,
+    newSortDirection: SortDirection,
+    newShowCompleted: boolean
   ) => {
-    console.log('Filtering items:', { myItems, sharedItems });
-
-    const filterItems = (items: ShoppingListItem[]) => items.filter(item => {
-      const matchesSearch = item.name.toLowerCase().includes(searchText.toLowerCase()) ||
-                          (item.category?.toLowerCase().includes(searchText.toLowerCase()) ?? false);
-      const matchesCompleted = showCompleted || !item.completed;
-      return matchesSearch && matchesCompleted;
-    });
-
-    const sortItems = (items: ShoppingListItem[]) => [...items].sort((a, b) => {
-      let comparison = 0;
-      switch (sortBy) {
-        case 'name':
-          comparison = a.name.localeCompare(b.name);
-          break;
-        case 'category':
-          comparison = (a.category || '').localeCompare(b.category || '');
-          break;
-        case 'createdAt':
-          const dateA = a.createdAt instanceof Date ? a.createdAt : a.createdAt.toDate();
-          const dateB = b.createdAt instanceof Date ? b.createdAt : b.createdAt.toDate();
-          comparison = dateA.getTime() - dateB.getTime();
-          break;
-      }
-      return sortDirection === 'asc' ? comparison : -comparison;
-    });
-
-    const filteredMy = filterItems(myItems);
-    const filteredShared = filterItems(sharedItems);
-
-    console.log('Filtered items:', { filteredMy, filteredShared });
-
-    setFilteredMyItems(sortItems(filteredMy));
-    setFilteredSharedItems(sortItems(filteredShared));
-  }, [myItems, sharedItems]);
+    setSearchText(newSearchText);
+    setSortBy(newSortBy);
+    setSortDirection(newSortDirection);
+    setShowCompleted(newShowCompleted);
+  }, []);
 
   return {
     myItems: filteredMyItems,

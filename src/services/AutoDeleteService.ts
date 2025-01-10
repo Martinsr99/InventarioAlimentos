@@ -70,21 +70,22 @@ export const checkAndDeleteExpiredProducts = async (user: User, onProductsDelete
       }
     });
 
-    // Store deletion record
+    // Execute deletions and store record if there are products to delete
     if (deletedProducts.length > 0) {
+      // First execute the batch deletion
+      await batch.commit();
+
+      // Then store the deletion record
       await addDoc(collection(db, 'deletedProducts'), {
         userId: user.uid,
         products: deletedProducts,
         deletedAt: new Date().toISOString()
       });
-    }
 
-    // Execute all deletions
-    await batch.commit();
-
-    // Notify that products were deleted
-    if (deletedProducts.length > 0 && onProductsDeleted) {
-      onProductsDeleted();
+      // Finally notify that products were deleted
+      if (onProductsDeleted) {
+        await onProductsDeleted();
+      }
     }
 
     return deletedProducts;

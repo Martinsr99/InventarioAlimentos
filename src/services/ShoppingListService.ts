@@ -1,5 +1,5 @@
 import { db, auth } from '../firebaseConfig';
-import { collection, addDoc, deleteDoc, doc, updateDoc, getDocs, query, where, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, deleteDoc, doc, updateDoc, getDocs, getDoc, query, where, Timestamp, writeBatch } from 'firebase/firestore';
 import { addUserProduct } from './UserProductsService';
 import { searchPredefinedProducts } from './PredefinedProductsService';
 
@@ -44,18 +44,19 @@ export class ShoppingListService {
         });
       }
 
+      // Ensure sharedWith is properly initialized
+      const sharedWith = Array.isArray(item.sharedWith) ? item.sharedWith : [];
+
       // Guardar en la lista de compras
       const itemData: FirestoreShoppingListItem = {
         ...item,
         userId: user.uid,
-        sharedWith: item.sharedWith || [],
+        sharedWith,
         createdAt: Timestamp.fromDate(new Date()),
         completed: false
       };
 
-      console.log('Adding shopping list item:', itemData);
       const docRef = await addDoc(collection(db, this.COLLECTION_NAME), itemData);
-      console.log('Added shopping list item with ID:', docRef.id);
       return docRef.id;
     } catch (error) {
       console.error('Error adding shopping list item:', error);
@@ -64,22 +65,98 @@ export class ShoppingListService {
   }
 
   static async deleteItem(itemId: string) {
-    await deleteDoc(doc(db, this.COLLECTION_NAME, itemId));
+    const user = auth.currentUser;
+    if (!user) throw new Error('User not authenticated');
+
+    try {
+      const docRef = doc(db, this.COLLECTION_NAME, itemId);
+      const docSnap = await getDoc(docRef);
+      
+      if (!docSnap.exists()) {
+        throw new Error('Item not found');
+      }
+
+      const itemData = docSnap.data();
+      
+      // Only allow deletion if user is owner or shared with
+      if (itemData.userId !== user.uid && !(itemData.sharedWith || []).includes(user.uid)) {
+        throw new Error('Permission denied');
+      }
+
+      await deleteDoc(docRef);
+    } catch (error) {
+      console.error('Error deleting shopping list item:', error);
+      throw error;
+    }
   }
 
   // Alias para mantener consistencia con el nombre usado en el componente
   static deleteShoppingItem = ShoppingListService.deleteItem;
 
   static async updateItem(itemId: string, updates: Partial<ShoppingListItem>) {
-    const updateData = { ...updates };
-    if (updates.createdAt && updates.createdAt instanceof Date) {
-      updateData.createdAt = Timestamp.fromDate(updates.createdAt);
+    const user = auth.currentUser;
+    if (!user) throw new Error('User not authenticated');
+
+    try {
+      const docRef = doc(db, this.COLLECTION_NAME, itemId);
+      const docSnap = await getDoc(docRef);
+      
+      if (!docSnap.exists()) {
+        throw new Error('Item not found');
+      }
+
+      const currentData = docSnap.data();
+      const updateData = { ...updates };
+      
+      // Handle date conversion
+      if (updates.createdAt && updates.createdAt instanceof Date) {
+        updateData.createdAt = Timestamp.fromDate(updates.createdAt);
+      }
+
+      // Handle sharedWith array
+      if ('sharedWith' in updates) {
+        // Ensure it's an array and remove duplicates
+        const newSharedWith = Array.isArray(updates.sharedWith) ? [...new Set(updates.sharedWith)] : [];
+        
+        // If the current user is not the owner, preserve their access
+        if (currentData.userId !== user.uid && !newSharedWith.includes(user.uid)) {
+          newSharedWith.push(user.uid);
+        }
+        
+        updateData.sharedWith = newSharedWith;
+      }
+
+      await updateDoc(docRef, updateData);
+    } catch (error) {
+      console.error('Error updating shopping list item:', error);
+      throw error;
     }
-    await updateDoc(doc(db, this.COLLECTION_NAME, itemId), updateData);
   }
 
   static async toggleItemCompletion(itemId: string, completed: boolean) {
-    await updateDoc(doc(db, this.COLLECTION_NAME, itemId), { completed });
+    const user = auth.currentUser;
+    if (!user) throw new Error('User not authenticated');
+
+    try {
+      const docRef = doc(db, this.COLLECTION_NAME, itemId);
+      const docSnap = await getDoc(docRef);
+      
+      if (!docSnap.exists()) {
+        throw new Error('Item not found');
+      }
+
+      const itemData = docSnap.data();
+      
+      // Only allow toggling if user is owner or shared with
+      if (itemData.userId !== user.uid && !(itemData.sharedWith || []).includes(user.uid)) {
+        throw new Error('Permission denied');
+      }
+
+      await updateDoc(docRef, { completed });
+    } catch (error) {
+      console.error('Error toggling item completion:', error);
+      throw error;
+    }
   }
 
   static async getUserItems() {
@@ -87,36 +164,35 @@ export class ShoppingListService {
     if (!user) throw new Error('User not authenticated');
 
     try {
-      console.log('Getting shopping list items for user:', user.uid);
+      // Get items where user is owner
+      const ownedItemsQuery = query(
+        collection(db, this.COLLECTION_NAME),
+        where('userId', '==', user.uid)
+      );
       
-      // Get items where user is owner or shared with
-      const [ownedItems, sharedItems] = await Promise.all([
-        getDocs(query(
-          collection(db, this.COLLECTION_NAME),
-          where('userId', '==', user.uid)
-        )),
-        getDocs(query(
-          collection(db, this.COLLECTION_NAME),
-          where('sharedWith', 'array-contains', user.uid)
-        ))
-      ]);
+      const ownedItemsSnapshot = await getDocs(ownedItemsQuery);
+      const ownedItems = ownedItemsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data() as FirestoreShoppingListItem,
+        createdAt: doc.data().createdAt?.toDate() || new Date(),
+        sharedWith: doc.data().sharedWith || []
+      }));
 
-      console.log('Owned items:', ownedItems.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-      console.log('Shared items:', sharedItems.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      // Get items shared with user
+      const sharedItemsQuery = query(
+        collection(db, this.COLLECTION_NAME),
+        where('sharedWith', 'array-contains', user.uid)
+      );
+      
+      const sharedItemsSnapshot = await getDocs(sharedItemsQuery);
+      const sharedItems = sharedItemsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data() as FirestoreShoppingListItem,
+        createdAt: doc.data().createdAt?.toDate() || new Date(),
+        sharedWith: doc.data().sharedWith || []
+      }));
 
-      const allItems = [...ownedItems.docs, ...sharedItems.docs];
-      const mappedItems = allItems.map(doc => {
-        const data = doc.data() as FirestoreShoppingListItem;
-        return {
-          id: doc.id,
-          ...data,
-          createdAt: data.createdAt?.toDate() || new Date(),
-          sharedWith: data.sharedWith || []
-        } as ShoppingListItem;
-      });
-
-      console.log('Mapped items:', mappedItems);
-      return mappedItems;
+      return [...ownedItems, ...sharedItems] as ShoppingListItem[];
     } catch (error) {
       console.error('Error getting shopping list items:', error);
       throw error;
@@ -127,14 +203,28 @@ export class ShoppingListService {
     const user = auth.currentUser;
     if (!user) throw new Error('User not authenticated');
 
-    const q = query(
-      collection(db, this.COLLECTION_NAME),
-      where('userId', '==', user.uid),
-      where('completed', '==', true)
-    );
+    try {
+      // Only delete completed items that the user owns
+      const q = query(
+        collection(db, this.COLLECTION_NAME),
+        where('userId', '==', user.uid),
+        where('completed', '==', true)
+      );
 
-    const querySnapshot = await getDocs(q);
-    const deletePromises = querySnapshot.docs.map(doc => deleteDoc(doc.ref));
-    await Promise.all(deletePromises);
+      const querySnapshot = await getDocs(q);
+      
+      // Use a batch write for atomic operation
+      const batch = writeBatch(db);
+      querySnapshot.docs.forEach(doc => {
+        batch.delete(doc.ref);
+      });
+      
+      if (querySnapshot.docs.length > 0) {
+        await batch.commit();
+      }
+    } catch (error) {
+      console.error('Error deleting completed items:', error);
+      throw error;
+    }
   }
 }

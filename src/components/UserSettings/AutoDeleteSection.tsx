@@ -12,6 +12,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { useUserSettings } from '../../hooks/useUserSettings';
 import { useProductList } from '../../hooks/useProductList';
 import { auth } from '../../firebaseConfig';
+import { checkAndDeleteExpiredProducts } from '../../services/AutoDeleteService';
 
 const AutoDeleteSection: React.FC = () => {
   const { t } = useLanguage();
@@ -27,8 +28,16 @@ const AutoDeleteSection: React.FC = () => {
         autoDeleteExpired: checked
       });
       
-      // Always refresh the product list to ensure UI is in sync
-      await loadProducts();
+      if (checked) {
+        // If auto-delete is enabled, immediately check and delete expired products
+        await checkAndDeleteExpiredProducts(auth.currentUser, async () => {
+          // After deletion, refresh the product list
+          await loadProducts();
+        });
+      } else {
+        // If auto-delete is disabled, just refresh the list
+        await loadProducts();
+      }
     } catch (error) {
       console.error('Error updating auto-delete setting:', error);
     }

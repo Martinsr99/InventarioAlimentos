@@ -48,15 +48,14 @@ export const useProductList = (onRefreshNeeded?: () => void) => {
       const settings = await getUserSettings(auth.currentUser);
       let currentProducts = await getProducts();
 
-      if (settings.autoDeleteExpired) {
-        await checkAndDeleteExpiredProducts(auth.currentUser);
-        // Reload products after deletion
-        currentProducts = await getProducts();
-      }
-      
       setProducts(currentProducts);
-      if (onRefreshNeeded) {
-        onRefreshNeeded();
+
+      if (settings.autoDeleteExpired) {
+        await checkAndDeleteExpiredProducts(auth.currentUser, async () => {
+          const updatedProducts = await getProducts();
+          setProducts(updatedProducts);
+          onRefreshNeeded?.();
+        });
       }
     } catch (error) {
       console.error('Error loading products:', error);

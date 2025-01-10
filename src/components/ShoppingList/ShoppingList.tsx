@@ -52,12 +52,10 @@ const ShoppingList: React.FC<ShoppingListProps> = React.memo(({ onRefreshNeeded 
     loadItems();
   }, [loadItems]);
 
+  // Initial filter setup
   useEffect(() => {
-    if (myItems.length > 0 || sharedItems.length > 0) {
-      console.log('Filtering items after load:', { myItems, sharedItems });
-      filterAndSortItems(searchText, sortBy, sortDirection, showCompleted);
-    }
-  }, [filterAndSortItems, searchText, sortBy, sortDirection, showCompleted, myItems, sharedItems]);
+    filterAndSortItems(searchText, sortBy, sortDirection, showCompleted);
+  }, [filterAndSortItems, searchText, sortBy, sortDirection, showCompleted]); // Update when filter params change
 
   const handleRefresh = useCallback(async (event: CustomEvent<RefresherEventDetail>) => {
     try {
@@ -109,6 +107,10 @@ const ShoppingList: React.FC<ShoppingListProps> = React.memo(({ onRefreshNeeded 
     filterAndSortItems(searchText, sortBy, sortDirection, newShowCompleted);
   }, [filterAndSortItems, searchText, sortBy, sortDirection, showCompleted]);
 
+  const handleAddItem = useCallback(() => {
+    return loadItems();
+  }, [loadItems]);
+
   return (
     <>
       <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
@@ -121,7 +123,7 @@ const ShoppingList: React.FC<ShoppingListProps> = React.memo(({ onRefreshNeeded 
             <IonCardTitle>{t('shoppingList.title')}</IonCardTitle>
           </IonCardHeader>
           <IonCardContent className="shopping-list-content">
-            <AddShoppingItem onAdd={loadItems} />
+            <AddShoppingItem onAdd={handleAddItem} />
             <IonCardTitle className="ion-margin-start">{t('shoppingList.pendingItemsTitle')}</IonCardTitle>                
             <ShoppingListFilters
               searchText={searchText}

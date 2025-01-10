@@ -48,8 +48,8 @@ const AddShoppingItem: React.FC<AddShoppingItemProps> = ({ onAdd }) => {
         try {
           const results = await searchPredefinedProducts(name.trim(), language);
           setSuggestions(results);
-        } catch (error) {
-          console.error('Error loading suggestions:', error);
+        } catch {
+          setSuggestions([]);
         }
         setIsLoading(false);
       } else {
@@ -59,7 +59,7 @@ const AddShoppingItem: React.FC<AddShoppingItemProps> = ({ onAdd }) => {
 
     const debounceTimer = setTimeout(loadSuggestions, 300);
     return () => clearTimeout(debounceTimer);
-  }, [name]);
+  }, [name, language]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,8 +72,6 @@ const AddShoppingItem: React.FC<AddShoppingItemProps> = ({ onAdd }) => {
 
     try {
       const trimmedName = name.trim();
-      
-      // Buscamos si existe en los predefinidos del idioma actual
       const predefinedProducts = await searchPredefinedProducts(trimmedName, language);
       const exactMatch = predefinedProducts.find(p => 
         p.name.toLowerCase() === trimmedName.toLowerCase()
@@ -83,24 +81,14 @@ const AddShoppingItem: React.FC<AddShoppingItemProps> = ({ onAdd }) => {
       let categoryToUse = category;
 
       if (exactMatch) {
-        // Si existe en predefinidos, usamos el nombre exacto y su categoría
         nameToUse = exactMatch.name;
         categoryToUse = exactMatch.category;
       } else if (category) {
-        // Si no existe en predefinidos y tiene categoría, lo guardamos como producto personalizado
         await addUserProduct({
           name: trimmedName,
           category: category
         });
       }
-
-      // Añadir a la lista de compras
-      console.log('Adding shopping list item:', {
-        name: nameToUse,
-        quantity: Number(quantity),
-        category: categoryToUse,
-        sharedWith: selectedUsers
-      });
 
       await ShoppingListService.addItem({
         name: nameToUse,
@@ -110,8 +98,6 @@ const AddShoppingItem: React.FC<AddShoppingItemProps> = ({ onAdd }) => {
         sharedWith: selectedUsers
       }, language);
 
-      console.log('Item added successfully');
-
       setName('');
       setQuantity('1');
       setCategory('other');
@@ -119,9 +105,7 @@ const AddShoppingItem: React.FC<AddShoppingItemProps> = ({ onAdd }) => {
       setIsCustomQuantity(false);
 
       setSuccess(true);
-      if (onAdd) {
-        await onAdd();
-      }
+      onAdd?.();
     } catch (err) {
       setError(t('errors.addItem'));
       setShowToast(true);
