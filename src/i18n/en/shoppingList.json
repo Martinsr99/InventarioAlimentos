@@ -25,5 +25,10 @@
   "saveToInventory": "Save to Inventory",
   "share": "Share",
   "shareWith": "Share with",
-  "addSuccess": "Item added successfully"
+  "addSuccess": "Item added successfully",
+  "pendingInventory": "Ready to Add to Inventory",
+  "addToInventory": "Add to Inventory",
+  "selectLocation": "Select Location",
+  "selectExpiryDate": "Select Expiry Date",
+  "addToInventorySuccess": "Item added to inventory successfully"
 }

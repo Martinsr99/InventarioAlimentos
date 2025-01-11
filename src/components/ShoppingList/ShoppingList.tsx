@@ -18,6 +18,7 @@ import { useShoppingList, SortOption, SortDirection } from '../../hooks/useShopp
 import { ShoppingListFilters } from './ShoppingListFilters';
 import ShoppingListContent from './ShoppingListContent';
 import AddShoppingItem from './AddShoppingItem';
+import CompletedItemsSection from './CompletedItemsSection';
 import './ShoppingList.css';
 
 interface ShoppingListProps {
@@ -45,7 +46,10 @@ const ShoppingList: React.FC<ShoppingListProps> = React.memo(({ onRefreshNeeded 
     toggleItemCompletion,
     deleteCompletedItems,
     filterAndSortItems,
-    loadItems
+    loadItems,
+    moveToInventory,
+    getCompletedItems,
+    getPendingItems
   } = useShoppingList(onRefreshNeeded);
 
   useEffect(() => {
@@ -141,15 +145,21 @@ const ShoppingList: React.FC<ShoppingListProps> = React.memo(({ onRefreshNeeded 
                 <IonSpinner />
               </div>
             ) : (
-              <ShoppingListContent
-                loading={false}
-                myItems={myItems}
-                sharedItems={sharedItems}
-                onDelete={setItemToDelete}
-                onToggleCompletion={toggleItemCompletion}
-                loadItems={loadItems}
-                onRefreshNeeded={onRefreshNeeded}
-              />
+              <>
+                <ShoppingListContent
+                  loading={false}
+                  myItems={getPendingItems()}
+                  sharedItems={[]}
+                  onDelete={setItemToDelete}
+                  onToggleCompletion={toggleItemCompletion}
+                  loadItems={loadItems}
+                  onRefreshNeeded={onRefreshNeeded}
+                />
+                <CompletedItemsSection
+                  items={getCompletedItems()}
+                  onAddToInventory={moveToInventory}
+                />
+              </>
             )}
           </IonCardContent>
         </IonCard>

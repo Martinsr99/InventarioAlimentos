@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { ShoppingListService, ShoppingListItem } from '../services/ShoppingListService';
 import { auth } from '../firebaseConfig';
+import { addProduct } from '../services/InventoryService';
 
 export type SortOption = 'createdAt' | 'name' | 'category';
 export type SortDirection = 'asc' | 'desc';
@@ -145,6 +146,39 @@ export const useShoppingList = (onRefreshNeeded?: () => void) => {
     setShowCompleted(newShowCompleted);
   }, []);
 
+  const moveToInventory = useCallback(async (itemId: string, expiryDate: string, location: string) => {
+    try {
+      const item = [...myItems, ...sharedItems].find(i => i.id === itemId);
+      if (!item) throw new Error('Item not found');
+
+      // Add to inventory
+      await addProduct({
+        name: item.name,
+        quantity: item.quantity,
+        category: item.category || 'other',
+        expiryDate,
+        location,
+        notes: '',
+        sharedWith: item.sharedWith || []
+      });
+
+      // Delete from shopping list
+      await deleteItem(itemId);
+      onRefreshNeeded?.();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error moving item to inventory');
+      throw err;
+    }
+  }, [myItems, sharedItems, deleteItem, onRefreshNeeded]);
+
+  const getCompletedItems = useCallback(() => {
+    return [...myItems, ...sharedItems].filter(item => item.completed);
+  }, [myItems, sharedItems]);
+
+  const getPendingItems = useCallback(() => {
+    return [...myItems, ...sharedItems].filter(item => !item.completed);
+  }, [myItems, sharedItems]);
+
   return {
     myItems: filteredMyItems,
     sharedItems: filteredSharedItems,
@@ -156,6 +190,9 @@ export const useShoppingList = (onRefreshNeeded?: () => void) => {
     toggleItemCompletion,
     deleteCompletedItems,
     filterAndSortItems,
-    loadItems
+    loadItems,
+    moveToInventory,
+    getCompletedItems,
+    getPendingItems
   };
 };

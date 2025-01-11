@@ -25,5 +25,10 @@
   "saveToInventory": "Guardar en Inventario",
   "share": "Compartir",
   "shareWith": "Compartir con",
-  "addSuccess": "Producto añadido correctamente"
+  "addSuccess": "Producto añadido correctamente",
+  "pendingInventory": "Listos para Añadir al Inventario",
+  "addToInventory": "Añadir al Inventario",
+  "selectLocation": "Seleccionar Ubicación",
+  "selectExpiryDate": "Seleccionar Fecha de Caducidad",
+  "addToInventorySuccess": "Producto añadido al inventario correctamente"
 }

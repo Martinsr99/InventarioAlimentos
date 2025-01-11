@@ -4,7 +4,7 @@
 
 .section {
   margin-top: 1.5rem;
-  background: var(--ion-color-light);
+  background: var(--ion-color-step-50);
   border-radius: 8px;
   padding: 1rem;
 }
@@ -12,10 +12,10 @@
 .section-title {
   font-size: 1.2rem;
   font-weight: 500;
-  color: var(--ion-color-medium);
+  color: var(--ion-text-color);
   margin: 0 0 1rem 0;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--ion-color-medium-tint);
+  border-bottom: 1px solid var(--ion-color-step-150);
 }
 
 .section ion-list {
@@ -23,7 +23,7 @@
 }
 
 .section ion-item {
-  --background: var(--ion-color-light-shade);
+  --background: var(--ion-color-step-100);
   margin-bottom: 0.5rem;
   border-radius: 4px;
 }
@@ -36,17 +36,20 @@
   margin: 0;
   border-radius: 12px;
   box-shadow: none;
-  background: transparent;
+  background: var(--ion-color-step-50);
   overflow: hidden;
 }
 
 .shopping-list-content {
   padding: 0;
-  background: transparent;
+  background: var(--ion-color-step-50);
 }
 
 .add-shopping-item {
   margin-bottom: 1rem;
+  background: var(--ion-color-step-100);
+  border-radius: 8px;
+  padding: 1rem;
 }
 
 ion-item {
@@ -55,18 +58,19 @@ ion-item {
   --padding-top: 16px;
   --padding-bottom: 16px;
   --inner-padding-end: 0;
-  --background: transparent !important;
-  --background-hover: transparent !important;
-  --background-focused: transparent !important;
-  --background-activated: transparent !important;
-  --ion-item-background: transparent !important;
+  --background: var(--ion-color-step-100) !important;
+  --background-hover: var(--ion-color-step-150) !important;
+  --background-focused: var(--ion-color-step-150) !important;
+  --background-activated: var(--ion-color-step-150) !important;
+  --ion-item-background: var(--ion-color-step-100) !important;
   --color: var(--ion-text-color);
   --border-color: var(--ion-color-step-150);
-  --border-width: 0 0 1px 0;
+  --border-width: 0;
   --border-style: solid;
   --min-height: auto;
-  --ripple-color: transparent;
+  --ripple-color: var(--ion-color-step-150);
   margin: 0;
+  border-radius: 4px;
 }
 
 ion-item:last-child {
@@ -94,13 +98,14 @@ ion-item ion-label p {
 /* Filtros y ordenamiento */
 .filters-container {
   margin-bottom: 8px;
-  background: transparent;
+  background: var(--ion-color-step-50);
   padding: 12px;
+  border-radius: 8px;
 }
 
 .product-searchbar {
   padding: 0;
-  --background: var(--ion-color-step-50);
+  --background: var(--ion-color-step-100);
   --border-radius: 8px;
   --box-shadow: none;
   --placeholder-color: var(--ion-color-medium);
@@ -118,9 +123,9 @@ ion-item ion-label p {
 .sort-segment {
   flex-grow: 1;
   min-width: 0;
-  background: var(--ion-color-step-50);
+  background: var(--ion-color-step-100);
   border-radius: 8px;
-  --background: var(--ion-color-step-50);
+  --background: var(--ion-color-step-100);
 }
 
 .sort-segment-button {
@@ -174,7 +179,6 @@ ion-item ion-label p {
 }
 
 .completed-item {
-  --background: transparent !important;
   opacity: 0.7;
 }
 
@@ -183,40 +187,19 @@ ion-item ion-label p {
   color: var(--ion-color-medium) !important;
 }
 
-
 ion-list {
   background: transparent !important;
-  --ion-item-background: transparent !important;
+  padding: 0;
 }
 
 ion-item-sliding {
-  margin-bottom: 2px;
-  background: transparent !important;
-  --ion-item-background: transparent !important;
+  margin-bottom: 4px;
+  border-radius: 4px;
+  overflow: hidden;
 }
 
 ion-item-options {
   border-radius: 4px;
-}
-
-.ios ion-list {
-  background: transparent !important;
-}
-
-.ios ion-item {
-  --ion-item-background: transparent !important;
-}
-
-.ios ion-item-sliding {
-  background: transparent !important;
-}
-
-:root.dark ion-list,
-:root.dark ion-item,
-:root.dark ion-item-sliding {
-  --background: transparent !important;
-  --ion-item-background: transparent !important;
-  background: transparent !important;
 }
 
 /* Action Sheet Styles */
