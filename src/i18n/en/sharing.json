@@ -32,5 +32,7 @@
   "selectAll": "Select All",
   "deselectAll": "Deselect All",
   "deleteSelected": "Delete Selected",
-  "sharedWithCount": "Shared with {{count}} users"
+  "sharedWithCount": "Shared with {{count}} users",
+  "shared": "Shared",
+  "sharedWith": "Shared with"
 }

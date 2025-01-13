@@ -32,5 +32,7 @@
   "selectAll": "Seleccionar Todos",
   "deselectAll": "Deseleccionar Todos",
   "deleteSelected": "Eliminar Seleccionados",
-  "sharedWithCount": "Compartido con {{count}} usuarios"
+  "sharedWithCount": "Compartido con {{count}} usuarios",
+  "shared": "Compartido",
+  "sharedWith": "Compartido con"
 }

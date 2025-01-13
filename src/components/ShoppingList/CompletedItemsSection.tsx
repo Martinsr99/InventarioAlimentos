@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   IonList,
   IonItem,
-  IonLabel,
   IonButton,
   IonIcon,
   IonDatetime,
@@ -13,10 +12,14 @@ import {
   IonButtons,
   IonContent,
   IonInput,
+  IonPopover,
 } from '@ionic/react';
-import { calendar } from 'ionicons/icons';
+import { calendar, share } from 'ionicons/icons';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { ShoppingListItem } from '../../hooks/useShoppingList';
+import { getAcceptedShareUsers } from '../../services/FriendService';
+import { auth } from '../../firebaseConfig';
+import './CompletedItemsSection.css';
 
 interface CompletedItemsSectionProps {
   items: ShoppingListItem[];
@@ -27,14 +30,65 @@ interface CompletedItemState {
   expiryDate?: string;
 }
 
+interface PopoverState {
+  isOpen: boolean;
+  event: Event | undefined;
+  itemId: string;
+}
+
 const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = ({
   items,
   onAddToInventory,
 }) => {
   const { t } = useLanguage();
+  const user = auth.currentUser;
   const [itemStates, setItemStates] = React.useState<Record<string, CompletedItemState>>({});
   const [showDatePicker, setShowDatePicker] = React.useState<string | null>(null);
   const [tempDate, setTempDate] = React.useState<string>('');
+  const [sharedUsersInfo, setSharedUsersInfo] = React.useState<{ [key: string]: { userId: string; email: string }[] }>({});
+  const [popover, setPopover] = React.useState<PopoverState>({
+    isOpen: false,
+    event: undefined,
+    itemId: ''
+  });
+  const timeoutRef = React.useRef<NodeJS.Timeout>();
+
+  const loadSharedUsersInfo = React.useCallback(async (item: ShoppingListItem, event: Event) => {
+    if (!user || !item.sharedWith?.length) return;
+
+    const friends = await getAcceptedShareUsers(user);
+    const usersInfo = item.sharedWith.map(userId => {
+      const friend = friends.find(f => f.userId === userId);
+      return friend || { userId, email: userId };
+    });
+
+    setSharedUsersInfo(prev => ({
+      ...prev,
+      [item.id]: usersInfo
+    }));
+
+    setPopover({
+      isOpen: true,
+      event,
+      itemId: item.id
+    });
+
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    timeoutRef.current = setTimeout(() => {
+      setPopover(prev => ({ ...prev, isOpen: false }));
+    }, 3000);
+  }, [user]);
+
+  React.useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleDateChange = (value: string) => {
     setTempDate(value);
@@ -76,12 +130,7 @@ const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = ({
       }
     }
 
-    // Clear states for added items
-    setItemStates(prev => {
-      const newState = { ...prev };
-      itemsWithDates.forEach(id => delete newState[id]);
-      return newState;
-    });
+    setItemStates({});
   };
 
   const hasItemsWithDates = Object.values(itemStates).some(state => state.expiryDate);
@@ -96,26 +145,30 @@ const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = ({
           <IonItem key={item.id}>
             <div className="item-content">
               <div className="item-details">
-                <h2>{item.name}</h2>
-                <div className="item-info">
-                  <p>{t('shoppingList.quantity', { quantity: item.quantity })}</p>
-                  {item.category && (
-                    <p>{t(`categories.${item.category}`)}</p>
-                  )}
-                </div>
+                <h2>
+                  <div className="item-name-row">
+                    <span className="item-name">{item.name}</span>
+                    {item.sharedWith && item.sharedWith.length > 0 && (
+                      <IonIcon 
+                        icon={share} 
+                        className="share-icon"
+                        onClick={(e) => loadSharedUsersInfo(item, e.nativeEvent)}
+                      />
+                    )}
+                  </div>
+                  <span className="item-quantity">x{item.quantity}</span>
+                </h2>
               </div>
-              <div className="date-input-container">
-                <IonInput
-                  readonly
-                  value={formatDisplayDate(itemStates[item.id]?.expiryDate || '')}
-                  placeholder={t('products.selectDate')}
-                  className="date-display"
-                  onClick={() => {
-                    setShowDatePicker(item.id);
-                    setTempDate(itemStates[item.id]?.expiryDate || new Date().toISOString());
-                  }}
-                />
-              </div>
+              <IonInput
+                readonly
+                value={formatDisplayDate(itemStates[item.id]?.expiryDate || '')}
+                placeholder={t('products.selectDate')}
+                className="date-display"
+                onClick={() => {
+                  setShowDatePicker(item.id);
+                  setTempDate(itemStates[item.id]?.expiryDate || new Date().toISOString());
+                }}
+              />
             </div>
 
             <IonModal
@@ -213,6 +266,16 @@ const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = ({
           {t('shoppingList.addToInventory')}
         </IonButton>
       </div>
+
+      <IonPopover
+        isOpen={popover.isOpen}
+        event={popover.event}
+        onDidDismiss={() => setPopover(prev => ({ ...prev, isOpen: false }))}
+      >
+        <div className="ion-padding">
+          {sharedUsersInfo[popover.itemId]?.map(user => user.email).join(', ')}
+        </div>
+      </IonPopover>
     </div>
   );
 };

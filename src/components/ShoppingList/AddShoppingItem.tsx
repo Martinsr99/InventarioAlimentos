@@ -101,7 +101,6 @@ const AddShoppingItem: React.FC<AddShoppingItemProps> = ({ onAdd }) => {
       setName('');
       setQuantity('1');
       setCategory('other');
-      setSelectedUsers([]);
       setIsCustomQuantity(false);
 
       setSuccess(true);
