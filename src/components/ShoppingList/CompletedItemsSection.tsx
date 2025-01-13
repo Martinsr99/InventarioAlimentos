@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   IonList,
   IonItem,
@@ -13,6 +13,7 @@ import {
   IonContent,
   IonInput,
   IonPopover,
+  IonAlert,
 } from '@ionic/react';
 import { calendar, share, camera } from 'ionicons/icons';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -20,11 +21,13 @@ import { ShoppingListItem } from '../../hooks/useShoppingList';
 import { getAcceptedShareUsers } from '../../services/FriendService';
 import { auth } from '../../firebaseConfig';
 import { BatchDateScanner } from './BatchDateScanner';
+import { ShoppingListService } from '../../services/ShoppingListService';
 import './CompletedItemsSection.css';
 
 interface CompletedItemsSectionProps {
   items: ShoppingListItem[];
   onAddToInventory: (itemId: string, expiryDate: string, location: string) => Promise<void>;
+  onDelete: (itemId: string) => Promise<void>;
 }
 
 interface CompletedItemState {
@@ -40,21 +43,26 @@ interface PopoverState {
 const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = ({
   items,
   onAddToInventory,
+  onDelete,
 }) => {
   const { t } = useLanguage();
   const user = auth.currentUser;
-  const [itemStates, setItemStates] = React.useState<Record<string, CompletedItemState>>({});
-  const [showDatePicker, setShowDatePicker] = React.useState<string | null>(null);
-  const [tempDate, setTempDate] = React.useState<string>('');
-  const [sharedUsersInfo, setSharedUsersInfo] = React.useState<{ [key: string]: { userId: string; email: string }[] }>({});
-  const [popover, setPopover] = React.useState<PopoverState>({
+  const [itemStates, setItemStates] = useState<Record<string, CompletedItemState>>({});
+  const [showDatePicker, setShowDatePicker] = useState<string | null>(null);
+  const [tempDate, setTempDate] = useState<string>('');
+  const [sharedUsersInfo, setSharedUsersInfo] = useState<{ [key: string]: { userId: string; email: string }[] }>({});
+  const [popover, setPopover] = useState<PopoverState>({
     isOpen: false,
     event: undefined,
     itemId: ''
   });
   const [showBatchScanner, setShowBatchScanner] = useState(false);
   const [scanningItemId, setScanningItemId] = useState<string | null>(null);
-  const timeoutRef = React.useRef<NodeJS.Timeout>();
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout>();
+  const longPressRef = useRef<NodeJS.Timeout>();
+  const [isLongPress, setIsLongPress] = useState(false);
 
   const loadSharedUsersInfo = React.useCallback(async (item: ShoppingListItem, event: Event) => {
     if (!user || !item.sharedWith?.length) return;
@@ -89,6 +97,9 @@ const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = ({
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
+      }
+      if (longPressRef.current) {
+        clearTimeout(longPressRef.current);
       }
     };
   }, []);
@@ -151,6 +162,41 @@ const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = ({
     setShowBatchScanner(true);
   };
 
+  const startLongPress = (itemId: string) => {
+    setIsLongPress(false);
+    if (longPressRef.current) {
+      clearTimeout(longPressRef.current);
+    }
+    longPressRef.current = setTimeout(() => {
+      setIsLongPress(true);
+      setItemToDelete(itemId);
+      setShowDeleteAlert(true);
+    }, 500);
+  };
+
+  const endLongPress = () => {
+    if (longPressRef.current) {
+      clearTimeout(longPressRef.current);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (itemToDelete) {
+      try {
+        await onDelete(itemToDelete);
+        setItemStates(prev => {
+          const newState = { ...prev };
+          delete newState[itemToDelete];
+          return newState;
+        });
+      } catch (error) {
+        console.error('Error deleting item:', error);
+      }
+    }
+    setShowDeleteAlert(false);
+    setItemToDelete(null);
+  };
+
   const itemsWithoutDates = items.filter(item => !itemStates[item.id]?.expiryDate);
   const hasItemsWithDates = Object.values(itemStates).some(state => state.expiryDate);
 
@@ -175,7 +221,19 @@ const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = ({
       </div>
       <IonList>
         {items.map(item => (
-          <IonItem key={item.id}>
+          <IonItem 
+            key={item.id}
+            onTouchStart={() => startLongPress(item.id)}
+            onTouchEnd={endLongPress}
+            onTouchMove={endLongPress}
+            onClick={(e) => {
+              if (isLongPress) {
+                e.preventDefault();
+                setIsLongPress(false);
+              }
+            }}
+            className="long-press-item"
+          >
             <div className="item-content">
               <div className="item-details">
                 <h2>
@@ -199,15 +257,21 @@ const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = ({
                   placeholder={t('products.selectDate')}
                   className="date-display"
                   onClick={() => {
-                    setShowDatePicker(item.id);
-                    setTempDate(itemStates[item.id]?.expiryDate || new Date().toISOString());
+                    if (!isLongPress) {
+                      setShowDatePicker(item.id);
+                      setTempDate(itemStates[item.id]?.expiryDate || new Date().toISOString());
+                    }
                   }}
                 />
                 {!itemStates[item.id]?.expiryDate && (
                   <IonButton
                     fill="clear"
                     size="small"
-                    onClick={() => handleSingleItemScan(item.id)}
+                    onClick={(e) => {
+                      if (!isLongPress) {
+                        handleSingleItemScan(item.id);
+                      }
+                    }}
                   >
                     <IonIcon slot="icon-only" icon={camera} />
                   </IonButton>
@@ -311,6 +375,27 @@ const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = ({
           {sharedUsersInfo[popover.itemId]?.map(user => user.email).join(', ')}
         </div>
       </IonPopover>
+
+      <IonAlert
+        isOpen={showDeleteAlert}
+        onDidDismiss={() => {
+          setShowDeleteAlert(false);
+          setItemToDelete(null);
+        }}
+        header={t('shoppingList.confirmDelete')}
+        message={t('shoppingList.confirmDeleteMessage')}
+        buttons={[
+          {
+            text: t('common.cancel'),
+            role: 'cancel',
+          },
+          {
+            text: t('common.delete'),
+            role: 'destructive',
+            handler: handleDelete,
+          },
+        ]}
+      />
     </div>
   );
 };

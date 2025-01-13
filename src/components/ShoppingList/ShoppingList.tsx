@@ -56,10 +56,9 @@ const ShoppingList: React.FC<ShoppingListProps> = React.memo(({ onRefreshNeeded 
     loadItems();
   }, [loadItems]);
 
-  // Initial filter setup
   useEffect(() => {
     filterAndSortItems(searchText, sortBy, sortDirection, showCompleted);
-  }, [filterAndSortItems, searchText, sortBy, sortDirection, showCompleted]); // Update when filter params change
+  }, [filterAndSortItems, searchText, sortBy, sortDirection, showCompleted]);
 
   const handleRefresh = useCallback(async (event: CustomEvent<RefresherEventDetail>) => {
     try {
@@ -158,6 +157,7 @@ const ShoppingList: React.FC<ShoppingListProps> = React.memo(({ onRefreshNeeded 
                 <CompletedItemsSection
                   items={getCompletedItems()}
                   onAddToInventory={moveToInventory}
+                  onDelete={deleteItem}
                 />
               </>
             )}
