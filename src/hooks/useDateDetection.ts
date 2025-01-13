@@ -39,48 +39,91 @@ export const useDateDetection = (): UseDateDetectionResult => {
 
   const initializeCamera = useCallback(async () => {
     try {
+      // Primero intentamos detener cualquier stream existente
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
+      }
+
       const constraints: MediaTrackConstraints & ExtendedMediaTrackConstraintSet = {
-        facingMode: 'environment',
-        width: { ideal: 1920 },
-        height: { ideal: 1080 },
+        facingMode: { exact: 'environment' },
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
         focusMode: 'continuous',
         exposureMode: 'continuous',
         whiteBalanceMode: 'continuous'
       };
 
-      const stream = await navigator.mediaDevices.getUserMedia({ video: constraints });
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ 
+          video: constraints,
+          audio: false
+        });
+      } catch (err) {
+        // Si falla con la cámara trasera, intentamos sin 'exact'
+        constraints.facingMode = 'environment';
+        stream = await navigator.mediaDevices.getUserMedia({ 
+          video: constraints,
+          audio: false
+        });
+      }
+
       const videoTrack = stream.getVideoTracks()[0];
       trackRef.current = videoTrack;
 
+      // Configurar la cámara para mejor captura de texto
       const capabilities = videoTrack.getCapabilities() as ExtendedMediaTrackCapabilities;
       const settings: ExtendedMediaTrackConstraintSet = {
-        focusMode: 'continuous',
-        exposureMode: 'continuous',
-        whiteBalanceMode: 'continuous'
+        focusMode: capabilities.focusMode?.includes('continuous') ? 'continuous' : undefined,
+        exposureMode: capabilities.exposureMode?.includes('continuous') ? 'continuous' : undefined,
+        whiteBalanceMode: capabilities.whiteBalanceMode?.includes('continuous') ? 'continuous' : undefined
       };
 
       if (capabilities.torch) {
         addDebugInfo(t('products.flashAvailable'));
       }
 
-      await videoTrack.applyConstraints({
-        advanced: [settings]
-      });
+      try {
+        await videoTrack.applyConstraints({
+          advanced: [settings]
+        });
+      } catch (err) {
+        console.warn('No se pudieron aplicar configuraciones avanzadas:', err);
+      }
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         streamRef.current = stream;
         
-        await new Promise<void>((resolve) => {
-          if (videoRef.current) {
-            videoRef.current.onloadedmetadata = () => {
-              videoRef.current?.play();
-              addDebugInfo(t('products.videoStarted'));
-              resolve();
-            };
-          } else {
-            resolve();
+        await new Promise<void>((resolve, reject) => {
+          if (!videoRef.current) {
+            reject(new Error('Video element not found'));
+            return;
           }
+
+          const timeoutId = setTimeout(() => {
+            reject(new Error('Video load timeout'));
+          }, 10000);
+
+          videoRef.current.onloadedmetadata = () => {
+            clearTimeout(timeoutId);
+            if (videoRef.current) {
+              videoRef.current.play()
+                .then(() => {
+                  addDebugInfo(t('products.videoStarted'));
+                  resolve();
+                })
+                .catch(reject);
+            }
+          };
+
+          videoRef.current.onerror = (e) => {
+            clearTimeout(timeoutId);
+            reject(new Error(`Video error: ${e}`));
+          };
         });
       }
 
@@ -109,17 +152,12 @@ export const useDateDetection = (): UseDateDetectionResult => {
         } else {
           addDebugInfo(t('products.flashNotSupported'));
         }
-      } else {
-        const initialized = await initializeCamera();
-        if (initialized) {
-          await toggleFlash();
-        }
       }
     } catch (err) {
       console.error('Error toggling flash:', err);
       addDebugInfo(t('errors.flashControl'));
     }
-  }, [isFlashOn, addDebugInfo, initializeCamera, t]);
+  }, [isFlashOn, addDebugInfo, t]);
 
   const stopScanning = useCallback(() => {
     addDebugInfo(t('products.stoppingScanner'));
@@ -190,7 +228,7 @@ export const useDateDetection = (): UseDateDetectionResult => {
       canvas.width = scanAreaWidth;
       canvas.height = scanAreaHeight;
 
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
       if (!ctx) {
         throw new Error('Could not get canvas context');
       }
@@ -286,6 +324,9 @@ export const useDateDetection = (): UseDateDetectionResult => {
         return;
       }
 
+      // Esperar un momento para que la cámara se estabilice
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
       scanIntervalRef.current = setInterval(async () => {
         if (!processingRef.current) {
           const dateFound = await processFrame();
@@ -339,6 +380,9 @@ export const useDateDetection = (): UseDateDetectionResult => {
 
 interface ExtendedMediaTrackCapabilities extends MediaTrackCapabilities {
   torch?: boolean;
+  focusMode?: string[];
+  exposureMode?: string[];
+  whiteBalanceMode?: string[];
 }
 
 interface ExtendedMediaTrackConstraintSet extends MediaTrackConstraintSet {

@@ -11,7 +11,7 @@ import {
   IonSpinner,
   IonText,
 } from '@ionic/react';
-import { camera, flash, flashOff } from 'ionicons/icons';
+import { camera, flash, flashOff, close } from 'ionicons/icons';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useDateDetection } from '../../hooks/useDateDetection';
 import './BatchDateScanner.css';
@@ -74,19 +74,26 @@ export const BatchDateScanner: React.FC<BatchDateScannerProps> = ({
   const currentItem = items[currentItemIndex];
 
   return (
-    <IonModal isOpen={isOpen} onDidDismiss={onClose} className="batch-scanner-modal">
-      <IonHeader>
+    <IonModal 
+      isOpen={isOpen} 
+      onDidDismiss={onClose} 
+      className="batch-scanner-modal"
+      mode="ios"
+    >
+      <IonHeader className="ion-no-border">
         <IonToolbar>
-          <IonTitle>{t('shoppingList.scanExpiryDates')}</IonTitle>
-          <IonButtons slot="end">
-            <IonButton onClick={onClose}>{t('common.close')}</IonButton>
+          <IonButtons slot="start">
+            <IonButton onClick={onClose}>
+              <IonIcon slot="icon-only" icon={close} />
+            </IonButton>
           </IonButtons>
+          <IonTitle>{t('shoppingList.scanExpiryDates')}</IonTitle>
         </IonToolbar>
       </IonHeader>
-      <IonContent className="ion-padding">
+      <IonContent fullscreen>
         <div className="scanner-container">
           <div className="current-item">
-            <h2>{t('shoppingList.scanningItem', { name: currentItem?.name })}</h2>
+            <h2>{currentItem?.name}</h2>
             <p className="progress">
               {t('shoppingList.scanProgress', { current: currentItemIndex + 1, total: items.length })}
             </p>
@@ -97,38 +104,42 @@ export const BatchDateScanner: React.FC<BatchDateScannerProps> = ({
               ref={videoRef}
               playsInline
               muted
+              autoPlay
               className="scanner-video"
             />
             <div className="scanner-target" />
           </div>
 
-          <div className="scanner-controls">
-            <IonButton
-              fill="clear"
-              onClick={toggleFlash}
-            >
-              <IonIcon slot="icon-only" icon={isFlashOn ? flashOff : flash} />
-            </IonButton>
-          </div>
-
           {isProcessing && (
             <div className="processing-indicator">
-              <IonSpinner name="crescent" />
-              <IonText>{t('products.processing')}</IonText>
+              <IonSpinner name="crescent" color="light" />
+              <IonText color="light">{t('products.processing')}</IonText>
             </div>
           )}
 
           {error && (
             <div className="error-message">
-              <IonText color="danger">{error}</IonText>
+              <IonText color="light">{error}</IonText>
             </div>
           )}
 
-          <div className="debug-info">
-            {debugInfo.map((info, index) => (
-              <p key={index} className="debug-line">{info}</p>
-            ))}
+          <div className="scanner-controls">
+            <IonButton
+              fill="clear"
+              onClick={toggleFlash}
+              color="light"
+            >
+              <IonIcon slot="icon-only" icon={isFlashOn ? flashOff : flash} />
+            </IonButton>
           </div>
+
+          {debugInfo.length > 0 && (
+            <div className="debug-info">
+              {debugInfo.map((info, index) => (
+                <p key={index} className="debug-line">{info}</p>
+              ))}
+            </div>
+          )}
         </div>
       </IonContent>
     </IonModal>
