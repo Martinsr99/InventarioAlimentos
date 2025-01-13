@@ -73,9 +73,11 @@
 .share-icon {
   cursor: pointer;
   color: var(--ion-color-primary);
-  font-size: 0.95em;
-  min-width: 16px;
-  margin-left: auto;
+  font-size: 1.2em;
+  min-width: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .date-actions {
@@ -87,9 +89,11 @@
 
 .date-actions ion-button {
   margin: 0;
-  --padding-start: 4px;
-  --padding-end: 4px;
+  --padding-start: 8px;
   height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Ajustes para el IonItem */
@@ -118,4 +122,8 @@ ion-item {
   --padding-start: 4px;
   --padding-end: 4px;
   height: 30px;
+  font-size: 1.2em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
