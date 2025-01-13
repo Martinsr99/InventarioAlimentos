@@ -14,11 +14,12 @@ import {
   IonInput,
   IonPopover,
 } from '@ionic/react';
-import { calendar, share } from 'ionicons/icons';
+import { calendar, share, camera } from 'ionicons/icons';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { ShoppingListItem } from '../../hooks/useShoppingList';
 import { getAcceptedShareUsers } from '../../services/FriendService';
 import { auth } from '../../firebaseConfig';
+import { BatchDateScanner } from './BatchDateScanner';
 import './CompletedItemsSection.css';
 
 interface CompletedItemsSectionProps {
@@ -51,6 +52,8 @@ const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = ({
     event: undefined,
     itemId: ''
   });
+  const [showBatchScanner, setShowBatchScanner] = useState(false);
+  const [scanningItemId, setScanningItemId] = useState<string | null>(null);
   const timeoutRef = React.useRef<NodeJS.Timeout>();
 
   const loadSharedUsersInfo = React.useCallback(async (item: ShoppingListItem, event: Event) => {
@@ -133,13 +136,43 @@ const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = ({
     setItemStates({});
   };
 
+  const handleBatchDateDetected = (itemId: string, date: Date) => {
+    setItemStates(prev => ({
+      ...prev,
+      [itemId]: {
+        ...prev[itemId],
+        expiryDate: date.toISOString()
+      }
+    }));
+  };
+
+  const handleSingleItemScan = (itemId: string) => {
+    setScanningItemId(itemId);
+    setShowBatchScanner(true);
+  };
+
+  const itemsWithoutDates = items.filter(item => !itemStates[item.id]?.expiryDate);
   const hasItemsWithDates = Object.values(itemStates).some(state => state.expiryDate);
 
   if (items.length === 0) return null;
 
   return (
     <div className="section">
-      <h2 className="section-title">{t('shoppingList.pendingInventory')}</h2>
+      <div className="section-header">
+        <h2 className="section-title">{t('shoppingList.pendingInventory')}</h2>
+        {itemsWithoutDates.length > 0 && (
+          <IonButton
+            fill="clear"
+            size="small"
+            onClick={() => {
+              setScanningItemId(null);
+              setShowBatchScanner(true);
+            }}
+          >
+            <IonIcon slot="icon-only" icon={camera} />
+          </IonButton>
+        )}
+      </div>
       <IonList>
         {items.map(item => (
           <IonItem key={item.id}>
@@ -159,16 +192,27 @@ const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = ({
                   <span className="item-quantity">x{item.quantity}</span>
                 </h2>
               </div>
-              <IonInput
-                readonly
-                value={formatDisplayDate(itemStates[item.id]?.expiryDate || '')}
-                placeholder={t('products.selectDate')}
-                className="date-display"
-                onClick={() => {
-                  setShowDatePicker(item.id);
-                  setTempDate(itemStates[item.id]?.expiryDate || new Date().toISOString());
-                }}
-              />
+              <div className="date-actions">
+                <IonInput
+                  readonly
+                  value={formatDisplayDate(itemStates[item.id]?.expiryDate || '')}
+                  placeholder={t('products.selectDate')}
+                  className="date-display"
+                  onClick={() => {
+                    setShowDatePicker(item.id);
+                    setTempDate(itemStates[item.id]?.expiryDate || new Date().toISOString());
+                  }}
+                />
+                {!itemStates[item.id]?.expiryDate && (
+                  <IonButton
+                    fill="clear"
+                    size="small"
+                    onClick={() => handleSingleItemScan(item.id)}
+                  >
+                    <IonIcon slot="icon-only" icon={camera} />
+                  </IonButton>
+                )}
+              </div>
             </div>
 
             <IonModal
@@ -228,26 +272,6 @@ const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = ({
                     color="dark"
                     mode="ios"
                     yearValues={Array.from({ length: 10 }, (_, i) => new Date().getFullYear() + i)}
-                    style={{
-                      '--background': 'var(--ion-background-color)',
-                      '--wheel-fade-background-rgb': 'var(--ion-background-color-rgb)',
-                      '--wheel-item-color': 'var(--ion-text-color)',
-                      '--wheel-selected-item-color': 'var(--ion-text-color)',
-                      '--wheel-selected-item-background': 'var(--ion-background-color)',
-                      '--highlight-background': 'var(--ion-background-color)',
-                      '--highlight-color': 'var(--ion-text-color)',
-                      '--wheel-highlight-background': 'var(--ion-background-color)',
-                      '--wheel-col-background': 'var(--ion-background-color)',
-                      '--wheel-item-font-size': '22px',
-                      '--wheel-item-padding-start': '20px',
-                      '--wheel-item-padding-end': '20px',
-                      '--wheel-selected-item-font-weight': '600',
-                      '--wheel-picker-option-background': 'var(--ion-background-color)',
-                      '--wheel-picker-option-selected-background': 'var(--ion-background-color)',
-                      '--wheel-picker-background': 'var(--ion-background-color)',
-                      '--wheel-fade-mask-background': 'var(--ion-background-color)',
-                      'background': 'var(--ion-background-color)'
-                    }}
                   />
                 </div>
               </IonContent>
@@ -255,6 +279,7 @@ const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = ({
           </IonItem>
         ))}
       </IonList>
+
       <div className="add-to-inventory-container">
         <IonButton
           fill="solid"
@@ -266,6 +291,16 @@ const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = ({
           {t('shoppingList.addToInventory')}
         </IonButton>
       </div>
+
+      <BatchDateScanner
+        isOpen={showBatchScanner}
+        onClose={() => {
+          setShowBatchScanner(false);
+          setScanningItemId(null);
+        }}
+        onDateDetected={handleBatchDateDetected}
+        items={scanningItemId ? items.filter(item => item.id === scanningItemId) : itemsWithoutDates}
+      />
 
       <IonPopover
         isOpen={popover.isOpen}

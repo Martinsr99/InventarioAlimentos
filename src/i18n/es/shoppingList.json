@@ -30,5 +30,8 @@
   "addToInventory": "Añadir al Inventario",
   "selectLocation": "Seleccionar Ubicación",
   "selectExpiryDate": "Seleccionar Fecha de Caducidad",
-  "addToInventorySuccess": "Producto añadido al inventario correctamente"
+  "addToInventorySuccess": "Producto añadido al inventario correctamente",
+  "scanExpiryDates": "Escanear Fechas de Caducidad",
+  "scanningItem": "Escaneando: {{name}}",
+  "scanProgress": "Producto {{current}} de {{total}}"
 }
