@@ -248,9 +248,9 @@ const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = React.memo((
                         />
                       )}
                     </div>
-                    <span className="item-quantity">x{item.quantity}</span>
                   </h2>
                 </div>
+                <div className="item-quantity">x{item.quantity}</div>
                 <div className="date-actions">
                   <IonInput
                     readonly
