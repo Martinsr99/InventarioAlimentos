@@ -1,4 +1,4 @@
-package io.ionic.starter;
+package com.inventarioalimentos.app;
 
 import com.getcapacitor.BridgeActivity;
 
