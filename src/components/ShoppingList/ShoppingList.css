@@ -1,5 +1,16 @@
 .shopping-list-container {
   padding: 0 1rem 1rem 1rem;
+  height: 100%;
+}
+
+ion-content {
+  --padding-bottom: env(safe-area-inset-bottom);
+  --overflow: hidden;
+}
+
+ion-content::part(scroll) {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .section {

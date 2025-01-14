@@ -87,5 +87,5 @@
 }
 
 .long-press-item {
-  touch-action: none;
+  touch-action: pan-y;
 }

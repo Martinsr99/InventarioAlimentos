@@ -12,6 +12,7 @@ import {
   IonRefresherContent,
   IonSpinner,
   RefresherEventDetail,
+  IonContent,
 } from '@ionic/react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useShoppingList, SortOption, SortDirection } from '../../hooks/useShoppingList';
@@ -115,7 +116,7 @@ const ShoppingList: React.FC<ShoppingListProps> = React.memo(({ onRefreshNeeded 
   }, [loadItems]);
 
   return (
-    <>
+    <IonContent scrollY={true}>
       <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
         <IonRefresherContent></IonRefresherContent>
       </IonRefresher>
@@ -215,7 +216,7 @@ const ShoppingList: React.FC<ShoppingListProps> = React.memo(({ onRefreshNeeded 
           setErrorMessage('');
         }}
       />
-    </>
+    </IonContent>
   );
 });
 
