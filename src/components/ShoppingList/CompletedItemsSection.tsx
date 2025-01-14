@@ -219,7 +219,7 @@ const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = React.memo((
           </IonButton>
         )}
       </div>
-      <IonContent>
+      <div className="completed-items-list">
         <IonList>
           {items.map(item => (
             <IonItem 
@@ -344,7 +344,7 @@ const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = React.memo((
             </IonItem>
           ))}
         </IonList>
-      </IonContent>
+      </div>
 
       <div className="add-to-inventory-container">
         <IonButton
