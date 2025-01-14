@@ -30,11 +30,8 @@ const ShoppingList: React.FC<ShoppingListProps> = React.memo(({ onRefreshNeeded 
   const [searchText, setSearchText] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('createdAt');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
-  const [showCompleted, setShowCompleted] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
   const [showToast, setShowToast] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
-  const [showDeleteCompletedConfirm, setShowDeleteCompletedConfirm] = useState(false);
   
   const { t } = useLanguage();
 
@@ -58,8 +55,8 @@ const ShoppingList: React.FC<ShoppingListProps> = React.memo(({ onRefreshNeeded 
   }, [loadItems]);
 
   useEffect(() => {
-    filterAndSortItems(searchText, sortBy, sortDirection, showCompleted);
-  }, [filterAndSortItems, searchText, sortBy, sortDirection, showCompleted]);
+    filterAndSortItems(searchText, sortBy, sortDirection, false);
+  }, [filterAndSortItems, searchText, sortBy, sortDirection]);
 
   const handleRefresh = useCallback(async (event: CustomEvent<RefresherEventDetail>) => {
     try {
@@ -69,47 +66,21 @@ const ShoppingList: React.FC<ShoppingListProps> = React.memo(({ onRefreshNeeded 
     }
   }, [loadItems]);
 
-  const handleDeleteConfirm = useCallback(async (itemId: string) => {
-    try {
-      await deleteItem(itemId);
-    } catch (error) {
-      setShowToast(true);
-      setErrorMessage(t('errors.itemDelete'));
-    }
-    setItemToDelete(null);
-  }, [deleteItem, t]);
-
-  const handleDeleteCompletedConfirm = useCallback(async () => {
-    try {
-      await deleteCompletedItems();
-    } catch (error) {
-      setShowToast(true);
-      setErrorMessage(t('errors.itemDelete'));
-    }
-    setShowDeleteCompletedConfirm(false);
-  }, [deleteCompletedItems, t]);
-
   const handleSearchChange = useCallback((text: string) => {
     setSearchText(text);
-    filterAndSortItems(text, sortBy, sortDirection, showCompleted);
-  }, [filterAndSortItems, sortBy, sortDirection, showCompleted]);
+    filterAndSortItems(text, sortBy, sortDirection, false);
+  }, [filterAndSortItems, sortBy, sortDirection]);
 
   const handleSortByChange = useCallback((option: SortOption) => {
     setSortBy(option);
-    filterAndSortItems(searchText, option, sortDirection, showCompleted);
-  }, [filterAndSortItems, searchText, sortDirection, showCompleted]);
+    filterAndSortItems(searchText, option, sortDirection, false);
+  }, [filterAndSortItems, searchText, sortDirection]);
 
   const handleSortDirectionChange = useCallback(() => {
     const newDirection = sortDirection === 'asc' ? 'desc' : 'asc';
     setSortDirection(newDirection);
-    filterAndSortItems(searchText, sortBy, newDirection, showCompleted);
-  }, [filterAndSortItems, searchText, sortBy, sortDirection, showCompleted]);
-
-  const handleShowCompletedChange = useCallback(() => {
-    const newShowCompleted = !showCompleted;
-    setShowCompleted(newShowCompleted);
-    filterAndSortItems(searchText, sortBy, sortDirection, newShowCompleted);
-  }, [filterAndSortItems, searchText, sortBy, sortDirection, showCompleted]);
+    filterAndSortItems(searchText, sortBy, newDirection, false);
+  }, [filterAndSortItems, searchText, sortBy, sortDirection]);
 
   const handleAddItem = useCallback(() => {
     return loadItems();
@@ -136,9 +107,6 @@ const ShoppingList: React.FC<ShoppingListProps> = React.memo(({ onRefreshNeeded 
               onSortByChange={handleSortByChange}
               sortDirection={sortDirection}
               onSortDirectionChange={handleSortDirectionChange}
-              showCompleted={showCompleted}
-              onShowCompletedChange={handleShowCompletedChange}
-              onDeleteCompleted={() => setShowDeleteCompletedConfirm(true)}
             />
             {loading ? (
               <div className="ion-text-center ion-padding">
@@ -150,7 +118,7 @@ const ShoppingList: React.FC<ShoppingListProps> = React.memo(({ onRefreshNeeded 
                   loading={false}
                   myItems={getPendingItems()}
                   sharedItems={[]}
-                  onDelete={setItemToDelete}
+                  onDelete={deleteItem}
                   onToggleCompletion={toggleItemCompletion}
                   loadItems={loadItems}
                   onRefreshNeeded={onRefreshNeeded}
@@ -165,46 +133,6 @@ const ShoppingList: React.FC<ShoppingListProps> = React.memo(({ onRefreshNeeded 
           </IonCardContent>
         </IonCard>
       </div>
-
-      <IonAlert
-        isOpen={!!itemToDelete}
-        onDidDismiss={() => setItemToDelete(null)}
-        header={t('shoppingList.confirmDelete')}
-        message={t('shoppingList.confirmDeleteMessage')}
-        buttons={[
-          {
-            text: t('common.cancel'),
-            role: 'cancel',
-            cssClass: 'secondary'
-          },
-          {
-            text: t('common.delete'),
-            handler: () => {
-              if (itemToDelete) {
-                handleDeleteConfirm(itemToDelete);
-              }
-            }
-          }
-        ]}
-      />
-
-      <IonAlert
-        isOpen={showDeleteCompletedConfirm}
-        onDidDismiss={() => setShowDeleteCompletedConfirm(false)}
-        header={t('shoppingList.confirmDeleteCompleted')}
-        message={t('shoppingList.confirmDeleteCompletedMessage')}
-        buttons={[
-          {
-            text: t('common.cancel'),
-            role: 'cancel',
-            cssClass: 'secondary'
-          },
-          {
-            text: t('common.delete'),
-            handler: handleDeleteCompletedConfirm
-          }
-        ]}
-      />
 
       <IonToast
         isOpen={showToast}

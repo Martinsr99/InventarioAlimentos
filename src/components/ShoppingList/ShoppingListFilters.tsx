@@ -12,8 +12,6 @@ import {
   time,
   arrowUp,
   arrowDown,
-  checkmarkCircle,
-  trash,
 } from 'ionicons/icons';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { SortOption } from '../../hooks/useShoppingList';
@@ -25,9 +23,6 @@ interface ShoppingListFiltersProps {
   onSortByChange: (option: SortOption) => void;
   sortDirection: 'asc' | 'desc';
   onSortDirectionChange: () => void;
-  showCompleted: boolean;
-  onShowCompletedChange: () => void;
-  onDeleteCompleted: () => void;
 }
 
 const ShoppingListFilters: React.FC<ShoppingListFiltersProps> = ({
@@ -37,9 +32,6 @@ const ShoppingListFilters: React.FC<ShoppingListFiltersProps> = ({
   onSortByChange,
   sortDirection,
   onSortDirectionChange,
-  showCompleted,
-  onShowCompletedChange,
-  onDeleteCompleted,
 }) => {
   const { t } = useLanguage();
   const [nameDirection, setNameDirection] = useState<'asc' | 'desc'>('asc');
@@ -119,17 +111,6 @@ const ShoppingListFilters: React.FC<ShoppingListFiltersProps> = ({
         </IonSegment>
       </div>
 
-      <div className="filter-buttons">
-        <IonButton fill="clear" onClick={onShowCompletedChange}>
-          <IonIcon slot="start" icon={checkmarkCircle} />
-          {showCompleted ? t('shoppingList.hideCompleted') : t('shoppingList.showCompleted')}
-        </IonButton>
-
-        <IonButton fill="clear" color="danger" onClick={onDeleteCompleted}>
-          <IonIcon slot="start" icon={trash} />
-          {t('shoppingList.deleteCompleted')}
-        </IonButton>
-      </div>
     </div>
   );
 };

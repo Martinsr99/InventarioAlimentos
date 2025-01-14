@@ -68,6 +68,7 @@
   text-align: right;
   margin-left: auto;
   padding: 4px 0;
+  margin-right: 8px;
 }
 
 .date-actions {
@@ -77,11 +78,12 @@
   width: 100%;
   min-height: 44px;
   margin-top: 0;
+  padding: 0;
 }
 
 .date-display {
-  --padding-start: 16px;
-  --padding-end: 16px;
+  --padding-start: 4px;
+  --padding-end: 12px;
   --padding-top: 10px;
   --padding-bottom: 10px;
   --background: var(--ion-color-step-100);
@@ -107,16 +109,7 @@
 .share-icon {
   cursor: pointer;
   color: var(--ion-color-primary);
-}
-
-.add-to-inventory-container {
-  margin-top: 1rem;
-}
-
-.datetime-container {
-  display: flex;
-  justify-content: center;
-  padding: 1rem;
+  margin-right: 9px;
 }
 
 .custom-datetime {
@@ -139,8 +132,8 @@ ion-item.long-press-item {
   --min-height: auto;
   --padding-top: 8px;
   --padding-bottom: 8px;
-  --padding-start: 16px;
-  --padding-end: 16px;
+  --padding-start: 12px;
+  --padding-end: 12px;
   --inner-padding-start: 0;
   --inner-padding-end: 0;
 }
@@ -152,7 +145,7 @@ ion-item.long-press-item {
 
 .completed-items-list ion-item {
   --background: transparent;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .completed-items-list ion-item::part(native) {
