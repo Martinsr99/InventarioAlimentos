@@ -27,7 +27,6 @@
 .product-list-card ion-card-content {
   padding: 0;
   background: var(--ion-card-background);
-  height: calc(100vh - 200px); /* Adjust card content height */
   overflow: hidden; /* Prevent double scrollbars */
 }
 
