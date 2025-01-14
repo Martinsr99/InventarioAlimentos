@@ -3,7 +3,7 @@
 }
 
 .section {
-  margin-top: 1.5rem;
+  margin: 1rem;
   background: var(--ion-color-step-50);
   border-radius: 8px;
   padding: 1rem;
@@ -20,6 +20,8 @@
 
 .section ion-list {
   background: transparent;
+  padding: 0;
+  margin: 0;
 }
 
 .section ion-item {
@@ -210,6 +212,23 @@ ion-item-options {
 
 .shopping-list-action-sheet .action-sheet-button.selected-user ion-icon {
   color: var(--ion-color-primary);
+}
+
+/* Loading and Empty States */
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  color: var(--ion-text-color);
+  background: var(--ion-card-background);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--ion-text-color);
+  background: var(--ion-card-background);
 }
 
 @media (min-width: 768px) {

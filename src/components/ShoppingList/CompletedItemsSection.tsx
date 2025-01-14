@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import {
   IonList,
   IonItem,
@@ -40,7 +40,7 @@ interface PopoverState {
   itemId: string;
 }
 
-const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = ({
+const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = React.memo(({
   items,
   onAddToInventory,
   onDelete,
@@ -64,7 +64,7 @@ const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = ({
   const longPressRef = useRef<NodeJS.Timeout>();
   const [isLongPress, setIsLongPress] = useState(false);
 
-  const loadSharedUsersInfo = React.useCallback(async (item: ShoppingListItem, event: Event) => {
+  const loadSharedUsersInfo = useCallback(async (item: ShoppingListItem, event: Event) => {
     if (!user || !item.sharedWith?.length) return;
 
     const friends = await getAcceptedShareUsers(user);
@@ -104,11 +104,11 @@ const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = ({
     };
   }, []);
 
-  const handleDateChange = (value: string) => {
+  const handleDateChange = useCallback((value: string) => {
     setTempDate(value);
-  };
+  }, []);
 
-  const handleDateConfirm = (itemId: string) => {
+  const handleDateConfirm = useCallback((itemId: string) => {
     if (tempDate) {
       setItemStates(prev => ({
         ...prev,
@@ -120,9 +120,9 @@ const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = ({
       setTempDate('');
       setShowDatePicker(null);
     }
-  };
+  }, [tempDate]);
 
-  const formatDisplayDate = (dateString: string) => {
+  const formatDisplayDate = useCallback((dateString: string) => {
     if (!dateString) return '';
     const date = new Date(dateString);
     return date.toLocaleDateString('es-ES', {
@@ -130,9 +130,9 @@ const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = ({
       month: 'long',
       day: 'numeric'
     });
-  };
+  }, []);
 
-  const handleAddAllToInventory = async () => {
+  const handleAddAllToInventory = useCallback(async () => {
     const itemsWithDates = Object.entries(itemStates)
       .filter(([_, state]) => state.expiryDate)
       .map(([id]) => id);
@@ -145,9 +145,9 @@ const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = ({
     }
 
     setItemStates({});
-  };
+  }, [itemStates, onAddToInventory]);
 
-  const handleBatchDateDetected = (itemId: string, date: Date) => {
+  const handleBatchDateDetected = useCallback((itemId: string, date: Date) => {
     setItemStates(prev => ({
       ...prev,
       [itemId]: {
@@ -155,14 +155,14 @@ const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = ({
         expiryDate: date.toISOString()
       }
     }));
-  };
+  }, []);
 
-  const handleSingleItemScan = (itemId: string) => {
+  const handleSingleItemScan = useCallback((itemId: string) => {
     setScanningItemId(itemId);
     setShowBatchScanner(true);
-  };
+  }, []);
 
-  const startLongPress = (itemId: string) => {
+  const startLongPress = useCallback((itemId: string) => {
     setIsLongPress(false);
     if (longPressRef.current) {
       clearTimeout(longPressRef.current);
@@ -172,15 +172,15 @@ const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = ({
       setItemToDelete(itemId);
       setShowDeleteAlert(true);
     }, 500);
-  };
+  }, []);
 
-  const endLongPress = () => {
+  const endLongPress = useCallback(() => {
     if (longPressRef.current) {
       clearTimeout(longPressRef.current);
     }
-  };
+  }, []);
 
-  const handleDelete = async () => {
+  const handleDelete = useCallback(async () => {
     if (itemToDelete) {
       try {
         await onDelete(itemToDelete);
@@ -195,7 +195,7 @@ const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = ({
     }
     setShowDeleteAlert(false);
     setItemToDelete(null);
-  };
+  }, [itemToDelete, onDelete]);
 
   const itemsWithoutDates = items.filter(item => !itemStates[item.id]?.expiryDate);
   const hasItemsWithDates = Object.values(itemStates).some(state => state.expiryDate);
@@ -219,130 +219,132 @@ const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = ({
           </IonButton>
         )}
       </div>
-      <IonList>
-        {items.map(item => (
-          <IonItem 
-            key={item.id}
-            onTouchStart={() => startLongPress(item.id)}
-            onTouchEnd={endLongPress}
-            onTouchMove={endLongPress}
-            onClick={(e) => {
-              if (isLongPress) {
-                e.preventDefault();
-                setIsLongPress(false);
-              }
-            }}
-            className="long-press-item"
-          >
-            <div className="item-content">
-              <div className="item-details">
-                <h2>
-                  <div className="item-name-row">
-                    <span className="item-name">{item.name}</span>
-                    {item.sharedWith && item.sharedWith.length > 0 && (
-                      <IonIcon 
-                        icon={share} 
-                        className="share-icon"
-                        onClick={(e) => loadSharedUsersInfo(item, e.nativeEvent)}
-                      />
-                    )}
-                  </div>
-                  <span className="item-quantity">x{item.quantity}</span>
-                </h2>
-              </div>
-              <div className="date-actions">
-                <IonInput
-                  readonly
-                  value={formatDisplayDate(itemStates[item.id]?.expiryDate || '')}
-                  placeholder={t('products.selectDate')}
-                  className="date-display"
-                  onClick={() => {
-                    if (!isLongPress) {
-                      setShowDatePicker(item.id);
-                      setTempDate(itemStates[item.id]?.expiryDate || new Date().toISOString());
-                    }
-                  }}
-                />
-                {!itemStates[item.id]?.expiryDate && (
-                  <IonButton
-                    fill="clear"
-                    size="small"
-                    onClick={(e) => {
-                      if (!isLongPress) {
-                        handleSingleItemScan(item.id);
-                      }
-                    }}
-                  >
-                    <IonIcon slot="icon-only" icon={camera} />
-                  </IonButton>
-                )}
-              </div>
-            </div>
-
-            <IonModal
-              isOpen={showDatePicker === item.id}
-              onDidDismiss={() => {
-                setShowDatePicker(null);
-                setTempDate('');
+      <IonContent>
+        <IonList>
+          {items.map(item => (
+            <IonItem 
+              key={item.id}
+              onTouchStart={() => startLongPress(item.id)}
+              onTouchEnd={endLongPress}
+              onTouchMove={endLongPress}
+              onClick={(e) => {
+                if (isLongPress) {
+                  e.preventDefault();
+                  setIsLongPress(false);
+                }
               }}
-              className="date-picker-modal"
-              mode="ios"
-              backdropDismiss={false}
-              animated={true}
+              className="long-press-item"
             >
-              <IonHeader className="ion-no-border">
-                <IonToolbar>
-                  <IonButtons slot="start">
-                    <IonButton
-                      onClick={() => {
-                        setShowDatePicker(null);
-                        setTempDate('');
-                      }}
-                      fill="clear"
-                      className="modal-button"
-                    >
-                      {t('common.cancel')}
-                    </IonButton>
-                  </IonButtons>
-                  <IonTitle>{t('products.expiryDate')}</IonTitle>
-                  <IonButtons slot="end">
-                    <IonButton
-                      onClick={() => handleDateConfirm(item.id)}
-                      fill="clear"
-                      strong={true}
-                      className="modal-button"
-                    >
-                      {t('common.ok')}
-                    </IonButton>
-                  </IonButtons>
-                </IonToolbar>
-              </IonHeader>
-              <IonContent className="ion-padding">
-                <div className="datetime-container">
-                  <IonDatetime
-                    value={tempDate || new Date().toISOString()}
-                    onIonChange={e => {
-                      if (typeof e.detail.value === 'string') {
-                        handleDateChange(e.detail.value);
+              <div className="item-content">
+                <div className="item-details">
+                  <h2>
+                    <div className="item-name-row">
+                      <span className="item-name">{item.name}</span>
+                      {item.sharedWith && item.sharedWith.length > 0 && (
+                        <IonIcon 
+                          icon={share} 
+                          className="share-icon"
+                          onClick={(e) => loadSharedUsersInfo(item, e.nativeEvent)}
+                        />
+                      )}
+                    </div>
+                    <span className="item-quantity">x{item.quantity}</span>
+                  </h2>
+                </div>
+                <div className="date-actions">
+                  <IonInput
+                    readonly
+                    value={formatDisplayDate(itemStates[item.id]?.expiryDate || '')}
+                    placeholder={t('products.selectDate')}
+                    className="date-display"
+                    onClick={() => {
+                      if (!isLongPress) {
+                        setShowDatePicker(item.id);
+                        setTempDate(itemStates[item.id]?.expiryDate || new Date().toISOString());
                       }
                     }}
-                    presentation="date"
-                    preferWheel={true}
-                    showDefaultButtons={false}
-                    firstDayOfWeek={1}
-                    locale="es-ES"
-                    className="custom-datetime"
-                    min={new Date().toISOString().split('T')[0]}
-                    color="dark"
-                    mode="ios"
-                    yearValues={Array.from({ length: 10 }, (_, i) => new Date().getFullYear() + i)}
                   />
+                  {!itemStates[item.id]?.expiryDate && (
+                    <IonButton
+                      fill="clear"
+                      size="small"
+                      onClick={(e) => {
+                        if (!isLongPress) {
+                          handleSingleItemScan(item.id);
+                        }
+                      }}
+                    >
+                      <IonIcon slot="icon-only" icon={camera} />
+                    </IonButton>
+                  )}
                 </div>
-              </IonContent>
-            </IonModal>
-          </IonItem>
-        ))}
-      </IonList>
+              </div>
+
+              <IonModal
+                isOpen={showDatePicker === item.id}
+                onDidDismiss={() => {
+                  setShowDatePicker(null);
+                  setTempDate('');
+                }}
+                className="date-picker-modal"
+                mode="ios"
+                backdropDismiss={false}
+                animated={true}
+              >
+                <IonHeader className="ion-no-border">
+                  <IonToolbar>
+                    <IonButtons slot="start">
+                      <IonButton
+                        onClick={() => {
+                          setShowDatePicker(null);
+                          setTempDate('');
+                        }}
+                        fill="clear"
+                        className="modal-button"
+                      >
+                        {t('common.cancel')}
+                      </IonButton>
+                    </IonButtons>
+                    <IonTitle>{t('products.expiryDate')}</IonTitle>
+                    <IonButtons slot="end">
+                      <IonButton
+                        onClick={() => handleDateConfirm(item.id)}
+                        fill="clear"
+                        strong={true}
+                        className="modal-button"
+                      >
+                        {t('common.ok')}
+                      </IonButton>
+                    </IonButtons>
+                  </IonToolbar>
+                </IonHeader>
+                <IonContent className="ion-padding">
+                  <div className="datetime-container">
+                    <IonDatetime
+                      value={tempDate || new Date().toISOString()}
+                      onIonChange={e => {
+                        if (typeof e.detail.value === 'string') {
+                          handleDateChange(e.detail.value);
+                        }
+                      }}
+                      presentation="date"
+                      preferWheel={true}
+                      showDefaultButtons={false}
+                      firstDayOfWeek={1}
+                      locale="es-ES"
+                      className="custom-datetime"
+                      min={new Date().toISOString().split('T')[0]}
+                      color="dark"
+                      mode="ios"
+                      yearValues={Array.from({ length: 10 }, (_, i) => new Date().getFullYear() + i)}
+                    />
+                  </div>
+                </IonContent>
+              </IonModal>
+            </IonItem>
+          ))}
+        </IonList>
+      </IonContent>
 
       <div className="add-to-inventory-container">
         <IonButton
@@ -398,6 +400,8 @@ const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = ({
       />
     </div>
   );
-};
+});
+
+CompletedItemsSection.displayName = 'CompletedItemsSection';
 
 export default CompletedItemsSection;

@@ -1,171 +1,91 @@
+.section {
+  margin: 1rem;
+  background: var(--ion-color-step-50);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
 .section-header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 4px;
-  margin-bottom: 16px;
-  padding: 0 8px;
+  margin-bottom: 1rem;
 }
 
 .section-title {
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: var(--ion-text-color);
   margin: 0;
-  flex: 1;
-}
-
-.date-display {
-  width: calc(100% - 40px);
-  text-align: left;
-  font-size: 0.85em;
-  --padding-end: 4px;
-  --padding-start: 4px;
-  white-space: nowrap !important;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  height: 30px;
-  margin: 0;
-}
-
-.add-to-inventory-container {
-  padding: 8px;
 }
 
 .item-content {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
   width: 100%;
-  padding: 4px;
 }
 
 .item-details {
   flex: 1;
-  min-width: 0;
-  margin-bottom: 8px;
-}
-
-.item-details h2 {
-  margin: 0;
-  font-size: 0.95em;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
 }
 
 .item-name-row {
   display: flex;
   align-items: center;
   gap: 8px;
-  width: 100%;
 }
 
 .item-name {
-  flex: 1;
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   font-weight: 500;
 }
 
 .item-quantity {
-  display: block;
   color: var(--ion-color-medium);
-  font-size: 0.9em;
-  font-weight: normal;
-  margin-top: 2px;
-}
-
-.share-icon {
-  cursor: pointer;
-  color: var(--ion-color-primary);
-  font-size: 1.2em;
-  min-width: 24px;
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  margin-left: 8px;
 }
 
 .date-actions {
   display: flex;
   align-items: center;
-  gap: 4px;
-  width: 100%;
-  flex-direction: row;
-  justify-content: flex-start;
+  gap: 8px;
 }
 
-.date-actions ion-button {
-  margin: 0;
-  --padding-start: 8px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 30px;
-  flex-shrink: 0;
-}
-
-/* Ajustes para el IonItem */
-ion-item {
+.date-display {
   --padding-start: 8px;
   --padding-end: 8px;
-  --inner-padding-end: 0;
-  --min-height: auto;
-  touch-action: none;
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  user-select: none;
+  --background: var(--ion-color-step-100);
+  border-radius: 4px;
+  max-width: 200px;
 }
 
-/* Ajustes para el placeholder del input de fecha */
-.date-display.ion-untouched {
-  opacity: 0.7;
-}
-
-/* Ajustes para el texto del input */
-.date-display::part(native) {
-  padding: 8px;
-  background-color: var(--ion-color-light);
-  border-radius: 8px;
-  height: 30px;
-  min-height: 30px;
-  margin: 0;
-  display: flex;
-  align-items: center;
-}
-
-/* Ajustes para el botón de cámara del encabezado */
-.section-header ion-button {
-  margin: 0;
-  --padding-start: 4px;
-  --padding-end: 4px;
-  height: 30px;
-  font-size: 1.2em;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: -4px;
-}
-
-/* Ajustes para el elemento con pulsación larga */
-.long-press-item {
-  position: relative;
+.share-icon {
   cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
+  color: var(--ion-color-primary);
 }
 
-.long-press-item::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: var(--ion-color-light);
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  pointer-events: none;
+.add-to-inventory-container {
+  margin-top: 1rem;
 }
 
-.long-press-item:active::after {
-  opacity: 0.3;
+.datetime-container {
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.custom-datetime {
+  width: 100%;
+  max-width: 350px;
+  margin: 0 auto;
+  --background: var(--ion-color-step-50);
+  border-radius: 8px;
+}
+
+.modal-button {
+  --color: var(--ion-color-primary);
+}
+
+.long-press-item {
+  touch-action: none;
 }

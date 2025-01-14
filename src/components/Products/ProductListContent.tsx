@@ -3,6 +3,8 @@ import {
   IonSpinner,
   IonText,
   IonButton,
+  IonContent,
+  IonList,
 } from '@ionic/react';
 import { ExtendedProduct, ViewMode } from '../../hooks/useProductList';
 import ProductListItem from './ProductListItem';
@@ -88,21 +90,23 @@ const ProductListContent: React.FC<ProductListContentProps> = React.memo(({
   }
 
   return (
-    <div className="product-list-content">
-      {filteredProducts.map((product) => (
-        <ProductListItem
-          key={product.id}
-          product={product}
-          viewMode={viewMode}
-          onEdit={onEdit}
-          onDelete={onDelete}
-          isSelected={selectedProducts.includes(product.id)}
-          onSelect={onSelectProduct}
-          selectionMode={selectionMode}
-          onEnterSelectionMode={onEnterSelectionMode}
-        />
-      ))}
-    </div>
+    <IonContent className="product-list-content" scrollY>
+      <IonList>
+        {filteredProducts.map((product) => (
+          <ProductListItem
+            key={product.id}
+            product={product}
+            viewMode={viewMode}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            isSelected={selectedProducts.includes(product.id)}
+            onSelect={onSelectProduct}
+            selectionMode={selectionMode}
+            onEnterSelectionMode={onEnterSelectionMode}
+          />
+        ))}
+      </IonList>
+    </IonContent>
   );
 }, (prevProps, nextProps) => {
   // Comparación personalizada para evitar re-renderizados innecesarios

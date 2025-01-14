@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { getSharedProducts } from '../services/SharedProductsService';
 import { getAcceptedShareUsers } from '../services/FriendService';
 import { auth } from '../firebaseConfig';
@@ -133,37 +133,50 @@ export const useProductList = (onRefreshNeeded?: () => void) => {
     return expiredIds.length;
   };
 
-  const filterAndSortProducts = useCallback((options: FilterOptions) => {
-    const { viewMode, searchText, sortBy, sortDirection } = options;
-    let filtered = viewMode === 'personal' 
-      ? products.map(p => ({ ...p, isOwner: true })) 
+  // Memoize base products with isOwner flag
+  const baseProducts = useMemo(() => {
+    return filterOptions.viewMode === 'personal'
+      ? products.map(p => ({ ...p, isOwner: true }))
       : sharedProducts;
+  }, [filterOptions.viewMode, products, sharedProducts]);
 
-    if (searchText) {
-      const searchLower = searchText.toLowerCase();
-      filtered = filtered.filter(product =>
-        product.name.toLowerCase().includes(searchLower)
-      );
-    }
+  // Memoize search results
+  const searchResults = useMemo(() => {
+    if (!filterOptions.searchText) return baseProducts;
+    
+    const searchLower = filterOptions.searchText.toLowerCase();
+    return baseProducts.filter((product: ExtendedProduct) =>
+      product.name.toLowerCase().includes(searchLower)
+    );
+  }, [baseProducts, filterOptions.searchText]);
 
-    filtered.sort((a, b) => {
+  // Memoize sorting function
+  const getSortComparator = useCallback((sortBy: SortOption, sortDirection: SortDirection) => {
+    return (a: ExtendedProduct, b: ExtendedProduct) => {
       let comparison = 0;
-      switch (sortBy) {
-        case 'name':
-          comparison = a.name.localeCompare(b.name);
-          break;
-        case 'quantity':
-          comparison = a.quantity - b.quantity;
-          break;
-        case 'expiryDate':
-          comparison = new Date(a.expiryDate).getTime() - new Date(b.expiryDate).getTime();
-          break;
+      
+      // Pre-calculate expensive operations
+      if (sortBy === 'expiryDate') {
+        const dateA = new Date(a.expiryDate).getTime();
+        const dateB = new Date(b.expiryDate).getTime();
+        comparison = dateA - dateB;
+      } else if (sortBy === 'name') {
+        comparison = a.name.localeCompare(b.name);
+      } else {
+        comparison = a.quantity - b.quantity;
       }
+      
       return sortDirection === 'asc' ? comparison : -comparison;
-    });
+    };
+  }, []);
 
-    setFilteredProducts(filtered);
-  }, [products, sharedProducts]);
+  const filterAndSortProducts = useCallback((options: FilterOptions) => {
+    const { sortBy, sortDirection } = options;
+    
+    // Create a new array only if we need to sort
+    const sorted = [...searchResults].sort(getSortComparator(sortBy, sortDirection));
+    setFilteredProducts(sorted);
+  }, [searchResults, getSortComparator]);
 
   // Initial load
   useEffect(() => {
@@ -180,10 +193,10 @@ export const useProductList = (onRefreshNeeded?: () => void) => {
     }
   }, [filterOptions.viewMode, loadSharedProducts]);
 
-  // Apply filters when products or filter options change
+  // Apply filters only when necessary
   useEffect(() => {
     filterAndSortProducts(filterOptions);
-  }, [products, sharedProducts, filterOptions, filterAndSortProducts]);
+  }, [searchResults, filterOptions.sortBy, filterOptions.sortDirection, filterAndSortProducts]);
 
   return {
     products,

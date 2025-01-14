@@ -27,13 +27,20 @@
 .product-list-card ion-card-content {
   padding: 0;
   background: var(--ion-card-background);
+  height: calc(100vh - 200px); /* Adjust card content height */
+  overflow: hidden; /* Prevent double scrollbars */
 }
 
 /* Lista de productos */
 .product-list-content {
-  display: flex;
-  flex-direction: column;
   background: var(--ion-card-background);
+  height: 100%;
+}
+
+.product-list-content ion-list {
+  background: var(--ion-card-background);
+  padding: 0;
+  margin: 0;
 }
 
 .product-list-card ion-item {
@@ -50,6 +57,7 @@
   --min-height: auto;
   --ripple-color: transparent;
   margin: 0;
+  height: 100px; /* Match itemSize in FixedSizeList */
 }
 
 /* Ocultar la flecha del IonItem */
@@ -264,23 +272,4 @@
 
 .product-status-expired {
   color: var(--ion-color-danger) !important;
-}
-
-/* Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--ion-background-color);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--ion-color-step-200);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--ion-color-step-300);
 }

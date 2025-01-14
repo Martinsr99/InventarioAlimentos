@@ -36,6 +36,7 @@
     "react-i18next": "^15.2.0",
     "react-router": "^5.3.4",
     "react-router-dom": "^5.2.0",
+    "react-window": "^1.8.11",
     "sweetalert2": "^11.14.5",
     "swiper": "^11.2.0",
     "tesseract.js": "^5.1.1"
@@ -48,6 +49,7 @@
     "@testing-library/user-event": "^14.4.3",
     "@types/react": "^18.0.27",
     "@types/react-dom": "^18.0.10",
+    "@types/react-window": "^1.8.8",
     "@vitejs/plugin-legacy": "^5.0.0",
     "@vitejs/plugin-react": "^4.0.1",
     "cypress": "^13.5.0",

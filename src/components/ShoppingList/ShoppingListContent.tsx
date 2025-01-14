@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   IonList,
   IonItem,
@@ -12,6 +12,7 @@ import {
   IonItemOption,
   IonAlert,
   IonPopover,
+  IonContent,
 } from '@ionic/react';
 import { trash, checkmarkCircle, checkmarkCircleOutline, archive, share } from 'ionicons/icons';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -32,21 +33,9 @@ interface ShoppingListContentProps {
   onRefreshNeeded?: () => void;
 }
 
-interface ShareAlertState {
-  isOpen: boolean;
-  item: ShoppingListItem | null;
-  friends: { userId: string; email: string }[];
-}
-
 interface SaveToInventoryState {
   isOpen: boolean;
   item: ShoppingListItem | null;
-}
-
-interface PopoverState {
-  isOpen: boolean;
-  event: Event | undefined;
-  itemId: string;
 }
 
 const ShoppingListContent: React.FC<ShoppingListContentProps> = React.memo(({
@@ -60,89 +49,19 @@ const ShoppingListContent: React.FC<ShoppingListContentProps> = React.memo(({
 }) => {
   const { t } = useLanguage();
   const user = auth.currentUser;
-  const [shareAlert, setShareAlert] = React.useState<ShareAlertState>({
-    isOpen: false,
-    item: null,
-    friends: []
-  });
-  const [showNoFriendsAlert, setShowNoFriendsAlert] = React.useState(false);
-  const [saveToInventory, setSaveToInventory] = React.useState<SaveToInventoryState>({
+  const [saveToInventory, setSaveToInventory] = useState<SaveToInventoryState>({
     isOpen: false,
     item: null
   });
 
-  const [sharedUsersInfo, setSharedUsersInfo] = React.useState<{ [key: string]: { userId: string; email: string }[] }>({});
-  const [popover, setPopover] = React.useState<PopoverState>({
-    isOpen: false,
-    event: undefined,
-    itemId: ''
-  });
-  const timeoutRef = React.useRef<NodeJS.Timeout>();
-
-  const loadSharedUsersInfo = React.useCallback(async (item: ShoppingListItem, event: Event) => {
-    if (!user || !item.sharedWith?.length) return;
-
-    const friends = await getAcceptedShareUsers(user);
-    const usersInfo = item.sharedWith.map(userId => {
-      const friend = friends.find(f => f.userId === userId);
-      return friend || { userId, email: userId };
-    });
-
-    setSharedUsersInfo(prev => ({
-      ...prev,
-      [item.id]: usersInfo
-    }));
-
-    setPopover({
-      isOpen: true,
-      event,
-      itemId: item.id
-    });
-
-    // Limpiar el timeout anterior si existe
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-
-    // Configurar el nuevo timeout para cerrar el popover después de 3 segundos
-    timeoutRef.current = setTimeout(() => {
-      setPopover(prev => ({ ...prev, isOpen: false }));
-    }, 3000);
-  }, [user]);
-
-  // Limpiar timeout al desmontar
-  React.useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, []);
-
-  const handleShare = React.useCallback(async (item: ShoppingListItem) => {
-    if (!user) return;
-
-    const friends = await getAcceptedShareUsers(user);
-    if (friends.length === 0) {
-      setShowNoFriendsAlert(true);
-      return;
-    }
-
-    setShareAlert({
-      isOpen: true,
-      item,
-      friends
-    });
-  }, [user]);
-
-  const handleSaveToInventoryClick = React.useCallback((item: ShoppingListItem) => {
+  const handleSaveToInventoryClick = useCallback((item: ShoppingListItem) => {
     setSaveToInventory({
       isOpen: true,
       item
     });
   }, []);
 
-  const handleSaveToInventory = React.useCallback(async (expiryDate: string, location: string) => {
+  const handleSaveToInventory = useCallback(async (expiryDate: string, location: string) => {
     if (!saveToInventory.item) return;
 
     try {
@@ -169,88 +88,67 @@ const ShoppingListContent: React.FC<ShoppingListContentProps> = React.memo(({
     }
   }, [saveToInventory.item, loadItems]);
 
-  const handleShareConfirm = React.useCallback(async (selectedFriendIds: string[]) => {
-    if (!shareAlert.item) return;
+  const handleShare = useCallback(async (item: ShoppingListItem) => {
+    if (!user) return;
 
-    try {
-      await ShoppingListService.updateItem(shareAlert.item.id, {
-        sharedWith: selectedFriendIds
-      });
-      await loadItems();
-    } catch (error) {
-      console.error('Error sharing item:', error);
+    const friends = await getAcceptedShareUsers(user);
+    if (friends.length === 0) {
+      // Show no friends alert
+      return;
     }
 
-    setShareAlert({
-      isOpen: false,
-      item: null,
-      friends: []
-    });
-  }, [shareAlert.item, loadItems]);
+    // Show share alert
+  }, [user]);
 
-  const renderItems = React.useCallback((items: ShoppingListItem[]) => (
-    items.map(item => (
-      <IonItemSliding key={item.id}>
-        <IonItemOptions side="start">
-          <IonItemOption color="success" onClick={() => handleSaveToInventoryClick(item)}>
-            <IonIcon slot="icon-only" icon={archive} />
-          </IonItemOption>
-        </IonItemOptions>
+  const renderItem = useCallback((item: ShoppingListItem) => (
+    <IonItemSliding key={item.id}>
+      <IonItemOptions side="start">
+        <IonItemOption color="success" onClick={() => handleSaveToInventoryClick(item)}>
+          <IonIcon slot="icon-only" icon={archive} />
+        </IonItemOption>
+      </IonItemOptions>
 
-        <IonItem className={item.completed ? 'completed-item' : ''}>
-          <IonButton
-            fill="clear"
-            slot="start"
-            onClick={() => onToggleCompletion(item.id, !item.completed)}
-          >
-            <IonIcon
-              slot="icon-only"
-              icon={item.completed ? checkmarkCircle : checkmarkCircleOutline}
-              color={item.completed ? 'success' : 'medium'}
-            />
-          </IonButton>
-          <IonLabel className={item.completed ? 'completed-text' : ''}>
-            <h2>
-              {item.name}
-              <span style={{ marginLeft: '8px', color: 'var(--ion-color-medium)' }}>
-                x{item.quantity}
-              </span>
-              {item.sharedWith && item.sharedWith.length > 0 && (
-                <IonIcon 
-                  icon={share} 
-                  style={{ 
-                    cursor: 'pointer', 
-                    color: 'var(--ion-color-primary)',
-                    marginLeft: '8px',
-                    verticalAlign: 'middle'
-                  }}
-                  onClick={(e) => loadSharedUsersInfo(item, e.nativeEvent)}
-                />
-              )}
-            </h2>
-          </IonLabel>
-          <IonButton
-            fill="clear"
-            slot="end"
-            onClick={() => onDelete(item.id)}
-            color="danger"
-          >
-            <IonIcon slot="icon-only" icon={trash} />
-          </IonButton>
-        </IonItem>
+      <IonItem className={item.completed ? 'completed-item' : ''}>
+        <IonButton
+          fill="clear"
+          slot="start"
+          onClick={() => onToggleCompletion(item.id, !item.completed)}
+        >
+          <IonIcon
+            slot="icon-only"
+            icon={item.completed ? checkmarkCircle : checkmarkCircleOutline}
+            color={item.completed ? 'success' : 'medium'}
+          />
+        </IonButton>
+        <IonLabel className={item.completed ? 'completed-text' : ''}>
+          <h2>
+            {item.name}
+            <span style={{ marginLeft: '8px', color: 'var(--ion-color-medium)' }}>
+              x{item.quantity}
+            </span>
+          </h2>
+        </IonLabel>
+        <IonButton
+          fill="clear"
+          slot="end"
+          onClick={() => onDelete(item.id)}
+          color="danger"
+        >
+          <IonIcon slot="icon-only" icon={trash} />
+        </IonButton>
+      </IonItem>
 
-        <IonItemOptions side="end">
-          <IonItemOption color="primary" onClick={() => handleShare(item)}>
-            <IonIcon slot="icon-only" icon={share} />
-          </IonItemOption>
-        </IonItemOptions>
-      </IonItemSliding>
-    ))
-  ), [handleSaveToInventoryClick, handleShare, onDelete, onToggleCompletion, t, loadSharedUsersInfo]);
+      <IonItemOptions side="end">
+        <IonItemOption color="primary" onClick={() => handleShare(item)}>
+          <IonIcon slot="icon-only" icon={share} />
+        </IonItemOption>
+      </IonItemOptions>
+    </IonItemSliding>
+  ), [onToggleCompletion, onDelete, handleSaveToInventoryClick, handleShare]);
 
   if (loading) {
     return (
-      <div className="ion-text-center ion-padding">
+      <div className="loading-spinner">
         <IonSpinner />
       </div>
     );
@@ -258,7 +156,7 @@ const ShoppingListContent: React.FC<ShoppingListContentProps> = React.memo(({
 
   if (myItems.length === 0 && sharedItems.length === 0) {
     return (
-      <div className="ion-text-center ion-padding">
+      <div className="empty-state">
         <IonText color="medium">{t('shoppingList.emptyList')}</IonText>
       </div>
     );
@@ -266,60 +164,25 @@ const ShoppingListContent: React.FC<ShoppingListContentProps> = React.memo(({
 
   return (
     <>
-      {myItems.length > 0 && (
-        <div className="section">
-          <h2 className="section-title">{t('shoppingList.myItems')}</h2>
-          <IonList>
-            {renderItems(myItems)}
-          </IonList>
-        </div>
-      )}
+      <IonContent scrollY>
+        {myItems.length > 0 && (
+          <div className="section">
+            <h2 className="section-title">{t('shoppingList.myItems')}</h2>
+            <IonList>
+              {myItems.map(renderItem)}
+            </IonList>
+          </div>
+        )}
 
-      {sharedItems.length > 0 && (
-        <div className="section">
-          <h2 className="section-title">{t('shoppingList.sharedItems')}</h2>
-          <IonList>
-            {renderItems(sharedItems)}
-          </IonList>
-        </div>
-      )}
-
-      <IonAlert
-        isOpen={showNoFriendsAlert}
-        onDidDismiss={() => setShowNoFriendsAlert(false)}
-        header={t('errors.noFriends')}
-        message={t('errors.noFriendsMessage')}
-        buttons={['OK']}
-      />
-
-      {shareAlert.isOpen && (
-        <IonAlert
-          isOpen={true}
-          onDidDismiss={() => setShareAlert(prev => ({ ...prev, isOpen: false }))}
-          header={t('sharing.selectFriends')}
-          inputs={shareAlert.friends.map(friend => ({
-            type: 'checkbox',
-            label: friend.email,
-            value: friend.userId,
-            checked: false
-          }))}
-          buttons={[
-            {
-              text: t('common.cancel'),
-              role: 'cancel'
-            },
-            {
-              text: t('common.share'),
-              handler: (data: any) => {
-                if (data) {
-                  handleShareConfirm(Object.keys(data));
-                }
-                return true;
-              }
-            }
-          ]}
-        />
-      )}
+        {sharedItems.length > 0 && (
+          <div className="section">
+            <h2 className="section-title">{t('shoppingList.sharedItems')}</h2>
+            <IonList>
+              {sharedItems.map(renderItem)}
+            </IonList>
+          </div>
+        )}
+      </IonContent>
 
       {saveToInventory.isOpen && saveToInventory.item && (
         <SaveToInventoryModal
@@ -329,18 +192,10 @@ const ShoppingListContent: React.FC<ShoppingListContentProps> = React.memo(({
           item={saveToInventory.item}
         />
       )}
-
-      <IonPopover
-        isOpen={popover.isOpen}
-        event={popover.event}
-        onDidDismiss={() => setPopover(prev => ({ ...prev, isOpen: false }))}
-      >
-        <div className="ion-padding">
-          {sharedUsersInfo[popover.itemId]?.map(user => user.email).join(', ')}
-        </div>
-      </IonPopover>
     </>
   );
 });
+
+ShoppingListContent.displayName = 'ShoppingListContent';
 
 export default ShoppingListContent;

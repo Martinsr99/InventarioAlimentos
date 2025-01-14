@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import {
   IonItem,
   IonLabel,
@@ -42,30 +42,29 @@ const ProductListItem: React.FC<ProductListItemProps> = ({
   const longPressTimer = useRef<NodeJS.Timeout>();
   const [isLongPress, setIsLongPress] = useState(false);
 
-  const calculateDaysUntilExpiry = (expiryDate: string) => {
+  const { daysUntilExpiry, expiryText } = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const expiry = new Date(expiryDate);
+    const expiry = new Date(product.expiryDate);
     expiry.setHours(0, 0, 0, 0);
     const diffTime = expiry.getTime() - today.getTime();
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  };
+    const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-  const getExpiryText = (daysUntilExpiry: number) => {
-    if (daysUntilExpiry < 0) {
-      return t('products.expired');
+    let text;
+    if (days < 0) {
+      text = t('products.expired');
+    } else if (days === 0) {
+      text = t('products.today');
+    } else if (days === 1) {
+      text = t('products.tomorrow');
+    } else {
+      text = `${days} ${t('products.days')}`;
     }
-    if (daysUntilExpiry === 0) {
-      return t('products.today');
-    }
-    if (daysUntilExpiry === 1) {
-      return t('products.tomorrow');
-    }
-    return `${daysUntilExpiry} ${t('products.days')}`;
-  };
 
-  const getCategoryTranslation = (category: string) => {
-    // Mapear las categorías a las claves correctas
+    return { daysUntilExpiry: days, expiryText: text };
+  }, [product.expiryDate, t]);
+
+  const categoryTranslation = useMemo(() => {
     const categoryMap: { [key: string]: string } = {
       'carnes': 'meat',
       'meat': 'meat',
@@ -81,22 +80,20 @@ const ProductListItem: React.FC<ProductListItemProps> = ({
       'other': 'other'
     };
     
-    const translationKey = categoryMap[category.toLowerCase()] || 'other';
+    const translationKey = categoryMap[(product.category || 'other').toLowerCase()] || 'other';
     return t(`categories.${translationKey}`);
-  };
-
-  const daysUntilExpiry = calculateDaysUntilExpiry(product.expiryDate);
-  const expiryText = getExpiryText(daysUntilExpiry);
-  const isExpired = daysUntilExpiry < 0;
-  const isNearExpiry = daysUntilExpiry <= 3 && daysUntilExpiry >= 0;
-  const isSharedProduct = viewMode === 'shared';
-  const isOwnedShared = isSharedProduct && product.isOwner;
-
-  const getExpiryStatusClass = () => {
-    if (isExpired) return 'product-status-expired';
-    if (isNearExpiry) return 'product-status-warning';
-    return 'product-status-fresh';
-  };
+  }, [product.category, t]);
+  const { isExpired, isNearExpiry, isSharedProduct, isOwnedShared, expiryStatusClass } = useMemo(() => ({
+    isExpired: daysUntilExpiry < 0,
+    isNearExpiry: daysUntilExpiry <= 3 && daysUntilExpiry >= 0,
+    isSharedProduct: viewMode === 'shared',
+    isOwnedShared: viewMode === 'shared' && product.isOwner,
+    expiryStatusClass: daysUntilExpiry < 0 
+      ? 'product-status-expired' 
+      : daysUntilExpiry <= 3 && daysUntilExpiry >= 0 
+        ? 'product-status-warning' 
+        : 'product-status-fresh'
+  }), [daysUntilExpiry, viewMode, product.isOwner]);
 
   const handleItemClick = (e: React.MouseEvent) => {
     if (selectionMode && onSelect && !(e.target as HTMLElement).closest('.action-buttons')) {
@@ -151,17 +148,17 @@ const ProductListItem: React.FC<ProductListItemProps> = ({
         
         {product.category && (
           <div className="category-tag">
-            {getCategoryTranslation(product.category)}
+            {categoryTranslation}
           </div>
         )}
         
         <div className="expiry-text">
           <IonIcon 
             icon={calendar} 
-            className={getExpiryStatusClass()}
+            className={expiryStatusClass}
           />
           <IonText 
-            className={getExpiryStatusClass()}
+            className={expiryStatusClass}
           >
             {expiryText}
           </IonText>
