@@ -17,7 +17,7 @@ export const useShoppingList = (onRefreshNeeded?: () => void) => {
   const [searchText, setSearchText] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('createdAt');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
-  const [showCompleted, setShowCompleted] = useState(false);
+  const [showCompleted, setShowCompleted] = useState(true);
 
   useEffect(() => {
     const currentUserId = auth.currentUser?.uid;
@@ -29,17 +29,29 @@ export const useShoppingList = (onRefreshNeeded?: () => void) => {
 
     try {
       const unsubscribe = ShoppingListService.subscribeToUserItems((items: ShoppingListItem[]) => {
+        console.log('Received items from Firestore:', items); // Debug log
         const myItems = items.filter(item => item.userId === currentUserId);
         const sharedItems = items.filter(item => item.userId !== currentUserId);
         
+        console.log('Filtered items:', { myItems, sharedItems }); // Debug log
+        
         setMyItems(myItems);
         setSharedItems(sharedItems);
+        
+        // Initialize filtered items immediately
+        const pendingMyItems = myItems.filter(item => !item.completed);
+        const pendingSharedItems = sharedItems.filter(item => !item.completed);
+        
+        setFilteredMyItems(pendingMyItems);
+        setFilteredSharedItems(pendingSharedItems);
+        
         setError(null);
         setLoading(false);
       });
 
       return () => unsubscribe();
     } catch (err) {
+      console.error('Error in subscription:', err); // Debug log
       setError(err instanceof Error ? err.message : 'Error subscribing to shopping list');
       setLoading(false);
     }
@@ -49,8 +61,7 @@ export const useShoppingList = (onRefreshNeeded?: () => void) => {
     const filterItems = (items: ShoppingListItem[]) => items.filter(item => {
       const matchesSearch = item.name.toLowerCase().includes(searchText.toLowerCase()) ||
                           (item.category?.toLowerCase().includes(searchText.toLowerCase()) ?? false);
-      const matchesCompleted = showCompleted || !item.completed;
-      return matchesSearch && matchesCompleted;
+      return matchesSearch;
     });
 
     const sortItems = (items: ShoppingListItem[]) => [...items].sort((a, b) => {
@@ -71,11 +82,12 @@ export const useShoppingList = (onRefreshNeeded?: () => void) => {
       return sortDirection === 'asc' ? comparison : -comparison;
     });
 
-    const filteredMy = filterItems(myItems);
-    const filteredShared = filterItems(sharedItems);
+    // Apply search filter and sort first
+    const filteredMy = sortItems(filterItems(myItems));
+    const filteredShared = sortItems(filterItems(sharedItems));
 
-    setFilteredMyItems(sortItems(filteredMy));
-    setFilteredSharedItems(sortItems(filteredShared));
+    setFilteredMyItems(filteredMy);
+    setFilteredSharedItems(filteredShared);
   }, [myItems, sharedItems, searchText, sortBy, sortDirection, showCompleted]);
 
   const addItem = useCallback(async (item: Omit<ShoppingListItem, 'id' | 'userId' | 'createdAt'>, language: string) => {
@@ -168,12 +180,16 @@ export const useShoppingList = (onRefreshNeeded?: () => void) => {
   }, [myItems, sharedItems, deleteItem, onRefreshNeeded]);
 
   const getCompletedItems = useCallback(() => {
-    return [...myItems, ...sharedItems].filter(item => item.completed);
+    const allItems = [...myItems, ...sharedItems];
+    return allItems.filter(item => item.completed);
   }, [myItems, sharedItems]);
 
   const getPendingItems = useCallback(() => {
-    return [...myItems, ...sharedItems].filter(item => !item.completed);
-  }, [myItems, sharedItems]);
+    return {
+      myPendingItems: filteredMyItems.filter(item => !item.completed),
+      sharedPendingItems: filteredSharedItems.filter(item => !item.completed)
+    };
+  }, [filteredMyItems, filteredSharedItems]);
 
   return {
     myItems: filteredMyItems,

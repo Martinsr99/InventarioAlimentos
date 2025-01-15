@@ -87,23 +87,12 @@ const Home: React.FC = () => {
 
   const handleRefreshAll = useCallback(async () => {
     try {
-      // Switch to inventory tab first
-      if (swiper && selectedSegment === 'shopping') {
-        swiper.slideTo(0);
-        setSelectedSegment('inventory');
-        // Wait for the slide transition to complete
-        setTimeout(async () => {
-          await loadProducts();
-          setUpdateTrigger(prev => prev + 1);
-        }, 300);
-      } else {
-        await loadProducts();
-        setUpdateTrigger(prev => prev + 1);
-      }
+      await loadProducts();
+      setUpdateTrigger(prev => prev + 1);
     } catch (error) {
       console.error('Error refreshing:', error);
     }
-  }, [loadProducts, swiper, selectedSegment]);
+  }, [loadProducts]);
 
   return (
     <IonPage>

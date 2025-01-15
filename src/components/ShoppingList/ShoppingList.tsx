@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
+import { auth } from '../../firebaseConfig';
 import {
   IonCard,
   IonCardContent,
@@ -50,7 +51,7 @@ const ShoppingList: React.FC<ShoppingListProps> = React.memo(({ onRefreshNeeded 
   } = useShoppingList(onRefreshNeeded);
 
   useEffect(() => {
-    filterAndSortItems(searchText, sortBy, sortDirection, false);
+    filterAndSortItems(searchText, sortBy, sortDirection, true);
   }, [filterAndSortItems, searchText, sortBy, sortDirection]);
 
   const handleRefresh = useCallback(async (event: CustomEvent<RefresherEventDetail>) => {
@@ -63,18 +64,18 @@ const ShoppingList: React.FC<ShoppingListProps> = React.memo(({ onRefreshNeeded 
 
   const handleSearchChange = useCallback((text: string) => {
     setSearchText(text);
-    filterAndSortItems(text, sortBy, sortDirection, false);
+    filterAndSortItems(text, sortBy, sortDirection, true);
   }, [filterAndSortItems, sortBy, sortDirection]);
 
   const handleSortByChange = useCallback((option: SortOption) => {
     setSortBy(option);
-    filterAndSortItems(searchText, option, sortDirection, false);
+    filterAndSortItems(searchText, option, sortDirection, true);
   }, [filterAndSortItems, searchText, sortDirection]);
 
   const handleSortDirectionChange = useCallback(() => {
     const newDirection = sortDirection === 'asc' ? 'desc' : 'asc';
     setSortDirection(newDirection);
-    filterAndSortItems(searchText, sortBy, newDirection, false);
+    filterAndSortItems(searchText, sortBy, newDirection, true);
   }, [filterAndSortItems, searchText, sortBy, sortDirection]);
 
   const handleAddItem = useCallback(async () => {
@@ -82,8 +83,11 @@ const ShoppingList: React.FC<ShoppingListProps> = React.memo(({ onRefreshNeeded 
     return Promise.resolve();
   }, []);
 
+  const pendingItems = getPendingItems();
+  console.log('Pending items:', pendingItems); // Debug log
+
   return (
-    <IonContent scrollY={true}>
+    <IonContent>
       <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
         <IonRefresherContent></IonRefresherContent>
       </IonRefresher>
@@ -93,7 +97,7 @@ const ShoppingList: React.FC<ShoppingListProps> = React.memo(({ onRefreshNeeded 
           <IonCardHeader>
             <IonCardTitle>{t('shoppingList.title')}</IonCardTitle>
           </IonCardHeader>
-          <IonCardContent className="shopping-list-content">
+          <IonCardContent>
             <AddShoppingItem onAdd={handleAddItem} />
             <IonCardTitle className="ion-margin-start">{t('shoppingList.pendingItemsTitle')}</IonCardTitle>                
             <ShoppingListFilters
@@ -112,17 +116,19 @@ const ShoppingList: React.FC<ShoppingListProps> = React.memo(({ onRefreshNeeded 
               <>
                 <ShoppingListContent
                   loading={false}
-                  myItems={getPendingItems()}
-                  sharedItems={[]}
+                  myItems={pendingItems.myPendingItems}
+                  sharedItems={pendingItems.sharedPendingItems}
                   onDelete={deleteItem}
                   onToggleCompletion={toggleItemCompletion}
                   onRefreshNeeded={onRefreshNeeded}
                 />
-                <CompletedItemsSection
-                  items={getCompletedItems()}
-                  onAddToInventory={moveToInventory}
-                  onDelete={deleteItem}
-                />
+                {getCompletedItems().length > 0 && (
+                  <CompletedItemsSection
+                    items={getCompletedItems()}
+                    onAddToInventory={moveToInventory}
+                    onDelete={deleteItem}
+                  />
+                )}
               </>
             )}
           </IonCardContent>

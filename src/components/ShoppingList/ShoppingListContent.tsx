@@ -160,26 +160,24 @@ const ShoppingListContent: React.FC<ShoppingListContentProps> = React.memo(({
   }
 
   return (
-    <>
-      <IonContent scrollY>
-        {myItems.length > 0 && (
-          <div className="section">
-            <h2 className="section-title">{t('shoppingList.myItems')}</h2>
-            <IonList>
-              {myItems.map(renderItem)}
-            </IonList>
-          </div>
-        )}
+    <div className="shopping-list-content">
+      {myItems.length > 0 && (
+        <div className="section">
+          <h2 className="section-title">{t('shoppingList.myItems')}</h2>
+          <IonList>
+            {myItems.map(renderItem)}
+          </IonList>
+        </div>
+      )}
 
-        {sharedItems.length > 0 && (
-          <div className="section">
-            <h2 className="section-title">{t('shoppingList.sharedItems')}</h2>
-            <IonList>
-              {sharedItems.map(renderItem)}
-            </IonList>
-          </div>
-        )}
-      </IonContent>
+      {sharedItems.length > 0 && (
+        <div className="section">
+          <h2 className="section-title">{t('shoppingList.sharedItems')}</h2>
+          <IonList>
+            {sharedItems.map(renderItem)}
+          </IonList>
+        </div>
+      )}
 
       {saveToInventory.isOpen && saveToInventory.item && (
         <SaveToInventoryModal
@@ -189,7 +187,7 @@ const ShoppingListContent: React.FC<ShoppingListContentProps> = React.memo(({
           item={saveToInventory.item}
         />
       )}
-    </>
+    </div>
   );
 });
 

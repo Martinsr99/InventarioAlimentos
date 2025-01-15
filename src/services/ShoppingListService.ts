@@ -68,7 +68,7 @@ export class ShoppingListService {
         userId: user.uid,
         sharedWith,
         createdAt: Timestamp.fromDate(new Date()),
-        completed: false
+        completed: item.completed ?? false
       };
 
       const docRef = await addDoc(collection(db, this.COLLECTION_NAME), itemData);
@@ -195,23 +195,37 @@ export class ShoppingListService {
 
     // Set up listener for owned items
     const unsubscribeOwned = onSnapshot(itemsQuery, (snapshot: QuerySnapshot<DocumentData>) => {
-      ownedItems = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data() as FirestoreShoppingListItem,
-        createdAt: doc.data().createdAt?.toDate() || new Date(),
-        sharedWith: doc.data().sharedWith || []
-      }));
+      ownedItems = snapshot.docs.map(doc => {
+        const data = doc.data() as FirestoreShoppingListItem;
+        return {
+          id: doc.id,
+          name: data.name,
+          quantity: data.quantity,
+          category: data.category,
+          completed: data.completed ?? false,
+          userId: data.userId,
+          sharedWith: data.sharedWith || [],
+          createdAt: data.createdAt?.toDate() || new Date()
+        };
+      });
       callback([...ownedItems, ...sharedItems]);
     });
 
     // Set up listener for shared items
     unsubscribeShared = onSnapshot(sharedItemsQuery, (snapshot: QuerySnapshot<DocumentData>) => {
-      sharedItems = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data() as FirestoreShoppingListItem,
-        createdAt: doc.data().createdAt?.toDate() || new Date(),
-        sharedWith: doc.data().sharedWith || []
-      }));
+      sharedItems = snapshot.docs.map(doc => {
+        const data = doc.data() as FirestoreShoppingListItem;
+        return {
+          id: doc.id,
+          name: data.name,
+          quantity: data.quantity,
+          category: data.category,
+          completed: data.completed ?? false,
+          userId: data.userId,
+          sharedWith: data.sharedWith || [],
+          createdAt: data.createdAt?.toDate() || new Date()
+        };
+      });
       callback([...ownedItems, ...sharedItems]);
     });
 
