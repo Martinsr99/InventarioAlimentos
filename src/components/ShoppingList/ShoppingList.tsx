@@ -44,15 +44,10 @@ const ShoppingList: React.FC<ShoppingListProps> = React.memo(({ onRefreshNeeded 
     toggleItemCompletion,
     deleteCompletedItems,
     filterAndSortItems,
-    loadItems,
     moveToInventory,
     getCompletedItems,
     getPendingItems
   } = useShoppingList(onRefreshNeeded);
-
-  useEffect(() => {
-    loadItems();
-  }, [loadItems]);
 
   useEffect(() => {
     filterAndSortItems(searchText, sortBy, sortDirection, false);
@@ -60,11 +55,11 @@ const ShoppingList: React.FC<ShoppingListProps> = React.memo(({ onRefreshNeeded 
 
   const handleRefresh = useCallback(async (event: CustomEvent<RefresherEventDetail>) => {
     try {
-      await loadItems();
+      onRefreshNeeded?.();
     } finally {
       event.detail.complete();
     }
-  }, [loadItems]);
+  }, []);
 
   const handleSearchChange = useCallback((text: string) => {
     setSearchText(text);
@@ -82,9 +77,10 @@ const ShoppingList: React.FC<ShoppingListProps> = React.memo(({ onRefreshNeeded 
     filterAndSortItems(searchText, sortBy, newDirection, false);
   }, [filterAndSortItems, searchText, sortBy, sortDirection]);
 
-  const handleAddItem = useCallback(() => {
-    return loadItems();
-  }, [loadItems]);
+  const handleAddItem = useCallback(async () => {
+    // No need to manually refresh since we have real-time updates
+    return Promise.resolve();
+  }, []);
 
   return (
     <IonContent scrollY={true}>
@@ -120,7 +116,6 @@ const ShoppingList: React.FC<ShoppingListProps> = React.memo(({ onRefreshNeeded 
                   sharedItems={[]}
                   onDelete={deleteItem}
                   onToggleCompletion={toggleItemCompletion}
-                  loadItems={loadItems}
                   onRefreshNeeded={onRefreshNeeded}
                 />
                 <CompletedItemsSection

@@ -56,7 +56,8 @@
   --min-height: auto;
   --ripple-color: transparent;
   margin: 0;
-  height: 100px; /* Match itemSize in FixedSizeList */
+  height: auto;
+  min-height: 100px;
 }
 
 /* Ocultar la flecha del IonItem */
@@ -86,6 +87,8 @@
   font-weight: 500;
   margin-bottom: 8px;
   color: var(--ion-text-color) !important;
+  white-space: normal;
+  overflow: visible;
 }
 
 .product-list-card ion-label p {
@@ -110,6 +113,9 @@
   gap: 4px;
   color: var(--ion-text-color) !important;
   margin: 4px 0;
+  white-space: normal;
+  overflow: visible;
+  flex-wrap: wrap;
 }
 
 .product-list-card ion-button {

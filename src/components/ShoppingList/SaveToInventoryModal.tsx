@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   IonModal,
   IonHeader,
@@ -11,10 +11,11 @@ import {
   IonInput,
   IonSelect,
   IonSelectOption,
-  IonButtons,
+  IonButtons
 } from '@ionic/react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { ShoppingListItem } from '../../services/ShoppingListService';
+import DateSelector from '../Products/AddProduct/DateSelector';
 
 interface SaveToInventoryModalProps {
   isOpen: boolean;
@@ -30,9 +31,9 @@ export const SaveToInventoryModal: React.FC<SaveToInventoryModalProps> = ({
   item,
 }) => {
   const { t } = useLanguage();
-  const [expiryDate, setExpiryDate] = useState<string>(
-    new Date().toISOString().split('T')[0]
-  );
+  const [expiryDate, setExpiryDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState<string>(expiryDate);
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [location, setLocation] = useState<string>('');
 
   const handleSave = () => {
@@ -61,14 +62,25 @@ export const SaveToInventoryModal: React.FC<SaveToInventoryModalProps> = ({
             <IonInput value={item.quantity} readonly />
           </IonItem>
 
-          <IonItem>
-            <IonLabel position="stacked">{t('products.expiryDate')}</IonLabel>
-            <IonInput
-              type="date"
-              value={expiryDate}
-              onIonChange={e => setExpiryDate(e.detail.value || '')}
-            />
-          </IonItem>
+          <DateSelector
+            expiryDate={expiryDate}
+            selectedDate={selectedDate}
+            isOpen={isDatePickerOpen}
+            onOpen={() => setIsDatePickerOpen(true)}
+            onCancel={() => {
+              setSelectedDate(expiryDate);
+              setIsDatePickerOpen(false);
+            }}
+            onConfirm={() => {
+              setExpiryDate(selectedDate);
+              setIsDatePickerOpen(false);
+            }}
+            onDateChange={(value) => {
+              if (value) {
+                setSelectedDate(typeof value === 'string' ? value : value[0]);
+              }
+            }}
+          />
 
           <IonItem>
             <IonLabel position="stacked">{t('products.location')}</IonLabel>

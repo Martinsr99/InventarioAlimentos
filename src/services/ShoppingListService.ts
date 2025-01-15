@@ -1,5 +1,20 @@
 import { db, auth } from '../firebaseConfig';
-import { collection, addDoc, deleteDoc, doc, updateDoc, getDocs, getDoc, query, where, Timestamp, writeBatch } from 'firebase/firestore';
+import { 
+  collection, 
+  addDoc, 
+  deleteDoc, 
+  doc, 
+  updateDoc, 
+  getDocs, 
+  getDoc, 
+  query, 
+  where, 
+  Timestamp, 
+  writeBatch,
+  onSnapshot,
+  QuerySnapshot,
+  DocumentData
+} from 'firebase/firestore';
 import { addUserProduct } from './UserProductsService';
 import { searchPredefinedProducts } from './PredefinedProductsService';
 
@@ -159,44 +174,54 @@ export class ShoppingListService {
     }
   }
 
-  static async getUserItems() {
+  static subscribeToUserItems(callback: (items: ShoppingListItem[]) => void) {
     const user = auth.currentUser;
     if (!user) throw new Error('User not authenticated');
 
-    try {
-      // Get items where user is owner
-      const ownedItemsQuery = query(
-        collection(db, this.COLLECTION_NAME),
-        where('userId', '==', user.uid)
-      );
-      
-      const ownedItemsSnapshot = await getDocs(ownedItemsQuery);
-      const ownedItems = ownedItemsSnapshot.docs.map(doc => ({
+    // Create queries for both owned and shared items
+    const itemsQuery = query(
+      collection(db, this.COLLECTION_NAME),
+      where('userId', '==', user.uid)
+    );
+
+    const sharedItemsQuery = query(
+      collection(db, this.COLLECTION_NAME),
+      where('sharedWith', 'array-contains', user.uid)
+    );
+
+    let unsubscribeShared: (() => void) | null = null;
+    let ownedItems: ShoppingListItem[] = [];
+    let sharedItems: ShoppingListItem[] = [];
+
+    // Set up listener for owned items
+    const unsubscribeOwned = onSnapshot(itemsQuery, (snapshot: QuerySnapshot<DocumentData>) => {
+      ownedItems = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data() as FirestoreShoppingListItem,
         createdAt: doc.data().createdAt?.toDate() || new Date(),
         sharedWith: doc.data().sharedWith || []
       }));
+      callback([...ownedItems, ...sharedItems]);
+    });
 
-      // Get items shared with user
-      const sharedItemsQuery = query(
-        collection(db, this.COLLECTION_NAME),
-        where('sharedWith', 'array-contains', user.uid)
-      );
-      
-      const sharedItemsSnapshot = await getDocs(sharedItemsQuery);
-      const sharedItems = sharedItemsSnapshot.docs.map(doc => ({
+    // Set up listener for shared items
+    unsubscribeShared = onSnapshot(sharedItemsQuery, (snapshot: QuerySnapshot<DocumentData>) => {
+      sharedItems = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data() as FirestoreShoppingListItem,
         createdAt: doc.data().createdAt?.toDate() || new Date(),
         sharedWith: doc.data().sharedWith || []
       }));
+      callback([...ownedItems, ...sharedItems]);
+    });
 
-      return [...ownedItems, ...sharedItems] as ShoppingListItem[];
-    } catch (error) {
-      console.error('Error getting shopping list items:', error);
-      throw error;
-    }
+    // Return cleanup function for both listeners
+    return () => {
+      unsubscribeOwned();
+      if (unsubscribeShared) {
+        unsubscribeShared();
+      }
+    };
   }
 
   static async deleteCompletedItems() {

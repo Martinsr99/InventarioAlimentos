@@ -63,6 +63,7 @@ const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = React.memo((
   const timeoutRef = useRef<NodeJS.Timeout>();
   const longPressRef = useRef<NodeJS.Timeout>();
   const [isLongPress, setIsLongPress] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const loadSharedUsersInfo = useCallback(async (item: ShoppingListItem, event: Event) => {
     if (!user || !item.sharedWith?.length) return;
@@ -133,18 +134,31 @@ const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = React.memo((
   }, []);
 
   const handleAddAllToInventory = useCallback(async () => {
+    if (isProcessing) return;
+    
+    setIsProcessing(true);
     const itemsWithDates = Object.entries(itemStates)
       .filter(([_, state]) => state.expiryDate)
       .map(([id]) => id);
 
-    for (const itemId of itemsWithDates) {
-      const state = itemStates[itemId];
-      if (state?.expiryDate) {
-        await onAddToInventory(itemId, state.expiryDate, 'pantry');
+    try {
+      for (const itemId of itemsWithDates) {
+        const state = itemStates[itemId];
+        if (state?.expiryDate) {
+          await onAddToInventory(itemId, state.expiryDate, 'pantry');
+          // Remove the item from state immediately after it's added
+          setItemStates(prev => {
+            const newState = { ...prev };
+            delete newState[itemId];
+            return newState;
+          });
+        }
       }
+    } catch (error) {
+      console.error('Error adding items to inventory:', error);
+    } finally {
+      setIsProcessing(false);
     }
-
-    setItemStates({});
   }, [itemStates, onAddToInventory]);
 
   const handleBatchDateDetected = useCallback((itemId: string, date: Date) => {
@@ -198,7 +212,7 @@ const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = React.memo((
   }, [itemToDelete, onDelete]);
 
   const itemsWithoutDates = items.filter(item => !itemStates[item.id]?.expiryDate);
-  const hasItemsWithDates = Object.values(itemStates).some(state => state.expiryDate);
+  const hasItemsWithDates = items.some(item => itemStates[item.id]?.expiryDate);
 
   if (items.length === 0) return null;
 
@@ -328,6 +342,26 @@ const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = React.memo((
                         }
                       }}
                       presentation="date"
+                      style={{
+                        '--background': 'var(--ion-background-color)',
+                        '--wheel-fade-background-rgb': 'var(--ion-background-color-rgb)',
+                        '--wheel-item-color': 'var(--ion-text-color)',
+                        '--wheel-selected-item-color': 'var(--ion-text-color)',
+                        '--wheel-selected-item-background': 'var(--ion-background-color)',
+                        '--highlight-background': 'var(--ion-background-color)',
+                        '--highlight-color': 'var(--ion-text-color)',
+                        '--wheel-highlight-background': 'var(--ion-background-color)',
+                        '--wheel-col-background': 'var(--ion-background-color)',
+                        '--wheel-item-font-size': '22px',
+                        '--wheel-item-padding-start': '20px',
+                        '--wheel-item-padding-end': '20px',
+                        '--wheel-selected-item-font-weight': '600',
+                        '--wheel-picker-option-background': 'var(--ion-background-color)',
+                        '--wheel-picker-option-selected-background': 'var(--ion-background-color)',
+                        '--wheel-picker-background': 'var(--ion-background-color)',
+                        '--wheel-fade-mask-background': 'var(--ion-background-color)',
+                        'background': 'var(--ion-background-color)'
+                      }}
                       preferWheel={true}
                       showDefaultButtons={false}
                       firstDayOfWeek={1}
@@ -350,7 +384,7 @@ const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = React.memo((
         <IonButton
           fill="solid"
           color="primary"
-          disabled={!hasItemsWithDates}
+          disabled={!hasItemsWithDates || isProcessing}
           onClick={handleAddAllToInventory}
           expand="block"
         >

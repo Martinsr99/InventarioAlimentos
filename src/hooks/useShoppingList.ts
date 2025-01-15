@@ -19,32 +19,31 @@ export const useShoppingList = (onRefreshNeeded?: () => void) => {
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [showCompleted, setShowCompleted] = useState(false);
 
-  const loadItems = useCallback(async () => {
+  useEffect(() => {
+    const currentUserId = auth.currentUser?.uid;
+    if (!currentUserId) {
+      setError('User not authenticated');
+      setLoading(false);
+      return;
+    }
+
     try {
-      setLoading(true);
-      const loadedItems = await ShoppingListService.getUserItems();
-      const currentUserId = auth.currentUser?.uid;
-      const myItems = loadedItems.filter(item => item.userId === currentUserId);
-      const sharedItems = loadedItems.filter(item => item.userId !== currentUserId);
-      
-      setMyItems(myItems);
-      setSharedItems(sharedItems);
-      setError(null);
+      const unsubscribe = ShoppingListService.subscribeToUserItems((items: ShoppingListItem[]) => {
+        const myItems = items.filter(item => item.userId === currentUserId);
+        const sharedItems = items.filter(item => item.userId !== currentUserId);
+        
+        setMyItems(myItems);
+        setSharedItems(sharedItems);
+        setError(null);
+        setLoading(false);
+      });
+
+      return () => unsubscribe();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error loading shopping list');
-    } finally {
+      setError(err instanceof Error ? err.message : 'Error subscribing to shopping list');
       setLoading(false);
     }
   }, []);
-
-  const mountedRef = useRef(false);
-
-  useEffect(() => {
-    if (!mountedRef.current) {
-      mountedRef.current = true;
-      loadItems();
-    }
-  }, [loadItems]);
 
   useEffect(() => {
     const filterItems = (items: ShoppingListItem[]) => items.filter(item => {
@@ -82,57 +81,52 @@ export const useShoppingList = (onRefreshNeeded?: () => void) => {
   const addItem = useCallback(async (item: Omit<ShoppingListItem, 'id' | 'userId' | 'createdAt'>, language: string) => {
     try {
       await ShoppingListService.addItem(item, language);
-      await loadItems();
       onRefreshNeeded?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error adding item');
       throw err;
     }
-  }, [loadItems, onRefreshNeeded]);
+  }, [onRefreshNeeded]);
 
   const deleteItem = useCallback(async (itemId: string) => {
     try {
       await ShoppingListService.deleteItem(itemId);
-      await loadItems();
       onRefreshNeeded?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error deleting item');
       throw err;
     }
-  }, [loadItems, onRefreshNeeded]);
+  }, [onRefreshNeeded]);
 
   const updateItem = useCallback(async (itemId: string, updates: Partial<ShoppingListItem>) => {
     try {
       await ShoppingListService.updateItem(itemId, updates);
-      await loadItems();
       onRefreshNeeded?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error updating item');
       throw err;
     }
-  }, [loadItems, onRefreshNeeded]);
+  }, [onRefreshNeeded]);
 
   const toggleItemCompletion = useCallback(async (itemId: string, completed: boolean) => {
     try {
       await ShoppingListService.toggleItemCompletion(itemId, completed);
-      await loadItems();
       onRefreshNeeded?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error toggling item completion');
       throw err;
     }
-  }, [loadItems, onRefreshNeeded]);
+  }, [onRefreshNeeded]);
 
   const deleteCompletedItems = useCallback(async () => {
     try {
       await ShoppingListService.deleteCompletedItems();
-      await loadItems();
       onRefreshNeeded?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error deleting completed items');
       throw err;
     }
-  }, [loadItems, onRefreshNeeded]);
+  }, [onRefreshNeeded]);
 
   const filterAndSortItems = useCallback((
     newSearchText: string,
@@ -151,7 +145,7 @@ export const useShoppingList = (onRefreshNeeded?: () => void) => {
       const item = [...myItems, ...sharedItems].find(i => i.id === itemId);
       if (!item) throw new Error('Item not found');
 
-      // Add to inventory
+      // Add to inventory first
       await addProduct({
         name: item.name,
         quantity: item.quantity,
@@ -162,8 +156,10 @@ export const useShoppingList = (onRefreshNeeded?: () => void) => {
         sharedWith: item.sharedWith || []
       });
 
-      // Delete from shopping list
+      // Only delete from shopping list if adding to inventory was successful
       await deleteItem(itemId);
+
+      // Call refresh after both operations are successful
       onRefreshNeeded?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error moving item to inventory');
@@ -190,7 +186,6 @@ export const useShoppingList = (onRefreshNeeded?: () => void) => {
     toggleItemCompletion,
     deleteCompletedItems,
     filterAndSortItems,
-    loadItems,
     moveToInventory,
     getCompletedItems,
     getPendingItems

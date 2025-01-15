@@ -90,7 +90,7 @@ const ProductListContent: React.FC<ProductListContentProps> = React.memo(({
   }
 
   return (
-    <IonContent className="product-list-content" scrollY>
+    <div className="product-list-content">
       <IonList>
         {filteredProducts.map((product) => (
           <ProductListItem
@@ -106,7 +106,7 @@ const ProductListContent: React.FC<ProductListContentProps> = React.memo(({
           />
         ))}
       </IonList>
-    </IonContent>
+    </div>
   );
 }, (prevProps, nextProps) => {
   // Comparación personalizada para evitar re-renderizados innecesarios

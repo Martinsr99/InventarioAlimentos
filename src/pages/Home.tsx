@@ -39,15 +39,21 @@ const Home: React.FC = () => {
   const [lastScrollY, setLastScrollY] = useState(0);
   const [scrollDirection, setScrollDirection] = useState<'up' | 'down'>('up');
 
+  // Load products when component mounts or segment changes
   useEffect(() => {
-    if (selectedSegment === 'inventory') {
-      loadProducts();
-    }
+    const loadData = async () => {
+      if (selectedSegment === 'inventory') {
+        await loadProducts();
+        setUpdateTrigger(prev => prev + 1);
+      }
+    };
+    loadData();
   }, [selectedSegment, loadProducts]);
 
   const handleSlideChange = () => {
     if (swiper) {
-      setSelectedSegment(swiper.activeIndex === 0 ? 'inventory' : 'shopping');
+      const newSegment = swiper.activeIndex === 0 ? 'inventory' : 'shopping';
+      setSelectedSegment(newSegment);
     }
   };
 
@@ -62,6 +68,7 @@ const Home: React.FC = () => {
   const handleRefresh = async (event: CustomEvent<RefresherEventDetail>) => {
     try {
       await loadProducts();
+      setUpdateTrigger(prev => prev + 1);
       event.detail.complete();
     } catch (error) {
       console.error('Error refreshing:', error);
@@ -72,12 +79,31 @@ const Home: React.FC = () => {
   const handleProductAdded = useCallback(async () => {
     try {
       await loadProducts();
-      // Forzar la actualización del ProductList
       setUpdateTrigger(prev => prev + 1);
     } catch (error) {
       console.error('Error updating products:', error);
     }
   }, [loadProducts]);
+
+  const handleRefreshAll = useCallback(async () => {
+    try {
+      // Switch to inventory tab first
+      if (swiper && selectedSegment === 'shopping') {
+        swiper.slideTo(0);
+        setSelectedSegment('inventory');
+        // Wait for the slide transition to complete
+        setTimeout(async () => {
+          await loadProducts();
+          setUpdateTrigger(prev => prev + 1);
+        }, 300);
+      } else {
+        await loadProducts();
+        setUpdateTrigger(prev => prev + 1);
+      }
+    } catch (error) {
+      console.error('Error refreshing:', error);
+    }
+  }, [loadProducts, swiper, selectedSegment]);
 
   return (
     <IonPage>
@@ -152,14 +178,14 @@ const Home: React.FC = () => {
               <div className="slide-content">
                 <AddProductForm onProductAdded={handleProductAdded} />
                 <ProductList 
-                  key={updateTrigger}
-                  onRefreshNeeded={loadProducts}
+                  key={`${selectedSegment}-${updateTrigger}`}
+                  onRefreshNeeded={handleRefreshAll}
                 />
               </div>
             </SwiperSlide>
             <SwiperSlide>
               <div className="slide-content">
-                <ShoppingList onRefreshNeeded={loadProducts} />
+                <ShoppingList onRefreshNeeded={handleRefreshAll} />
               </div>
             </SwiperSlide>
           </Swiper>

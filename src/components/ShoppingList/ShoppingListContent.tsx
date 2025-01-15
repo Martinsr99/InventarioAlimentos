@@ -29,7 +29,6 @@ interface ShoppingListContentProps {
   sharedItems: ShoppingListItem[];
   onDelete: (itemId: string) => void;
   onToggleCompletion: (itemId: string, completed: boolean) => void;
-  loadItems: () => Promise<void>;
   onRefreshNeeded?: () => void;
 }
 
@@ -44,7 +43,6 @@ const ShoppingListContent: React.FC<ShoppingListContentProps> = React.memo(({
   sharedItems,
   onDelete,
   onToggleCompletion,
-  loadItems,
   onRefreshNeeded,
 }) => {
   const { t } = useLanguage();
@@ -78,7 +76,6 @@ const ShoppingListContent: React.FC<ShoppingListContentProps> = React.memo(({
         await ShoppingListService.deleteItem(saveToInventory.item.id);
       }
 
-      await loadItems();
       setSaveToInventory({
         isOpen: false,
         item: null
@@ -86,7 +83,7 @@ const ShoppingListContent: React.FC<ShoppingListContentProps> = React.memo(({
     } catch (error) {
       console.error('Error saving to inventory:', error);
     }
-  }, [saveToInventory.item, loadItems]);
+  }, [saveToInventory.item]);
 
   const handleShare = useCallback(async (item: ShoppingListItem) => {
     if (!user) return;
