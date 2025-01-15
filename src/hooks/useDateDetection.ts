@@ -34,7 +34,6 @@ export const useDateDetection = (): UseDateDetectionResult => {
 
   const addDebugInfo = useCallback((info: string) => {
     setDebugInfo(prev => [info, ...prev.slice(0, 9)]);
-    console.log('Debug:', info);
   }, []);
 
   const initializeCamera = useCallback(async () => {

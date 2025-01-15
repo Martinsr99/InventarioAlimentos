@@ -84,7 +84,6 @@ const ShoppingList: React.FC<ShoppingListProps> = React.memo(({ onRefreshNeeded 
   }, []);
 
   const pendingItems = getPendingItems();
-  console.log('Pending items:', pendingItems); // Debug log
 
   return (
     <IonContent>

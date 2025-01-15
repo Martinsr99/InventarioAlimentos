@@ -25,13 +25,13 @@ import { BatchDateScanner } from './BatchDateScanner';
 import { ShoppingListService } from '../../services/ShoppingListService';
 import './CompletedItemsSection.css';
 
-interface CompletedItemsSectionProps {
+interface PendingInventoryProps {
   items: ShoppingListItem[];
   onAddToInventory: (itemId: string, expiryDate: string, location: string) => Promise<void>;
   onDelete: (itemId: string) => Promise<void>;
 }
 
-interface CompletedItemState {
+interface ItemState {
   expiryDate?: string;
 }
 
@@ -41,14 +41,14 @@ interface PopoverState {
   itemId: string;
 }
 
-const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = React.memo(({
+const PendingInventorySection: React.FC<PendingInventoryProps> = React.memo(({
   items,
   onAddToInventory,
   onDelete,
 }) => {
   const { t } = useLanguage();
   const user = auth.currentUser;
-  const [itemStates, setItemStates] = useState<Record<string, CompletedItemState>>({});
+  const [itemStates, setItemStates] = useState<Record<string, ItemState>>({});
   const [showDatePicker, setShowDatePicker] = useState<string | null>(null);
   const [tempDate, setTempDate] = useState<string>('');
   const [sharedUsersInfo, setSharedUsersInfo] = useState<{ [key: string]: { userId: string; email: string }[] }>({});
@@ -65,20 +65,36 @@ const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = React.memo((
   const longPressRef = useRef<NodeJS.Timeout>();
   const [isLongPress, setIsLongPress] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const buttonRef = useRef<HTMLIonButtonElement>(null);
+
+  const itemsWithoutDates = items.filter(item => !itemStates[item.id]?.expiryDate);
+  const itemsWithDates = items.filter(item => itemStates[item.id]?.expiryDate);
+  const hasItemsWithDates = itemsWithDates.length > 0;
+
+  // Efecto para quitar el foco del botón cuando se deshabilita
+  useEffect(() => {
+    if (!hasItemsWithDates || isProcessing) {
+      buttonRef.current?.blur();
+    }
+  }, [hasItemsWithDates, isProcessing]);
 
   // Reset itemStates when items change
   useEffect(() => {
     setItemStates(prev => {
       const newState = { ...prev };
-      // Remove states for items that no longer exist
+      const currentItemIds = new Set(items.map(item => item.id));
+      
+      // Eliminar estados de items que ya no existen
       Object.keys(newState).forEach(id => {
-        if (!items.find(item => item.id === id)) {
+        if (!currentItemIds.has(id)) {
           delete newState[id];
         }
       });
+      
       return newState;
     });
   }, [items]);
+
 
   const loadSharedUsersInfo = useCallback(async (item: ShoppingListItem, event: Event) => {
     if (!user || !item.sharedWith?.length) return;
@@ -135,6 +151,7 @@ const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = React.memo((
       }));
       setTempDate('');
       setShowDatePicker(null);
+      setIsProcessing(false); // Resetear el estado cuando se añade una nueva fecha
     }
   }, [tempDate]);
 
@@ -152,26 +169,29 @@ const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = React.memo((
     if (isProcessing) return;
     
     setIsProcessing(true);
-    const itemsWithDates = Object.entries(itemStates)
-      .filter(([id, state]) => state.expiryDate && items.find(item => item.id === id))
-      .map(([id]) => id);
 
     try {
+      const itemsWithDates = Object.entries(itemStates)
+        .filter(([id, state]) => state.expiryDate && items.find(item => item.id === id))
+        .map(([id]) => id);
+
       for (const itemId of itemsWithDates) {
         const state = itemStates[itemId];
         if (state?.expiryDate) {
-          await onAddToInventory(itemId, state.expiryDate, 'pantry');
-          setItemStates(prev => {
-            const newState = { ...prev };
-            delete newState[itemId];
-            return newState;
-          });
+          try {
+            await onAddToInventory(itemId, state.expiryDate, 'pantry');
+            setItemStates(prev => {
+              const newState = { ...prev };
+              delete newState[itemId];
+              return newState;
+            });
+          } catch (itemError) {
+            console.error(`Error adding item ${itemId} to inventory:`, itemError);
+          }
         }
       }
     } catch (error) {
       console.error('Error adding items to inventory:', error);
-    } finally {
-      setIsProcessing(false);
     }
   }, [itemStates, onAddToInventory, items]);
 
@@ -225,31 +245,30 @@ const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = React.memo((
     setItemToDelete(null);
   }, [itemToDelete, onDelete]);
 
-  const itemsWithoutDates = items.filter(item => !itemStates[item.id]?.expiryDate);
-  const hasItemsWithDates = items.length > 0 && items.some(item => itemStates[item.id]?.expiryDate);
-
   return (
     <div className="section">
       <div className="section-header">
         <h2 className="section-title">{t('shoppingList.pendingInventory')}</h2>
-        {itemsWithoutDates.length > 0 && (
-          <IonButton
-            fill="clear"
-            size="small"
-            onClick={() => {
-              setScanningItemId(null);
-              setShowBatchScanner(true);
-            }}
-          >
-            <IonIcon slot="icon-only" icon={camera} />
-          </IonButton>
-        )}
+        <div className="section-actions">
+          {itemsWithoutDates.length > 0 && (
+            <IonButton
+              fill="clear"
+              size="small"
+              onClick={() => {
+                setScanningItemId(null);
+                setShowBatchScanner(true);
+              }}
+            >
+              <IonIcon slot="icon-only" icon={camera} />
+            </IonButton>
+          )}
+        </div>
       </div>
 
       {items.length === 0 ? (
         <div className="empty-state">
           <IonText color="medium">
-            <p>{t('shoppingList.noCompletedItems')}</p>
+            <p>{t('shoppingList.noPendingInventory')}</p>
           </IonText>
         </div>
       ) : (
@@ -402,13 +421,14 @@ const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = React.memo((
           </div>
 
           <div className="add-to-inventory-container">
-            <IonButton
-              fill="solid"
-              color="primary"
-              disabled={!hasItemsWithDates || isProcessing}
-              onClick={handleAddAllToInventory}
-              expand="block"
-            >
+              <IonButton
+                ref={buttonRef}
+                fill="solid"
+                color="primary"
+                disabled={!hasItemsWithDates || isProcessing}
+                onClick={handleAddAllToInventory}
+                expand="block"
+              >
               {t('shoppingList.addToInventory')}
             </IonButton>
           </div>
@@ -459,6 +479,6 @@ const CompletedItemsSection: React.FC<CompletedItemsSectionProps> = React.memo((
   );
 });
 
-CompletedItemsSection.displayName = 'CompletedItemsSection';
+PendingInventorySection.displayName = 'PendingInventorySection';
 
-export default CompletedItemsSection;
+export default PendingInventorySection;

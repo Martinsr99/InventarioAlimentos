@@ -29,11 +29,9 @@ export const useShoppingList = (onRefreshNeeded?: () => void) => {
 
     try {
       const unsubscribe = ShoppingListService.subscribeToUserItems((items: ShoppingListItem[]) => {
-        console.log('Received items from Firestore:', items); // Debug log
         const myItems = items.filter(item => item.userId === currentUserId);
         const sharedItems = items.filter(item => item.userId !== currentUserId);
         
-        console.log('Filtered items:', { myItems, sharedItems }); // Debug log
         
         setMyItems(myItems);
         setSharedItems(sharedItems);

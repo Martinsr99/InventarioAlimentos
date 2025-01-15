@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback } from 'react';
 import {
   IonList,
   IonItem,
@@ -7,21 +7,10 @@ import {
   IonIcon,
   IonSpinner,
   IonText,
-  IonItemSliding,
-  IonItemOptions,
-  IonItemOption,
-  IonAlert,
-  IonPopover,
-  IonContent,
 } from '@ionic/react';
-import { trash, checkmarkCircle, checkmarkCircleOutline, archive, share } from 'ionicons/icons';
+import { trash, checkmarkCircle, checkmarkCircleOutline } from 'ionicons/icons';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { auth } from '../../firebaseConfig';
 import { ShoppingListItem } from '../../hooks/useShoppingList';
-import { getAcceptedShareUsers } from '../../services/FriendService';
-import { addProduct } from '../../services/InventoryService';
-import { ShoppingListService } from '../../services/ShoppingListService';
-import { SaveToInventoryModal } from './SaveToInventoryModal';
 
 interface ShoppingListContentProps {
   loading: boolean;
@@ -30,11 +19,6 @@ interface ShoppingListContentProps {
   onDelete: (itemId: string) => void;
   onToggleCompletion: (itemId: string, completed: boolean) => void;
   onRefreshNeeded?: () => void;
-}
-
-interface SaveToInventoryState {
-  isOpen: boolean;
-  item: ShoppingListItem | null;
 }
 
 const ShoppingListContent: React.FC<ShoppingListContentProps> = React.memo(({
@@ -46,102 +30,38 @@ const ShoppingListContent: React.FC<ShoppingListContentProps> = React.memo(({
   onRefreshNeeded,
 }) => {
   const { t } = useLanguage();
-  const user = auth.currentUser;
-  const [saveToInventory, setSaveToInventory] = useState<SaveToInventoryState>({
-    isOpen: false,
-    item: null
-  });
-
-  const handleSaveToInventoryClick = useCallback((item: ShoppingListItem) => {
-    setSaveToInventory({
-      isOpen: true,
-      item
-    });
-  }, []);
-
-  const handleSaveToInventory = useCallback(async (expiryDate: string, location: string) => {
-    if (!saveToInventory.item) return;
-
-    try {
-      await addProduct({
-        name: saveToInventory.item.name,
-        quantity: saveToInventory.item.quantity,
-        category: saveToInventory.item.category || '',
-        expiryDate,
-        location,
-        notes: '',
-      });
-
-      if (saveToInventory.item.id) {
-        await ShoppingListService.deleteItem(saveToInventory.item.id);
-      }
-
-      setSaveToInventory({
-        isOpen: false,
-        item: null
-      });
-    } catch (error) {
-      console.error('Error saving to inventory:', error);
-    }
-  }, [saveToInventory.item]);
-
-  const handleShare = useCallback(async (item: ShoppingListItem) => {
-    if (!user) return;
-
-    const friends = await getAcceptedShareUsers(user);
-    if (friends.length === 0) {
-      // Show no friends alert
-      return;
-    }
-
-    // Show share alert
-  }, [user]);
 
   const renderItem = useCallback((item: ShoppingListItem) => (
-    <IonItemSliding key={item.id}>
-      <IonItemOptions side="start">
-        <IonItemOption color="success" onClick={() => handleSaveToInventoryClick(item)}>
-          <IonIcon slot="icon-only" icon={archive} />
-        </IonItemOption>
-      </IonItemOptions>
-
-      <IonItem className={item.completed ? 'completed-item' : ''}>
-        <IonButton
-          fill="clear"
-          slot="start"
-          onClick={() => onToggleCompletion(item.id, !item.completed)}
-        >
-          <IonIcon
-            slot="icon-only"
-            icon={item.completed ? checkmarkCircle : checkmarkCircleOutline}
-            color={item.completed ? 'success' : 'medium'}
-          />
-        </IonButton>
-        <IonLabel className={item.completed ? 'completed-text' : ''}>
-          <h2>
-            {item.name}
-            <span style={{ marginLeft: '8px', color: 'var(--ion-color-medium)' }}>
-              x{item.quantity}
-            </span>
-          </h2>
-        </IonLabel>
-        <IonButton
-          fill="clear"
-          slot="end"
-          onClick={() => onDelete(item.id)}
-          color="danger"
-        >
-          <IonIcon slot="icon-only" icon={trash} />
-        </IonButton>
-      </IonItem>
-
-      <IonItemOptions side="end">
-        <IonItemOption color="primary" onClick={() => handleShare(item)}>
-          <IonIcon slot="icon-only" icon={share} />
-        </IonItemOption>
-      </IonItemOptions>
-    </IonItemSliding>
-  ), [onToggleCompletion, onDelete, handleSaveToInventoryClick, handleShare]);
+    <IonItem key={item.id} className={item.completed ? 'completed-item' : ''}>
+      <IonButton
+        fill="clear"
+        slot="start"
+        onClick={() => onToggleCompletion(item.id, !item.completed)}
+      >
+        <IonIcon
+          slot="icon-only"
+          icon={item.completed ? checkmarkCircle : checkmarkCircleOutline}
+          color={item.completed ? 'success' : 'medium'}
+        />
+      </IonButton>
+      <IonLabel className={item.completed ? 'completed-text' : ''}>
+        <h2>
+          {item.name}
+          <span style={{ marginLeft: '8px', color: 'var(--ion-color-medium)' }}>
+            x{item.quantity}
+          </span>
+        </h2>
+      </IonLabel>
+      <IonButton
+        fill="clear"
+        slot="end"
+        onClick={() => onDelete(item.id)}
+        color="danger"
+      >
+        <IonIcon slot="icon-only" icon={trash} />
+      </IonButton>
+    </IonItem>
+  ), [onToggleCompletion, onDelete]);
 
   if (loading) {
     return (
@@ -177,15 +97,6 @@ const ShoppingListContent: React.FC<ShoppingListContentProps> = React.memo(({
             {sharedItems.map(renderItem)}
           </IonList>
         </div>
-      )}
-
-      {saveToInventory.isOpen && saveToInventory.item && (
-        <SaveToInventoryModal
-          isOpen={true}
-          onDismiss={() => setSaveToInventory({ isOpen: false, item: null })}
-          onSave={handleSaveToInventory}
-          item={saveToInventory.item}
-        />
       )}
     </div>
   );
