@@ -161,7 +161,11 @@ const Home: React.FC = () => {
             longSwipesRatio={0.5}
             followFinger={true}
             keyboard={{ enabled: true }}
-            mousewheel={true}
+            mousewheel={{
+              forceToAxis: true,
+              sensitivity: 1,
+              releaseOnEdges: true
+            }}
           >
             <SwiperSlide>
               <div className="slide-content">
