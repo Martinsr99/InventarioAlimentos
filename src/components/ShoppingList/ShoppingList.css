@@ -54,8 +54,15 @@ ion-content::part(scroll) {
 }
 
 .shopping-list-content {
-  padding: 0;
   background: var(--ion-color-step-50);
+}
+
+.card-content-ios {
+  padding: 0 !important;
+}
+
+.ios.card-content-ios {
+  padding: 0 !important;
 }
 
 .add-shopping-item {

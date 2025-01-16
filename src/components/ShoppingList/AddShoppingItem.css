@@ -1,6 +1,12 @@
 .add-shopping-item {
   margin: 0 auto;
-  padding: 16px;
+}
+
+ion-content {
+  --padding-start: 0 !important;
+  --padding-end: 0 !important;
+  --padding-top: 0 !important;
+  --padding-bottom: 0 !important;
 }
 
 .add-shopping-item ion-item {
