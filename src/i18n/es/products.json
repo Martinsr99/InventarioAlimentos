@@ -66,5 +66,6 @@
   "stoppingScanner": "Deteniendo escáner...",
   "batchScan": "Escanear Múltiples Productos",
   "next": "Siguiente Producto",
-  "scanningProduct": "Producto {{current}} de {{total}}"
+  "scanningProduct": "Producto {{current}} de {{total}}",
+  "scan": "Escanear"
 }
